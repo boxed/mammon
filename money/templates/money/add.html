@@ -1,0 +1,36 @@
+{% extends base %}
+{% load i18n %}
+
+{% block content %}
+    <style>
+    textarea
+    {
+        height: 500px;
+    }
+	table {
+		width: 100%;
+	}
+	#body {
+		width: 95%;
+	}
+    </style>
+    
+    {% if invalid_lines %}
+        <h2>{% trans "Mammon could not parse the following lines:" %}</h2>
+        {% for line, error in invalid_lines %}
+            {{ line }}: {{ error }}<br />
+        {% endfor %}
+        <p />
+    {% endif %}
+
+    <form method="post" name="f">
+        <table>
+            {{ form }}
+            <tr><td></td><td><input type="submit" value="{% trans "Add" %}" id="Add" class="button" /></td></tr>
+        </table>
+    </form>
+
+	<script>
+		document.f.id_data.focus();
+	</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+.focusField {
+	background: white;
+	color: black;
+}
+
+.idleField {
+	background: #EEE;
+	color: black;
+}
+
+.defaultIdleField {
+	background: #EEE;
+	color: #5F5F5F;
+}

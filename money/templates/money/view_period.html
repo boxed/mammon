@@ -1,0 +1,116 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+	<script>
+		$(document).ready(function() {
+			$('#change').click(function() {
+				url = '/summary/{{ period }}/' + $('#year').val() + '/';
+				{% if period == "month" %}
+					url += $('#month').val() + '/';
+				{% endif %}
+				window.location = url;
+				return false;
+			});
+		});
+	</script>
+	
+    <p>
+    
+    <a href="/summary/{{ period }}/{{ previous_year }}/{% if period == "month" %}{{ previous_month }}/{% endif %}" class="button">&lt;&lt; {% trans "Previous period" %}</a>
+    {% if next_period %}<a href="/summary/{{ period }}/{{ next_year }}/{% if period == "month" %}{{ next_month }}/{% endif %}" class="button">{% trans "Next period" %} &gt;&gt;</a>{% endif %}
+    
+    </p>
+
+    <form>
+        <label>{% trans "Period" %}:</label>
+        <input id="year" name="year" value="{{ year }}" />
+		{% if period == "month" %}
+        	<input id="month" name="month" value="{{ month }}" />
+		{% endif %}
+        <button class="button" id="change">{% trans "Change" %}</button>
+    </form>
+
+	{% if transactions %}
+	<table style="margin-top: 10px;">
+		<thead>
+			<tr>
+				<th>{% trans "Category" %}</th>
+				<th>{% trans "Sum" %}</th>
+				<th>{% trans "Part" %}</th>
+				{% if period == "year" %}
+					<th>{% trans "Monthly average" %}</th>
+				{% endif %}
+			</tr>
+		</thead>
+    	{% for account, categories in account_summaries %}
+			{% ifnotequal account.name " default" %}
+				<tr><td colspan="4">&nbsp;</td></tr>
+				<tr>
+					<td colspan="4"><h3 style="text-align:center; margin: 4px;">{{ account }}</h3></td>
+				</tr>
+			{% endifnotequal %}
+			{% for category, d in categories %}
+	            {% if d.sum %}
+	                <tr class="category_id_{{ category.id }} category_period_{{ category.period }}_month">
+	                    <td>{% if category.id %}<a href="/categories/{{ category.id }}/?start_time={{ start_time }}&amp;end_time={{ end_time }}">{{ category }}{% else %}{{ category }}{% endif %}</a></td>
+	                    <td class="amount">{{ d.sum|floatformat:2 }}</td>
+	                    <td>
+	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px; background: {% if d.sum|is_negative %}red{% else %}green{% endif %};">&nbsp;</div>
+	                    </td>
+						{% if period == "year" %}
+							<td class="amount">{{ d.sum|divide:12|floatformat:2 }}</td>
+						{% endif %}
+	                </tr>
+	            {% endif %}
+			{% endfor %}
+        	<tr>
+				<td><b>{% trans "Total" %}</b></td>
+				<td class="amount {{ account.lossgain }}">{{ account.total|floatformat:2 }}</td>
+				<td></td>
+				{% if period == "year" %}
+					<td class="amount {{ account.lossgain }}">{{ account.total|divide:12|floatformat:2 }}</td>
+				{% endif %}
+			</tr>
+	    {% endfor %}
+
+		{% ifnotequal account_summaries|length 1 %}
+			{% ifnotequal account_summaries|length 0 %}
+				<tr><td colspan="4">&nbsp;</td></tr>
+			{% endifnotequal %}
+    		<tr>
+				<td><b>{% trans "Total" %}</b></td>
+				<td class="amount {{ lossgain }}">{{ total|floatformat:2 }}</td>
+				<td></td>
+				{% if period == "year" %}
+					<td class="amount {{ lossgain }}">{{ total|divide:12|floatformat:2 }}</td>
+				{% endif %}
+			</tr>
+		{% endifnotequal %}
+   	</table>
+
+    <p>
+        <span class="button" onClick="$('#log').toggle();">{% trans "Details..." %}</span>
+    </p>
+
+    {% if projected_transactions %}
+    	<p>
+        	{% trans "Projected" %}: {{ projected_sum }} <span class="button" onClick="$('#projection_log').toggle();">{% trans "Details..." %}</span>
+		</p>
+
+        <div id="projection_log" style="display:none;">
+            {% curia_include "money/transaction_list.html" transactions=projected_transactions %}
+        </div>
+    {% endif %}
+
+    <div id="log" style="display:none;">
+        {% include "money/transaction_list.html" %}
+    </div>
+
+	{% else %}
+		<p>
+			{% trans "No transactions for this period" %}
+		</p>
+	{% endif %}
+    
+{% endblock %}

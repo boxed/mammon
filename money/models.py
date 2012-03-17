@@ -1,0 +1,69 @@
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils.translation import ugettext_lazy as _
+
+# a little hack to get curias change password page to redirect to the root
+def user_get_absolute_url(self):
+    return '/'
+User.get_absolute_url = user_get_absolute_url
+
+class Account(models.Model):
+    user = models.ForeignKey(User, verbose_name=_('User'))
+    name = models.CharField(blank=False, max_length=100, verbose_name=_('Name'))
+    hide = models.BooleanField(default=False, verbose_name=_('Hide'))
+    
+    def __unicode__(self):
+        return self.name
+
+class Category(models.Model):
+    PERIODS = (
+        (None, 'unknown'),
+        (1, 'monthly'),
+        (2, 'bi-monthly'),
+        (3, 'quarterly'),
+        (6, 'half-yearly'),
+        (12, 'yearly'),
+    )
+
+    user = models.ForeignKey(User, verbose_name=_('User'))
+    account = models.ForeignKey(Account, null=True, blank=True, default=None, verbose_name=_('Account'))
+    name = models.CharField(max_length=100, verbose_name=_('Name'))
+    matching_rules = models.TextField(blank=True, verbose_name=_('Matching rules'))
+    period = models.IntegerField(default=None, null=True, blank=True, choices=PERIODS, verbose_name=_('Period'))
+    
+    def __cmp__(self, other):
+        return cmp(self.name, other.name)
+    
+    def matches(self, transaction):
+        import re
+        for rule in self.matching_rules.splitlines():
+            if rule.strip() != '':
+                if re.compile('.*%s.*' % rule.strip(), re.IGNORECASE).match(transaction.description):
+                    return True
+        return False
+        
+    def __unicode__(self):
+        if self.name != '':
+            return self.name
+        else:
+            return '<no name>'
+    
+    class Meta:
+        ordering = ('name',)
+
+class Transaction(models.Model):
+    user = models.ForeignKey(User, verbose_name=_('User'))
+    account = models.ForeignKey(Account, null=True, blank=True, default=None)
+    amount = models.DecimalField(max_digits=19, decimal_places=2)
+    time = models.DateTimeField()
+    description = models.TextField()
+    category = models.ForeignKey(Category, blank=True, null=True)
+    virtual = models.BooleanField(default=False)
+    original_md5 = models.CharField(max_length=32, db_index=True)
+    
+    def __unicode__(self):
+        from time import strftime
+        return '%s %s %s' % (strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)
+        
+    class Meta:
+        ordering = ('time','description')

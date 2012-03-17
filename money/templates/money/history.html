@@ -1,0 +1,118 @@
+{% extends base %}
+{% load i18n %}
+
+{% block extra_head %}
+<!--[if IE]><script type="text/javascript" src="{{ MEDIA_URL }}js/excanvas.pack.js"></script><![endif]-->
+<script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.pack.js"></script>
+<style>
+.tickLabel
+{
+    white-space:nowrap;
+}
+</style>
+{% endblock %}
+
+{% block js_post_load %}{% endblock %}
+
+{% block content %}
+
+{% trans "Sum" %}: {{ total_sum }}
+
+<div align="center">
+    <div id="placeholder" style="width:600px; height:500px"></div>
+</div>
+
+<p>
+<form>
+    <label>{% trans "Number of months to show" %}:</label>
+    <input id="months" name="months" value="{{ months }}" />
+    <input type="submit" value="{% trans "Change" %}" class="button"/>
+</form>
+</p>
+
+<script id="source" language="javascript" type="text/javascript">
+
+function create_timestamp(year, month, day)
+{
+    var f = new Date();
+    f.setFullYear(year, month, day);
+    return f.getTime();
+}
+jQuery(function () {
+    dataset = [
+        {% for key, value in result.items %}
+            {
+                label: '{% ifequal key None %}{% trans "Default" %}{% else %}{{ key }}{% endifequal %}',
+                data:
+                [
+                    {% for point in value %}
+                        [
+                            create_timestamp({{ point.date.year }}, {{ point.date.month }}, {{ point.date.day }}),
+                            {{ point.amount }},
+                            '/accounts/{% if key %}{{ key.id }}{% else %}default{% endif %}/?year={{ point.date.year }}&month={{ point.date.month }}',
+                        ],
+                    {% endfor %}
+                ],
+                
+            },
+        {% endfor %}
+    ]
+
+    $.plot($("#placeholder"), dataset, {
+        grid: { hoverable: true, clickable: true, backgroundColor: "#fffaff"},
+        bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
+        xaxis: { mode: "time" },
+        selection: { mode: "xy" },
+    });
+
+    function showTooltip(x, y, contents) {
+        $('<div id="tooltip">' + contents + '</div>').css( {
+            position: 'absolute',
+            display: 'none',
+            top: y + 5,
+            left: x + 5,
+            border: '1px solid #fdd',
+            padding: '2px',
+            'background-color': '#fee',
+            opacity: 0.80
+        }).appendTo("body").fadeIn(200);
+    }
+
+    var previousPoint = null;
+    $("#placeholder").bind("plothover", function (event, pos, item) {
+        var d = new Date();
+        d.setTime(parseInt(pos.x.toFixed()));
+        $("#x").text((d.getYear()+1900)+'-'+(d.getMonth()+1));
+        $("#y").text(pos.y.toFixed(2));
+
+        if (item) {
+            if (previousPoint != item.datapoint) {
+                previousPoint = item.datapoint;
+
+                $("#tooltip").remove();
+                var x = item.datapoint[0].toFixed(2),
+                    y = item.datapoint[1].toFixed(2);
+                var d = new Date();
+                d.setTime(x);
+
+                showTooltip(item.pageX, item.pageY, y + ' (' + item.series.label + " " + (d.getYear()+1900)+'-'+(d.getMonth()+1)+')');
+            }
+        }
+        else {
+            $("#tooltip").remove();
+            previousPoint = null;
+        }
+    });
+
+    $("#placeholder").bind("plotclick", function (event, pos, item) {
+        if (item) {
+            $("#clickdata").text("You clicked point " + item.datapoint[2] + " in " + item.series.label + ".");
+            plot.highlight(item.series, item.datapoint);
+        }
+    });
+});
+</script>
+
+<div id="clickdata"></div>
+
+{% endblock %}

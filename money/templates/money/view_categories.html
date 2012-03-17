@@ -1,0 +1,14 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+    {% if categories %}
+        <div style="text-align:left; display:table; margin-left:auto; margin-right:auto;">
+        {% for category in categories %}
+            <a href="{{ category.id }}/">{{ category }}</a><br />
+        {% endfor %}
+        </div>
+    {% else %}
+        {% blocktrans %}No categories defined yet. <a href="/add/">Add some transactions</a> then go to the <a href="/">Home</a> page to create categories.{% endblocktrans %}
+    {% endif %}
+{% endblock %}

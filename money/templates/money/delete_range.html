@@ -1,0 +1,20 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+
+<script type="text/javascript" src="http://eldmyra.se/media/js/core.js"></script>
+<script type="text/javascript" src="http://eldmyra.se/media/js/admin/RelatedObjectLookups.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}js/calendar-picker.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}js/DateTimeShortcuts.js"></script>
+
+{% if message %}<h3>{{ message }}</h3>{% endif %}
+
+    <form method="post">
+        <table>
+            {{ form }}
+        </table>
+        
+        <input type="submit" value="{% trans "Delete range" %}" class="button" />
+    </form>
+{% endblock %}

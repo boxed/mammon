@@ -1,0 +1,58 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+    <script>
+    	// imposed a max limit so we don't get some crazy amounts of splits that will make the browser slow/hang
+		var maxSplits = 100;
+		var values = new Array(maxSplits);
+		for (var i = 0; i != values.length; i++) {
+			values[i] = 0;
+		}
+        function update_rest()
+        {
+            rest = {{ transaction.amount }};
+            if (rest < 0) {
+                rest = -rest;
+            }
+			newValues = new Array();
+            $(".part").each(function() {
+                rest -= parseFloat($(this).val());
+				newValues.push($(this).val());
+            });
+			
+			for (var i = 0; i != newValues.length; i++) {
+				if (newValues[i] != undefined) {
+					values[i] = newValues[i];
+				}
+			}
+        
+            $('.rest').html('Rest: '+rest);
+        }
+
+        function parts_changed()
+        {
+			update_rest();
+            foo = ''
+            for (i = 0; i < parseInt($('#parts').val())-1 && i < maxSplits; i++) {
+				var value = 0;
+				value = values[i];
+                foo += '<input type="text" class="part" onKeyUp="update_rest()" name="part_'+i+'" value="'+value+'" /><br />';
+            }
+            $('#part_list').html(foo);
+            
+            update_rest();
+        }
+        
+    </script>
+
+    <form method="post">
+        {% blocktrans %}Split "{{ transaction }}" into <input type="text" name="parts" value="" id="parts" onKeyUp="parts_changed()"/> parts{% endblocktrans %}
+    
+        <div id="part_list">
+        </div>
+        <div id="rest"></div>
+
+        <input type="submit" value="{% trans "Split" %}" class="button" />
+    </form>
+{% endblock %}

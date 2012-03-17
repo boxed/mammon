@@ -1,0 +1,286 @@
+{% load auth %}
+{% include "curia.css" %}
+
+#utils-menu li {
+    display: inline;
+    padding: 0;
+    padding-left: 10px;
+    margin: 0;
+}
+#utils-menu a, #utils-menu span {
+    font-size: 15px;
+    text-decoration: none;
+}
+
+#id_navigation {
+    font-size: 12px;
+}
+
+#id_navigation div h2 {
+    font-size: 14px;
+}
+
+#id_navigation div a {
+}
+
+#header {
+}
+
+#header-title {
+    line-height: 30px;
+    padding-top: 15px;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+#global-menu {
+    border-bottom: 4px solid #e3e3e3;
+    padding: 7px;
+}
+#global-menu li {
+    display: inline;
+    padding: 0;
+    padding-right: 10px;
+    margin: 0;
+}
+#global-menu a {
+    font-size: 16px;
+    text-decoration: none;
+}
+
+#header-report-bug {
+}
+
+#main {
+}
+
+#header-util-links {
+    text-align: right;
+    float: left;
+    position: absolute;
+}
+
+#header-right {
+    float: right;
+    position: absolute;
+    text-align: right;
+    right: 15px;
+    top: 13px;
+}
+
+#header-report-bug {
+    margin-bottom: 3px;
+    margin-right: 5px;
+}
+#header-report-bug a {
+    color: #fff;
+    font-size: 15px;
+    text-decoration: none;
+}
+
+/********/
+
+body {
+    font-family: Verdana;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.button {
+    background-image: url();
+    border: 2px solid #999;
+    padding: 2px 6px 2px 6px;
+}
+
+#header .button {
+    font-size: 16px;
+    padding: 4px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#header {
+    text-align: center;
+    padding: 0;
+    background: #f0f0f0;
+}
+
+#main {
+}
+
+#body {
+    padding-top: 20px;
+    text-align: center;
+}
+
+#body:first-child {
+    margin: 15px;
+    text-align: left;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+    padding-top: 0px
+}
+
+table
+{ 
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
+h1, h2, h3, h4
+{
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+#header-util-links {
+    padding: 5px;
+    padding-right: 10px;
+}
+
+#header-right {
+    padding-top: 10px;
+}
+
+#body-left, #body-right{
+    width: auto;
+}
+
+.highlighted {
+    background: #EEF;
+}
+
+table {
+    background: #E7E7E7;
+    border: 1px solid #AAA;
+    border-spacing:1px;
+}
+td {
+    background: white;
+}
+
+.amount {
+    text-align: right;
+    white-space:nowrap;
+}
+
+.loss {
+    background: red;
+    color: white;
+}
+.gain {
+    background: green;
+    color: white;
+}
+.time 
+{
+    white-space:nowrap;
+}
+textarea {
+    width: 100%;
+    height: 500px;
+}
+/*.category_period_unknown td {
+    background: #FEE;                
+}*/
+.category_period_2_month td, .category_period_3_month td, .category_period_6_month td, .category_period_12_month td {
+    background: #EEE;                
+}
+
+.category_period_1_month td {
+    color: #AAA;
+}
+
+#year {
+    width: 32px;
+}
+
+#month {
+    width: 18px;
+}
+
+#login_box table, #login_box table td {
+    width: auto;
+    background: transparent;
+    border: 0;
+}
+
+.form, .form td {
+    background: transparent;
+    border: 0;
+}
+
+textarea
+{
+    height: 150px;
+}
+
+th {
+    text-align: right;
+}
+
+thead th {
+    text-align: center;
+    font-size: 12px;
+}
+
+#id_edit_details {
+    display: none;
+}
+
+#id_menu_logout {
+    opacity: 0.5;
+}
+
+.dialog {
+    position: absolute;
+    left: 0;
+    top: 0;
+    /*z-index = this.overlay.style.zIndex + 1;*/
+}
+
+/** PAGINATOR **/
+.paginator
+{
+    text-align: center;
+    clear: both;
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+
+.paginator .prev-na,
+.paginator .next-na {
+    padding: 2px;
+    color: #d1d1ba;
+}
+
+.paginator .prev a, .paginator .next a {
+    color: #000;
+    padding: 2px;
+    margin: 1px 3px;
+}
+
+.paginator .page a, .paginator .curr {
+    padding: 2px;
+    color: #000;
+    margin: 1px 3px;
+}
+
+.paginator .curr { 
+    background-color: #dfddce;
+    color: #664;
+    border: 1px solid #d1d1ba;
+    font-weight: bold;
+}
+
+.paginator a:hover {
+    color: #000;
+    border: 1px solid #664;
+    margin: 0 2px;
+    text-decoration: none;
+}

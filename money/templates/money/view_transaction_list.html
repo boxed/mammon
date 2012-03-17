@@ -1,0 +1,8 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+    {% include "money/transaction_list.html" %}
+
+	{% digg_paginator %}
+{% endblock %}

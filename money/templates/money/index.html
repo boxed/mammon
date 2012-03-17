@@ -1,0 +1,32 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+    {% if transactions %}
+        {% trans "Uncategorized transactions" %}: {{ unmatched_count }}<br />
+    
+        {% include "money/transaction_list.html" %}
+        <h2>{% trans "New category" %}</h2>
+        <form action="/categories/add/" method="post">
+            <table class="form">
+                <tr><td><label for="name">{% trans "Name" %}:</label></td><td><input type="text" id="name" name="name" /></td></tr>
+                <tr><td><label for="id_matching_rules">{% trans "Patterns" %}:</label></td><td><textarea style="height: 150px; width: 200px;" name="match" id="id_matching_rules" rows="3" cols="5" onKeyUp="highlight()"></textarea> <span class="help_text"><span class="help-pointer"></span>{% trans "One pattern per line. Note that the matching is case sensitive." %}</span> </td></tr>
+                <tr><td><label for="period">{% trans "Repeats every" %} </label></td><td><input type="text" id="period" name="period" value="-"/> {% trans "months" %} <span class="help_text"><span class="help-pointer"></span>{% trans "Repeating costs are displayed differently in the summary" %}</span></td></tr>
+                <tr><td></td><td><input type="submit" value="{% trans "Add" %}" class="button" /></td></tr>
+            </table>
+        </form>
+        
+    {% else %}
+        {% if last_transaction %}
+            {% trans "All transactions have been classified" %}
+            <p />
+            <div style="font-size: 80%; padding-top: 20px">
+                {% trans "Latest transaction" %}: {{ last_transaction.time|relative_date }} 
+                <a href="/transactions/" class="button">{% trans "full transaction log" %}</a>
+            </div>
+        {% else %}
+            {% blocktrans %}No transactions added. Go to <a href="/add/">Add Transactions</a> to add some data.{% endblocktrans %}
+        {% endif %}
+    {% endif %}
+    
+{% endblock %}
