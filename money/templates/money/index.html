@@ -1,11 +1,15 @@
-{% extends base %}
+{% extends 'base.html' %}
 {% load i18n %}{% load auth %}
+
+{% block body_id %}id_classification_page{% endblock %}
 
 {% block content %}
     {% if transactions %}
         {% trans "Uncategorized transactions" %}: {{ unmatched_count }}<br />
     
-        {% include "money/transaction_list.html" %}
+        {% include "money/transaction_list.html" with hide_commands="True" hide_classification="True" %}
+
+        <!--
         <h2>{% trans "New category" %}</h2>
         <form action="/categories/add/" method="post">
             <table class="form">
@@ -15,6 +19,25 @@
                 <tr><td></td><td><input type="submit" value="{% trans "Add" %}" class="button" /></td></tr>
             </table>
         </form>
+        -->
+
+        <div id="id_classification_bar_bottom_space"></div>
+
+        <div id="id_classification_bar">
+            <button id="id_next" class="button" onclick="transaction_marker_up()">{% trans "Next" %} <span class="hotkey">{{ ctrl_label }}K</span></button>
+            <button id="id_prev" class="button" onclick="transaction_marker_down()">{% trans "Previous" %} <span class="hotkey">{{ ctrl_label }}J</span></button>
+
+            <label for="id_category">{% trans "Category" %}:</label> <input id="id_category" type="text"/>
+            {% ifnotequal accounts|length 0 %}
+                <label for="id_account">{% trans "Account" %}:</label> <input id="id_account" type="text"/>
+            {% endifnotequal %}
+            <br />
+
+            <button id="id_only_this" class="button" onclick="only_this()">{% blocktrans %}Only this{% endblocktrans %} <span class="hotkey">{{ enter_label }}</span></button>
+            <button id="id_all_like_this" class="button" onclick="all_like_this()">{% blocktrans %}All like this{% endblocktrans %} <span class="hotkey">{{ ctrl_label }}{{ enter_label }}</span></button>
+            <button id="id_delete" class="button" onclick="delete_transaction()">{% trans "Delete" %} <span class="hotkey">{{ ctrl_label }}D</span></button>
+            <button id="id_split" class="button" onclick="split_transaction()">{% trans "Split" %} <span class="hotkey">{{ ctrl_label }}S</span></button>
+        </div>
         
     {% else %}
         {% if last_transaction %}
@@ -29,4 +52,122 @@
         {% endif %}
     {% endif %}
     
+{#    <span id="id_row_marker_left" style="display: None">&#x2794;</span>#}
+
+    <script>
+        function only_this() {
+            $.ajax({
+                url: '/transactions/'+transaction_id+'/edit/properties/',
+                type: 'POST',
+                data: {
+                    category: $('#id_category').val(),
+                    account: $('#id_account').val()
+                },
+                success: function() {
+                    transaction_marker_up();
+                    $('[transaction_id='+transaction_id+']').remove();
+                    $('#id_category').val('');
+                    $('#id_account').val('');
+                    window.setTimeout(function() {
+                        // Hack to get around that somehow inlinecomplete seems to be screwing with focus
+                        $('#id_category').focus();
+                    }, 100);
+                }
+            });
+        }
+        function all_like_this() {
+            // TODO: implement
+            var id = $('.row_marker').attr('transaction_id');
+            $.get('/transactions/'+id+'/all_like_this/', success=function(text){
+                var buttons = {};
+                buttons[gettext("Cancel")] = function() { $(this).dialog("close"); };
+                buttons[gettext("Save")] = function() { $('#id_split_form').submit(); };
+                $(text).dialog({
+                    buttons: buttons,
+                    width: 800,
+                    height: 500
+                });
+            });
+        }
+        $(document).ready(function(){
+            $('#id_category').focus();
+            $("#id_category").inlineComplete({terms: [{% for category in categories %}"{{ category }}",{% endfor %}]});
+            $("#id_account").inlineComplete({terms: [{% for account in accounts %}"{{ account }}",{% endfor %}]});
+
+            function update_row_markers() {
+                var pos = $('.row_marker').offset();
+                $('#id_row_marker_left').css({
+                    position: "absolute",
+                    marginLeft: 0,
+                    marginTop: 0,
+                    top: pos.top,
+                    left: pos.left-$('#id_row_marker_left').width()-4,
+                    zIndex: -100
+                });
+
+//                var end_subpos = $('.end_sub_mark').offset();
+//                $('#end_marker').css({
+//                    position: "absolute",
+//                    marginLeft: 0,
+//                    marginTop: 0,
+//                    top: end_subpos.top+$('.end_mark').height()*0.5,
+//                    left: end_subpos.left+$('.end_sub_mark').width()-$('#end_marker').width()
+//                });
+            }
+
+            $($('#transaction_list tr')[$('#transaction_list tr').length-1]).addClass('row_marker');
+            $('.row_marker').intoViewport();
+            update_row_markers();
+            $('#id_row_marker_left').show();
+
+            $(document).keydown(function(e) {
+                if (!e.ctrlKey) {
+                    return;
+                }
+                var rows = $('#transaction_list tr');
+                var pos = rows.index($('.row_marker'));
+
+
+                switch (e.keyCode) {
+                    case 'K'.charCodeAt(0): // up
+                        transaction_marker_up();
+                        e.preventDefault();
+                        break;
+                    case 'J'.charCodeAt(0): // down
+                        transaction_marker_down();
+                        e.preventDefault();
+                        break;
+                    case 'D'.charCodeAt(0): // delete
+                        delete_transaction();
+                        e.preventDefault();
+                        break;
+                    case 'S'.charCodeAt(0): // split
+                        split_transaction();
+                        e.preventDefault();
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            });
+
+            $('input').keydown(function(e){
+                var transaction_id = $('.row_marker').attr('transaction_id');
+                switch (e.keyCode) {
+                    case 13: // (enter key)
+                        if (e.ctrlKey) {
+                            all_like_this();
+                        }
+                        else {
+                            only_this();
+                        }
+                        e.preventDefault();
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            });
+        });
+    </script>
 {% endblock %}

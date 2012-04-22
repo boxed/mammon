@@ -1,4 +1,4 @@
-{% extends base %}
+{% extends 'base.html' %}
 {% load i18n %}{% load auth %}
 
 {% block content %}
@@ -26,6 +26,13 @@
                     ]
                 });
         }
+        $('<div>{{ _("Are you sure you want to delete this category?") }}</div>').dialog({
+            buttons: {
+                '{{ _("Cancel") }}': function() { $(this).dialog("close"); },
+                '{{ _("Delete") }}': function() {window.location = '/categories/'+id+'/delete/?next='+window.location;}
+            }
+        });
+}
     </script>
     
 

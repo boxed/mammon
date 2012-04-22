@@ -1,4 +1,4 @@
-{% extends base %}
+{% extends 'base.html' %}
 {% load i18n %}{% load auth %}
 
 {% block content %}
@@ -53,7 +53,7 @@
 			{% for category, d in categories %}
 	            {% if d.sum %}
 	                <tr class="category_id_{{ category.id }} category_period_{{ category.period }}_month">
-	                    <td>{% if category.id %}<a href="/categories/{{ category.id }}/?start_time={{ start_time }}&amp;end_time={{ end_time }}">{{ category }}{% else %}{{ category }}{% endif %}</a></td>
+	                    <td>{% if category.id %}<a href="/categories/{{ category.id }}/?start_time={{ start_time|date:"Y-m-d" }}&amp;end_time={{ end_time|date:"Y-m-d" }}">{{ category }}{% else %}{{ category }}{% endif %}</a></td>
 	                    <td class="amount">{{ d.sum|floatformat:2 }}</td>
 	                    <td>
 	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px; background: {% if d.sum|is_negative %}red{% else %}green{% endif %};">&nbsp;</div>

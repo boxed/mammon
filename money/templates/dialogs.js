@@ -1,4 +1,4 @@
-var dlg = null;
+ var dlg = null;
 var escape_handler = null;
 var return_handler = null;
 
@@ -19,8 +19,8 @@ Dialog.Box = function(id) {
     }
 
     this.dialog_box = $('#'+id);
-    this.dialog_box.show = this.show.bind(this);
-    this.dialog_box.hide = this.hide.bind(this);
+    this.dialog_box.show = this.show;//this.show.bind(this);
+    this.dialog_box.hide = this.hide;//this.hide.bind(this);
 
     this.parent_element = this.dialog_box.parentNode;
     
@@ -94,9 +94,9 @@ function show_dialog(params)
 function add_dialog_button(button)
 {
     if (button.hotkey == "return")
-        return_handler = function(){ new_button.click(); return_handler = null; };
+        return_handler = function(){ button.click(); return_handler = null; };
     else if (button.hotkey == "escape")
-        escape_handler = function(){ new_button.click(); escape_handlers = null; };
+        escape_handler = function(){ button.click(); escape_handler = null; };
 
     // new_button.onclick = 'action' in button? function(){ button.action(); dlg.hide(); }: function(){ dlg.hide(); };
 

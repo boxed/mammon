@@ -14,16 +14,20 @@ SERVER_EMAIL = 'robot@eldmyra.se'
 
 SERVER_EMAIL = 'robot@eldmyra.se'
 
-ADMINS = (('Möller', 'boxed@killingar.net'),)
+ADMINS = (('MÃ¶ller', 'boxed@killingar.net'),)
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'mammon'             # Or path to database file if using sqlite3.
-DATABASE_USER = 'root'             # Not used with sqlite3.
-DATABASE_PASSWORD = '2oVGx8VwuqUfY'         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+try:
+    from settings_local import *
+except ImportError:
+    DOCUMENT_ROOT = '/var/www-python/kodare/'
+    DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+    DATABASE_NAME = 'mammon'             # Or path to database file if using sqlite3.
+    DATABASE_USER = 'root'             # Not used with sqlite3.
+    DATABASE_PASSWORD = '2oVGx8VwuqUfY'         # Not used with sqlite3.
+    DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
+    DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

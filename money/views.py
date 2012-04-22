@@ -1,17 +1,19 @@
 # coding=UTF8
-from curia.shortcuts import *
-from django.shortcuts import get_object_or_404
+import sys
+from datetime import datetime, timedelta
+from collections import Counter
+
+from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
+from django.template.context import RequestContext
 from django.utils.translation import ugettext as _
 from django.core.paginator import Paginator, InvalidPage
 from django.db.models.aggregates import Sum
 from curia import *
-from mammon.money.models import *
-from mammon.money import *
 from mammon import *
-import sys
-from datetime import datetime, timedelta
+from mammon.money import *
+from mammon.money.models import *
 
 SUPPORTED_BANKS = [
     ('Nordea', 'Nordea'), 
@@ -26,18 +28,18 @@ def index(request):
         last_transaction = Transaction.objects.filter(user=request.user).order_by('-time')[0]
     except:
         last_transaction = None
-    return render_to_response(request, 'money/index.html', 
-        {
+    return render_to_response('money/index.html',
+        RequestContext(request, {
             'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
             'unmatched_count':Transaction.objects.filter(user=request.user, category__isnull=True).count(),
             'transactions':Transaction.objects.filter(user=request.user, category__isnull=True),
             'last_transaction':last_transaction,
             'categories': Category.objects.filter(user=request.user),
-        })
+        }))
 
 @login_required
 def view_categories(request):
-    return render_to_response(request, 'money/view_categories.html', {'categories': Category.objects.filter(user=request.user)})
+    return render_to_response('money/view_categories.html', RequestContext(request, {'categories': Category.objects.filter(user=request.user)}))
 
 @login_required
 def delete_account(request, account_id):
@@ -95,7 +97,7 @@ def view_category(request, category_id, page='1'):
 
     page_size = 20
     paginator = Paginator(transactions, page_size)
-    return render_to_response(request, 'money/view_category.html', {
+    return render_to_response('money/view_category.html', RequestContext(request, {
         'paginator': paginator,
         'page': page,
         'base_url': '/categories/%d/' % category.id,
@@ -105,20 +107,19 @@ def view_category(request, category_id, page='1'):
         'categories': Category.objects.filter(user=request.user),
         'category': category,
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
-        })
+        }))
         
 @login_required
 def view_transaction_list(request, page='1'):
     page_size = 20
     paginator = Paginator(Transaction.objects.filter(user=request.user).order_by('-time'), page_size)
-    return render_to_response(request, 'money/view_transaction_list.html', {
+    return render_to_response('money/view_transaction_list.html', RequestContext(request, {
         'paginator': paginator,
         'page': page,
         'base_url': '/transactions/',
         'transactions': paginator.page(page).object_list,
         'categories': Category.objects.filter(user=request.user),
-        'base_url': '/transactions/',
-        })
+    }))
         
 def transactions_for_period(start_time, end_time, user):
     return list(Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time))
@@ -129,19 +130,21 @@ def create_summary(start_time, end_time, user):
     default_account = Account(name=' default')
     default_category = Category(name=' other')
     
-    def get_or_insert(dic, key, default={}):
+    def get_or_insert(dic, key, default=None):
+        if default is None:
+            default = {}
         if key not in dic:
             dic[key] = default
         return dic[key]
     
     for transaction in transactions:
         categories = get_or_insert(accounts, transaction.account or default_account, {})
-        if transaction.account == None or not transaction.account.hide:
+        if transaction.account is None or not transaction.account.hide:
             category = get_or_insert(categories, transaction.category or default_category, {})
             category['sum'] = category.get('sum', 0)+transaction.amount
 
     for account, categories in accounts.items():
-        if len(categories.items()) == 0:
+        if not len(categories.items()):
             del accounts[account]
             
     max_value = None
@@ -152,7 +155,7 @@ def create_summary(start_time, end_time, user):
     for account, categories in accounts.items():
         for category, values in categories.items():
             values['severity'] = 0
-            if max_value != 0:
+            if max_value:
                 values['severity'] = abs(values['sum'])/max_value
     
     for account, categories in accounts.items():
@@ -179,12 +182,12 @@ def view_summary(request, period='month', year=None, month=None):
         year = int(year)
     reference = datetime(int(year), int(month), 1)
 
-    start_time = get_start_of_period(reference, request.user)
-    end_time = get_end_of_period(start_time, request.user)
     if period == 'month':
-        pass
+        start_time = get_start_of_period(reference, request.user)
+        end_time = get_end_of_period(start_time, request.user)
     elif period == 'year':
-        start_time = start_time - timedelta(days=365)
+        start_time = datetime(int(year), 1, 1)
+        end_time = datetime(int(year)+1, 1, 1)
     else:
         raise Exception('Invalid period')
         
@@ -221,8 +224,8 @@ def view_summary(request, period='month', year=None, month=None):
         next_year, next_month = year+1, None
         next_period = year < datetime.now().year
         
-    return render_to_response(request, 'money/view_period.html', 
-        {
+    return render_to_response('money/view_period.html',
+        RequestContext(request, {
             'lossgain':lossgain,
             'account_summaries': accounts.items(),
             'total': total,
@@ -246,7 +249,7 @@ def view_summary(request, period='month', year=None, month=None):
             
             'transactions': transactions,
             'categories': Category.objects.filter(user=request.user),
-        })
+        }))
 
 @login_required
 def view_history(request):
@@ -266,7 +269,7 @@ def view_history(request):
         period = get_start_of_period(datetime(year, month, 1), request.user)
         when_statements += " when time > '%(year)d-%(month)d-%(day)d' then '%(year)d-%(month)d-%(day)d' \n" % {'year': period.year, 'month': period.month, 'day': period.day }
         month -= 1
-        if month == 0:
+        if not month:
             month = 12
             year -= 1
     
@@ -302,12 +305,12 @@ def view_history(request):
     sums = {}
     for key in result:
         sums[key] = sum([x.amount for x in result[key]])
-    return render_to_response(request, 'money/history.html', {'result': result, 'statement':statement, 'months':months.value, 'sums':sums, 'total_sum':sum(sums.values())})
+    return render_to_response('money/history.html', RequestContext(request, {'result': result, 'statement':statement, 'months':months.value, 'sums':sums, 'total_sum':sum(sums.values())}))
 
 @login_required
 def delete_transaction(request, transaction_id):
     Transaction.objects.get(pk=transaction_id, user=request.user).delete()
-    return HttpResponseRedirect(request.GET['next'])
+    return HttpResponseRedirect(request.REQUEST['next'] if 'next' in request.REQUEST else '/')
 
 @login_required
 def delete_empty_transactions(request):
@@ -321,14 +324,27 @@ def edit_transaction_description(request, transaction_id):
     transaction.description = smart_unicode(request.POST['new_content'])
     transaction.save()
     return HttpResponse(transaction.description)
-    
+
+@login_required
+def edit_transaction_properties(request, transaction_id):
+    from django.utils.encoding import smart_unicode
+    transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
+    if 'category' in request.POST and request.POST['category']:
+        category = Category.objects.get_or_create(user=request.user, name=request.POST['category'], defaults={})[0]
+        transaction.category = category
+    if 'description' in request.POST and request.POST['description']:
+        transaction.description = smart_unicode(request.POST['description'])
+    if 'account' in request.POST and request.POST['account']:
+        transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
+    transaction.save()
+    return HttpResponse('ok')
+
 @login_required
 def edit_transaction_category(request, transaction_id):
-    from django.utils.encoding import smart_unicode
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     try:
         category = Category.objects.get(pk=int(request.POST['new_content']), user=request.user)
-    except:
+    except Category.DoesNotExist:
         category = None
     transaction.category = category
     transaction.save()
@@ -336,11 +352,10 @@ def edit_transaction_category(request, transaction_id):
 
 @login_required
 def edit_transaction_account(request, transaction_id):
-    from django.utils.encoding import smart_unicode
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     try:
         account = Account.objects.get(pk=int(request.POST['new_content']), user=request.user)
-    except:
+    except Account.DoesNotExist:
         account = None
     transaction.account = account
     transaction.save()
@@ -433,7 +448,8 @@ def update_matching(request):
     return HttpResponseRedirect('/')
     
 class InvalidTransactionLogFormat(Exception):
-    def __init__(self, description):
+    def __init__(self, description, *args, **kwargs):
+        super(InvalidTransactionLogFormat, self).__init__(*args, **kwargs)
         self.description = description
         
     def __repr__(self):
@@ -443,96 +459,25 @@ class InvalidTransactionLogFormat(Exception):
         return self.__repr__()
     
 @login_required    
-def add_transactions(request):
-    from django import forms
-    class AddForm(forms.Form):
-        bank = forms.ChoiceField(choices=SUPPORTED_BANKS, help_text=_('To change the default, go to <a href="/settings/">settings</a>'))
-        data = forms.CharField(widget=forms.Textarea)
-        accept_duplicates = forms.BooleanField(widget=forms.HiddenInput, required=False)
-        
-    bank = get_bank_setting(request.user).value
-    
-    def standardize_number(s):
-        s = s.strip()
-        if len(s) > 3 and s[-3] == ',':
-            s = s.replace('.', '').replace(',', '.').replace(' ', '')
-        if s == '':
-            raise InvalidTransactionLogFormat('empty string as number')
-        else:
-            return float(s)
-        
+def add_transactions_old(request):
     invalid_lines = []
     if request.POST:
-        form = AddForm(request.POST)
-        
         duplicate_lines = []
 
-        if form.is_valid():
-            bank = form.cleaned_data['bank']
-            for line in form.cleaned_data['data'].splitlines():
+        if request.POST:
+            for line in request.POST['data'].splitlines():
                 if '\t' not in line: # ignore all non-table lines
                     continue
-                    
-                s = [x.strip() for x in line.split('\t')]
-                if len(s) < 3: # ignore lines that have too few fields to even theoretically have all required data
-                    continue
 
-                def assert_empty_entry(index):
-                    if s[index] != '': 
-                        raise InvalidTransactionLogFormat('Component %s not empty: "%s"' % (index, array[index])) # just for validation
-                try:
-                    if bank == 'Nordea':
-                        if len(s) < 5: raise InvalidTransactionLogFormat('incorrect number of, expected less than 5 got %s' % len(s)) # just for validation
-                        assert_empty_entry(0)
-                        date = datetime_from_string(s[1])
-                        description = s[2]
-                        nordea_category = s[3]
-                        amount = standardize_number(s[4])
-                        if len(s) > 5 and s[5] != '':
-                            total = standardize_number(s[5]) # just for validation
-                    elif bank == 'Handelsbanken':
-                        if len(s) != 7: raise InvalidTransactionLogFormat('incorrect number of entries, expected 7 got %s' % len(s)) # just for validation
-                        date = datetime_from_string(s[0])
-                        assert_empty_entry(1)
-                        description = s[2]
-                        assert_empty_entry(3)
-                        amount = standardize_number(s[4])
-                        assert_empty_entry(5)
-                        total = standardize_number(s[6]) # just for validation
-                    elif bank == 'SEB':
-                        if len(s) != 6: raise InvalidTransactionLogFormat('incorrect number of entries, expected 6 got %s' % len(s)) # just for validation
-                        date = datetime_from_string(s[0])
-                        date2 = datetime_from_string(s[1]) # just for validation
-                        # the transaction ID can also be "SKATT <year>" and "RÄNTA <year>" so let's ignore this check...
-                        #transaction_id = int(s[2][:-1]) # just for validation, ignoring last character, because it can be "S"
-                        description = s[3]
-                        amount = standardize_number(s[4])
-                        total = standardize_number(s[5]) # just for validation
-                    elif bank == 'Swedbank':
-                        if len(s) != 6: raise InvalidTransactionLogFormat('incorrect number of entries, expected 6 got %s' % len(s)) # just for validation
-                        date = datetime(*strptime(s[0], '%y-%m-%d')[:3])
-                        date2 = datetime(*strptime(s[1], '%y-%m-%d')[:3]) # just for validation
-                        description = s[2]
-                        assert_empty_entry(3)
-                        amount = standardize_number(s[4])
-                        total = standardize_number(s[5]) # just for validation
-                    else:
-                        raise InvalidTransactionLogFormat('unknown format')
-                except ValueError,e: # failed to parse number or date
-                    invalid_lines.append((line, e))
-                    continue
-                except InvalidTransactionLogFormat,e:
-                    invalid_lines.append((line, e))
-                    continue
+                date, amount, description = None, None, None
                 amount = str(amount)
                 import hashlib
-                from django.utils.encoding import smart_unicode
                 original = (u'%s\t%s\t%s\t%s' % (request.user.id, amount, date, description)).encode('ascii', 'xmlcharrefreplace')
                 original_md5 = hashlib.md5(original).hexdigest()
-                if form.cleaned_data['accept_duplicates'] == True:
+                if request.POST['accept_duplicates']:
                     Transaction.objects.create(user=request.user, amount=amount, time=date, description=description, original_md5=original_md5)
                 else:
-                    if Transaction.objects.filter(user=request.user, original_md5=original_md5).count() != 0:
+                    if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
                         duplicate_lines.append(line)
                     else:
                         Transaction.objects.create(user=request.user, amount=amount, time=date, description=description, original_md5=original_md5)
@@ -551,14 +496,23 @@ def add_transactions(request):
     else:
         form = AddForm(initial={'data':'', 'accept_duplicates':False, 'bank':bank})
         
-    return render_to_response(request, 'money/add.html', {'form': form, 'invalid_lines': invalid_lines})
-    
+    return render_to_response('money/add.html', RequestContext(request, {'form': form, 'invalid_lines': invalid_lines}))
+
+
+def original_line_hash(amount, date, description, user):
+    assert isinstance(amount, float)
+    assert isinstance(date, datetime)
+    assert isinstance(description, unicode)
+    import hashlib
+    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, datetime.strftime(date, '%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
+    original_md5 = hashlib.md5(original).hexdigest()
+    return original_md5
+
+
 @login_required
 def split_transaction(request, transaction_id):
-    transaction = Transaction.objects.get(pk=transaction_id)
-    if transaction.user != request.user:
-        raise 'access denied'
-        
+    transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
+
     if request.POST:
         parts = []
         for part_id in range(int(request.POST['parts'])-1):
@@ -580,7 +534,7 @@ def split_transaction(request, transaction_id):
         transaction.save()
         return HttpResponseRedirect('/')
         
-    return render_to_response(request, 'money/split_transaction.html', {'transaction':transaction})
+    return render_to_response('money/split_transaction.html', RequestContext(request, {'transaction':transaction}))
 
 @login_required
 def delete_range(request):
@@ -598,17 +552,15 @@ def delete_range(request):
         message = _('Transactions deleted!')
     form = RangeForm(initial={})
 
-    return render_to_response(request, 'money/delete_range.html', {'form':form, 'message':message})
+    return render_to_response('money/delete_range.html', RequestContext(request, {'form':form, 'message':message}))
 
 @login_required
 def settings(request):
     from django import forms
-    from django import conf
-    
+
     if 'django_language' not in request.session:
         request.session['django_language'] = 'en'
     
-    bank_setting = get_bank_setting(request.user)
     period_setting = get_period_setting(request.user)
     languages = [
         ('sv', 'Svenska'),
@@ -616,7 +568,6 @@ def settings(request):
         ]
     
     class SettingsForm(forms.Form):
-        bank = forms.ChoiceField(choices=SUPPORTED_BANKS, label=_('Bank'))
         language = forms.ChoiceField(choices=languages, label=_('Language'))
         period = forms.IntegerField(label=_('Financial months begins on day'))
 
@@ -631,8 +582,6 @@ def settings(request):
             form.errors['period'] = (_('Period must be a number'),)
 
         if form.is_valid():
-            bank_setting.value = form.cleaned_data['bank']
-            bank_setting.save()
             meta = request.user.meta
             meta.language = form.cleaned_data['language']
             meta.save()
@@ -641,6 +590,60 @@ def settings(request):
             request.session['django_language'] = meta.language
             return HttpResponseRedirect('/')
     else:
-        form = SettingsForm(initial={'bank':bank_setting.value, 'language':request.session['django_language'], 'period':period_setting.value})
+        form = SettingsForm(initial={'language':request.session['django_language'], 'period':period_setting.value})
 
-    return render_to_response(request, 'money/settings.html', {'form': form, 'accounts':Account.objects.filter(user=request.user)})
+    return render_to_response('money/settings.html', RequestContext(request, {'form': form, 'accounts':Account.objects.filter(user=request.user)}))
+
+@login_required
+def add_transactions(request):
+    if not request.POST:
+        return render_to_response('money/add.html', RequestContext(request, {}))
+    else:
+        data = request.POST['data']
+        table = [list(classify_row(x.split('\t'))) for x in data.split('\n')]
+        table = [(classification, r) for classification, r in table if has_requisite_data(classification)]
+
+        counter = Counter([classification for classification, r in table])
+        most_significant_format = max([(x, y) for y, x in counter.items()])[1]
+
+        if 'date_choice' in request.POST:
+            text_columns = [int(x) for x in request.POST.getlist('text_choices[]')]
+            date_column = int(request.POST['date_choice'])
+            number_column = int(request.POST['number_choice'])
+            parse_format = [' ' for x in range(len(most_significant_format))]
+            parse_format[date_column] = 'd'
+            parse_format[number_column] = '1'
+            for tc in text_columns:
+                parse_format[tc] = 't'
+            parse_format = ''.join(parse_format)
+            Format.objects.create(user=request.user, raw_format=most_significant_format, parse_format=parse_format)
+
+        try:
+            format = Format.objects.get(user=request.user, raw_format=most_significant_format)
+            # duplicate_lines = []
+            for classification, row in table:
+                if classification == most_significant_format:
+                    amount, date, description = format.parse_row(row)
+                    original_md5 = original_line_hash(amount=amount, date=date, description=description, user=request.user)
+                    if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
+                        # duplicate line, ignore it
+                        pass
+                    else:
+                        Transaction.objects.create(user=request.user, amount=amount, time=date, description=description, original_md5=original_md5)
+            return HttpResponse('redirect_home')
+        except Format.DoesNotExist:
+            number_default = find_default_number(table, most_significant_format)
+
+            return render_to_response('money/ask_for_format.html', RequestContext(request, {
+                'format': most_significant_format,
+                'table': table,
+                'number_default': number_default,
+                'date_default': most_significant_format.find('d'),
+                'text_default': most_significant_format.find('t'),
+                'data': data,
+            }))
+
+@login_required
+def all_like_this(request, transaction_id):
+    transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
+    return render_to_response('money/all_like_this.html', RequestContext(request, {'transaction': transaction}))

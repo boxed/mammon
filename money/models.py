@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 # a little hack to get curias change password page to redirect to the root
+from mammon.money import standardize_number, datetime_from_string
+
 def user_get_absolute_url(self):
     return '/'
 User.get_absolute_url = user_get_absolute_url
@@ -14,6 +16,30 @@ class Account(models.Model):
     
     def __unicode__(self):
         return self.name
+
+class Format(models.Model):
+    user = models.ForeignKey(User)
+    raw_format = models.CharField(blank=False, max_length=100, db_index=True)
+    parse_format = models.CharField(blank=False, max_length=100)
+
+    def __unicode__(self):
+        return u'%s, %s' % (self.raw_format, self.parse_format)
+
+    def parse_row(self, row):
+        descriptions = []
+        amount = None
+        date = None
+        for index, value in enumerate(self.parse_format):
+            if value == '1':
+                amount = standardize_number(row[index])
+            elif value == 'd':
+                date = datetime_from_string(row[index])
+            elif value == 't':
+                descriptions.append(row[index])
+        assert amount is not None
+        assert date is not None
+        assert len(descriptions) > 0
+        return amount, date, u' '.join(descriptions)
 
 class Category(models.Model):
     PERIODS = (
@@ -27,7 +53,7 @@ class Category(models.Model):
 
     user = models.ForeignKey(User, verbose_name=_('User'))
     account = models.ForeignKey(Account, null=True, blank=True, default=None, verbose_name=_('Account'))
-    name = models.CharField(max_length=100, verbose_name=_('Name'))
+    name = models.CharField(max_length=100, verbose_name=_('Name'), blank=False)
     matching_rules = models.TextField(blank=True, verbose_name=_('Matching rules'))
     period = models.IntegerField(default=None, null=True, blank=True, choices=PERIODS, verbose_name=_('Period'))
     

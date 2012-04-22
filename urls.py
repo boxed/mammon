@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-
+from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
@@ -13,10 +13,12 @@ urlpatterns = patterns('',
     (r'^transactions/$', 'mammon.money.views.view_transaction_list'),
     (r'^transactions/page/(?P<page>\d+)/$', 'mammon.money.views.view_transaction_list'),
     (r'^transactions/(?P<transaction_id>\d+)/split/$', 'mammon.money.views.split_transaction'),
+    (r'^transactions/(?P<transaction_id>\d+)/all_like_this/$', 'mammon.money.views.all_like_this'),
     (r'^transactions/(?P<transaction_id>\d+)/edit/date/$', 'mammon.money.views.edit_transaction_date'),
     (r'^transactions/(?P<transaction_id>\d+)/edit/description/$', 'mammon.money.views.edit_transaction_description'),
     (r'^transactions/(?P<transaction_id>\d+)/edit/category/$', 'mammon.money.views.edit_transaction_category'),
     (r'^transactions/(?P<transaction_id>\d+)/edit/account/$', 'mammon.money.views.edit_transaction_account'),
+    (r'^transactions/(?P<transaction_id>\d+)/edit/properties/$', 'mammon.money.views.edit_transaction_properties'),
     (r'^transactions/(?P<transaction_id>\d+)/delete/$', 'mammon.money.views.delete_transaction'),
     (r'^transactions/delete_zeroes/$', 'mammon.money.views.delete_empty_transactions'),
     (r'^transactions/delete_range/$', 'mammon.money.views.delete_range'),
@@ -58,8 +60,11 @@ urlpatterns = patterns('',
 
     (r'^jsi18n/$', 'django.views.i18n.javascript_catalog', {'packages': 'django.conf'}),
 
+#    (r'^test/', 'mammon.money.views.test'),
+
     # Uncomment this for admin:
     (r'^admin/', include(admin.site.urls)),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www-python/kodare/django/contrib/admin/media'}),
-    (r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www-python/kodare/curia/site-media'}),
+    (r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT+'curia/site-media'}),
+    (r'^site-media2/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT+'mammon/site-media'}),
 )

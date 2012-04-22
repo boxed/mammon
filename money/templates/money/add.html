@@ -1,36 +1,66 @@
-{% extends base %}
+{% extends 'base.html' %}
 {% load i18n %}
 
 {% block content %}
     <style>
-    textarea
-    {
-        height: 500px;
-    }
-	table {
-		width: 100%;
-	}
-	#body {
-		width: 95%;
-	}
+        textarea
+        {
+            height: 300px;
+            width: 100%;
+        }
     </style>
     
-    {% if invalid_lines %}
-        <h2>{% trans "Mammon could not parse the following lines:" %}</h2>
-        {% for line, error in invalid_lines %}
-            {{ line }}: {{ error }}<br />
-        {% endfor %}
-        <p />
-    {% endif %}
+    <div id="id_post_data">
+        <div class="content">
+            {% blocktrans %}
+                To import data into Mammon:
+                <ol>
+                    <li>Log in to your bank</li>
+                    <li>Go to your transaction history</li>
+                    <li>Select all ({{ command_button }}+A)</li>
+                    <li>Copy ({{ command_button }}+C)</li>
+                    <li>Come back to this page, click in the text field below and paste ({{ command_button }}+V)</li>
+                    <li>Click the Import Transactions button</li>
+                </ol>
+                Mammon will automatically figure out what parts of what it gets is relevant. It might ask you some questions when it gets confused, but it will remember that till next time so that will only happen when something changes.
+            {% endblocktrans %}
+        </div>
 
-    <form method="post" name="f">
-        <table>
-            {{ form }}
-            <tr><td></td><td><input type="submit" value="{% trans "Add" %}" id="Add" class="button" /></td></tr>
-        </table>
-    </form>
+        <p>
+            <button id="id_import" class="button">{% trans "Import transactions" %}</button>
+        </p>
+
+        <div class="content">
+            <textarea id="id_data" rows="10" cols="40" name="data"></textarea>
+        </div>
+    </div>
+    <span id="id_spinner" style="display: none">Processing...</span>
 
 	<script>
-		document.f.id_data.focus();
+        $(document).ready(function(){
+            $('#id_data').focus();
+            $('#id_import').click(function(){
+                $('#id_post_data').hide();
+                $('#id_spinner').show();
+                $.ajax({
+                    url: '/add/',
+                    data: {data: $('#id_data').val()},
+                    success: function (data, textStatus, jqXHR) {
+                        if (data == 'redirect_home') {
+                            document.location = '/';
+                        }
+                        else {
+                            $('#id_spinner').hide();
+                            $('#body').html(data);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $('body').html(jqXHR.response);
+                    },
+                    type: 'POST'
+                });
+            });
+        });
+
 	</script>
 {% endblock %}

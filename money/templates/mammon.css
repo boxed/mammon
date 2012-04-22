@@ -104,13 +104,15 @@ body {
     text-align: center;
     padding: 0;
     background: #f0f0f0;
+    position: fixed;
+    width: 100%;
 }
 
 #main {
 }
 
 #body {
-    padding-top: 20px;
+    padding-top: 100px;
     text-align: center;
 }
 
@@ -121,7 +123,7 @@ body {
     margin-left: auto;
     margin-right: auto;
     padding: 15px;
-    padding-top: 0px
+    padding-top: 0;
 }
 
 table
@@ -283,4 +285,89 @@ thead th {
     border: 1px solid #664;
     margin: 0 2px;
     text-decoration: none;
+}
+
+.content {
+    width: 650px;
+    text-align: left;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+td.choice {
+    text-align: center;
+}
+
+#id_format_choices {
+    border: 0;
+}
+
+table td {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#id_classification_bar {
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid gray;
+}
+
+#id_classification_bar > * {
+    font-size: 15px;
+    color: black;
+}
+
+#id_classification_bar input {
+    width: 300px;
+}
+
+#id_classification_bar #id_next {
+    position: fixed;
+    bottom: 34px;
+    left: 4px;
+}
+
+#id_classification_bar #id_prev {
+    position: fixed;
+    bottom: 4px;
+    left: 4px;
+}
+
+#id_classification_bar_bottom_space {
+    padding-bottom: 68px;
+}
+
+.hotkey {
+    color: gray;
+    padding-left: 5px;
+}
+
+.ac_results {
+    background-color:white;
+    border:1px solid #C5DBEC;
+    overflow:hidden;
+    padding:0;
+    z-index:99999;
+    position: fixed;
+    top: 0px;
+    margin: 20px 0px 0px 0px; /* The top margin defines the offset of textbox */
+}
+
+#id_row_marker_left {
+    font-size: 24px;
+    font-family: arial, sans-serif;
+}
+
+#id_classification_page #body, #id_classification_page #transaction_list tr td {
+    background: #bdbdbd;
+    color: #636363;
+}
+
+#id_classification_page #transaction_list tr.row_marker td {
+    background: white;
+    color: black;
 }

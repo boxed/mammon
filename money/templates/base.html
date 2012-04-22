@@ -3,39 +3,18 @@
     <head>
         <title>Mammon{% if user.is_authenticated %} - {{ user }}{% endif %}</title>
 		<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css"> 
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
         <script type="text/javascript" src="/jsi18n/"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>        <script type="text/javascript" src="/inline_edit.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js"></script>        <script type="text/javascript" src="/inline_edit.js"></script>
         <script type="text/javascript" src="/input_overlay.js"></script>
-        <script>
-            function string_matches_any(str, patterns)
-            {
-                for (i = 0; i != patterns.length; i++) {
-                    if (patterns[i] != '' && str.indexOf(patterns[i]) != -1) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            function highlight()
-            {
-                str = $("#id_matching_rules").val();
-                patterns = str.replace('&', '&amp;').split('\n');
-                $(".description").each(function(){
-                    if (string_matches_any($(this).html(), patterns))
-                        $(this).className = 'description highlighted';
-                    else
-                        $(this).className = 'description';
-                });
-            }
-        </script>
+        <script type="text/javascript" src="/site-media2/jquery.inlinecomplete.js"></script>
+        <script type="text/javascript" src="/site-media2/jquery.intoViewport.min.js"></script>
+        <script type="text/javascript" src="/site-media2/custom.js"></script>
         <link media="screen" href="/mammon.css" type="text/css" rel="stylesheet" />
         <link media="screen" href="/input_overlay.css" type="text/css" rel="stylesheet" />
         {% block extra_head %}{% endblock %}
     </head>
-    <body onLoad="window.scrollTo(0,1)">
+    <body onLoad="window.scrollTo(0,1)" id="{% block body_id %}{% endblock %}">
         <div id="main">
             <div id="header">
                 {% if user.is_staff %}

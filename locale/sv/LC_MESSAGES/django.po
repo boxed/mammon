@@ -251,10 +251,10 @@ msgstr "Skapa konto"
 #, python-format
 msgid ""
 "Split \"%(transaction)s\" into <input type=\"text\" name=\"parts\" value="
-"\"\" id=\"parts\" onKeyUp=\"parts_changed()\"/> parts"
+"\"\" id=\"parts\" onKeyUp=\"parts_changed({{ transaction.amount }})\"/> parts"
 msgstr ""
 "Dela upp \"%(transaction)s\" i <input type=\"text\" name=\"parts\" value="
-"\"\" id=\"parts\" onKeyUp=\"parts_changed()\"/> delar"
+"\"\" id=\"parts\" onKeyUp=\"parts_changed({{ transaction.amount }})\"/> delar"
 
 #: money/templates/money/split_transaction.html:56
 #: money/templates/money/transaction_list.html:63
@@ -340,3 +340,19 @@ msgstr "Inga transaktioner i denna period"
 
 #~ msgid "Register for an account"
 #~ msgstr "Skapa ett konto"
+
+#: money/templates/money/index.html:23
+msgid "Next"
+msgstr "Nästa"
+
+#: money/templates/money/index.html:24
+msgid "Previous"
+msgstr "Föregående"
+
+#: money/templates/money/index.html:32
+msgid "Only this"
+msgstr "Bara denna"
+
+#: money/templates/money/index.html:33
+msgid "All like this"
+msgstr "Alla liknande"

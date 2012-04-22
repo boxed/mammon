@@ -1,69 +1,49 @@
 {% load i18n %}{% load auth %}
-<script>
-
-function delete_transaction(id)
-{
-    show_dialog(
-        {
-            header: "{{ _("Are you sure you want to delete this transaction?") }}",
-            explanation: "",
-            buttons:
-            [
-                {
-                    name: "{{ _("Cancel") }}",
-                    hotkey: "escape"
-                },
-                {
-                    name: "{{ _("Delete") }}",
-                    hotkey: "return",
-                    action: function()
-                    {
-                        window.location = '/transactions/'+id+'/delete/?next='+window.location;
-                    }
-                }
-            ]
-        });
-}
-</script>
 
 {% if transactions %}
     <table id="transaction_list">
 		<thead>
-	        <tr>
+	        <tr class="header">
 	            <th>{% trans "Date" %}</th>
 	            <th>{% trans "Description" %}</th>
-	            <th>{% trans "Amount" %}</th>			
-	            <th>{% trans "Category" %}</th>			
-				{% ifnotequal accounts|length 0 %}
-	            	<th>{% trans "Account" %}</th>
-				{% endifnotequal %}
+                <th>{% trans "Amount" %}</th>
+                {% if not hide_classification %}
+                    <th>{% trans "Category" %}</th>
+                    {% ifnotequal accounts|length 0 %}
+                        <th>{% trans "Account" %}</th>
+                    {% endifnotequal %}
+                {% endif %}
 	        </tr>
 		</thead>
         {% for transaction in transactions %}
-            <tr class="category_{{ transaction.category.id }}">
+            <tr class="category_{{ transaction.category.id }}" transaction_id="{{ transaction.id }}">
                 <td class="time"><div class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/date/" id="{{ transaction.id }}">{{ transaction.time|date:"Y-m-d" }}</div></td>
                 <td class="description"><div class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/description/" id="{{ transaction.id }}">{{ transaction.description }}</div></td>
                 <td class="amount">{{ transaction.amount|floatformat:2 }}</td>
-                <td>
-                    <select class="inline_editable_select" name="transaction_category_{{ transaction.id }}" edit_url="/transactions/{{ transaction.id }}/edit/category/">
-                        <option value=""></option>
-                        {% for category in categories %}
-                            <option value="{{ category.id }}" {% ifequal transaction.category category %}selected="selected"{% endifequal %}>{{ category }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-				{% ifnotequal accounts|length 0 %}
-	                <td>
-	                    <select class="inline_editable_select" name="transaction_account_{{ transaction.id }}" edit_url="/transactions/{{ transaction.id }}/edit/account/">
-	                        <option value=""></option>
-	                        {% for account in accounts %}
-	                            <option value="{{ account.id }}" {% ifequal transaction.account account %}selected="selected"{% endifequal %}>{{ account }}</option>
-	                        {% endfor %}
-	                    </select>
-	                </td>
-				{% endifnotequal %}
-                <td class="split"><a href="/transactions/{{ transaction.id }}/split/" class="button">{% trans "Split" %}</a></td>
-                <td class="delete"><span onClick="delete_transaction({{ transaction.id }})" class="button"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {% trans "Delete" %}</span></td>
+                {% if not hide_classification %}
+                    <td>
+                        <select class="inline_editable_select" name="transaction_category_{{ transaction.id }}" edit_url="/transactions/{{ transaction.id }}/edit/category/">
+                            <option value=""></option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% ifequal transaction.category category %}selected="selected"{% endifequal %}>{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    {% ifnotequal accounts|length 0 %}
+                        <td>
+                            <select class="inline_editable_select" name="transaction_account_{{ transaction.id }}" edit_url="/transactions/{{ transaction.id }}/edit/account/">
+                                <option value=""></option>
+                                {% for account in accounts %}
+                                    <option value="{{ account.id }}" {% ifequal transaction.account account %}selected="selected"{% endifequal %}>{{ account }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    {% endifnotequal %}
+                {% endif %}
+                {% if not hide_commands %}
+                    <td class="split"><span onClick="split_transaction({{ transaction.id }})" class="button">{% trans "Split" %}</span></td>
+                    <td class="delete"><span onClick="delete_transaction({{ transaction.id }}, true)" class="button"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {% trans "Delete" %}</span></td>
+                {% endif %}
             </tr>
         {% endfor %}
     </table>
