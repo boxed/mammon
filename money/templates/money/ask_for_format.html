@@ -1,0 +1,116 @@
+{% load i18n %}
+
+<div id="id_post_data">
+    <div class="content">
+        {% blocktrans %}Below is the format Mammon guessed for your data. If there are multiple date and numerical columns you can select which one is used by Mammon. If there are more than one transaction description column you can select the ones you want to include. Mammon can only automatically classify based on data you choose to include.{% endblocktrans %}
+    </div>
+
+    <p>
+        <button class="button" id="id_save_and_import">{% blocktrans %}Save format and import data{% endblocktrans %}</button>
+    </p>
+
+    <table id="id_format_choices">
+        <tr>
+            <td>
+                {% trans "Transaction Date" %}:
+            </td>
+            {% for classification in format %}
+                <td class="choice">
+                    {% if classification == 'd' %}
+                        <input type="radio" class="date_choice choice_{{ forloop.counter0 }}" name="date" value="{{ forloop.counter }}">
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>
+                {% trans "Transaction Size" %}:
+            </td>
+            {% for classification in format %}
+                <td class="choice">
+                    {% if classification == '1' %}
+                        <input type="radio" class="number_choice choice_{{ forloop.counter0 }}" name="number" value="{{ forloop.counter }}">
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>
+                {% trans "Transaction Description" %}:
+            </td>
+            {% for classification in format %}
+                <td class="choice">
+                    {% if classification == 't' or classification == '1' %}
+                        <input type="checkbox" class="text_choice choice_{{ forloop.counter0 }}" name="text" value="{{ forloop.counter }}">
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        {% for classification, row in table %}
+            <tr>
+                <td></td>
+                {% for item in row %}
+                    <td>
+                        {{ item }}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<span id="id_spinner" style="display: none">Processing...</span>
+
+<script>
+    $(document).ready(function(){
+        $('.date_choice.choice_{{ date_default }}').attr('checked', 'checked');
+        $('.number_choice.choice_{{ number_default }}').attr('checked', 'checked');
+        $('.text_choice.choice_{{ text_default }}').attr('checked', 'checked');
+
+        $('#id_save_and_import').click(function(){
+            $('#id_post_data').hide();
+            $('#id_spinner').show();
+            var date_choice = null;
+            $('input[type=radio].date_choice').each(function(index, item){
+                if ($(item).attr('checked')) {
+                    date_choice = $(item).val() - 1;
+                }
+            });
+            var number_choice = null;
+            $('input[type=radio].number_choice').each(function(index, item){
+                if ($(item).attr('checked')) {
+                    number_choice = $(item).val() - 1;
+                }
+            });
+            var text_choices = [];
+            $('input[type=checkbox]').each(function(index, item){
+                if ($(item).attr('checked')) {
+                    text_choices.push($(item).val() - 1);
+                }
+            });
+            $.ajax({
+                url: '/add/',
+                data: {
+                    data: '{{ data|escapejs }}',
+                    date_choice: date_choice,
+                    number_choice: number_choice,
+                    text_choices: text_choices
+                },
+                success: function (data, textStatus, jqXHR) {
+                    if (data == 'redirect_home') {
+                        document.location = '/';
+                    }
+                    else {
+                        $('#id_spinner').hide();
+                        $('#body').html(data); // <- shows completion message
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $('body').html(jqXHR.response);
+                },
+                type: 'POST'
+            });
+
+        });
+    });
+</script>
