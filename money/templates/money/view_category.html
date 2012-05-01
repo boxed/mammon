@@ -5,34 +5,13 @@
     <script type="text/javascript">
         function delete_category(id)
         {
-            show_dialog(
-                {
-                    header: "{{ _("Are you sure you want to delete this category?") }}",
-                    explanation: "",
-                    buttons:
-                    [
-                        {
-                            name: "{{ _("Cancel") }}",
-                            hotkey: "escape"
-                        },
-                        {
-                            name: "{{ _("Delete") }}",
-                            hotkey: "return",
-                            action: function()
-                            {
-                                window.location = '/categories/'+id+'/delete/';
-                            }
-                        }
-                    ]
-                });
+            $('<div>{{ _("Are you sure you want to delete this category?") }}</div>').dialog({
+                buttons: {
+                    '{{ _("Cancel") }}': function() { $(this).dialog("close"); },
+                    '{{ _("Delete") }}': function() {window.location = '/categories/'+id+'/delete/?next='+window.location;}
+                }
+            });
         }
-        $('<div>{{ _("Are you sure you want to delete this category?") }}</div>').dialog({
-            buttons: {
-                '{{ _("Cancel") }}': function() { $(this).dialog("close"); },
-                '{{ _("Delete") }}': function() {window.location = '/categories/'+id+'/delete/?next='+window.location;}
-            }
-        });
-}
     </script>
     
 
