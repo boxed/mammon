@@ -71,8 +71,8 @@ class Category(models.Model):
                     return True
         return False
         
-    def __unicode__(self):
-        if self.name != '':
+    def __repr__(self):
+        if self.name.strip() != '':
             return self.name
         else:
             return '<no name>'

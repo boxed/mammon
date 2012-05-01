@@ -73,13 +73,20 @@ function split_transaction(id) {
     }
     $.get('/transactions/'+id+'/split/', success=function(text){
         var buttons = {};
-        buttons[gettext("Cancel")] = function() { $(this).dialog("close"); };
-        buttons[gettext("Split")] = function() { $('#id_split_form').submit(); };
+        buttons[gettext("Cancel")] = function() {
+            $(this).dialog("close");
+        };
+        buttons[gettext("Split")] = function() {
+            $('#id_split_form').submit();
+        };
         $(text).dialog({
             buttons: buttons,
             modal: true,
             height: 400,
-            width: 600
+            width: 600,
+            close: function() {
+                $('#id_category').focus();
+            }
         });
         $('input#parts').focus();
         $('.ui-dialog').css({position: 'fixed', top: 20});
@@ -98,7 +105,7 @@ function update_rest()
     if (rest < 0) {
         rest = -rest;
     }
-    newValues = new Array();
+    var newValues = new Array();
     $(".part").each(function() {
         rest -= parseFloat($(this).val());
         newValues.push($(this).val());
@@ -241,6 +248,10 @@ function setup_all_like_this() {
 
                     update_markers();
                 }
+                e.preventDefault();
+                return false;
+            case '\r'.charCodeAt(0):
+                $($('.ui-button-text')[1]).click();
                 e.preventDefault();
                 return false;
             default:

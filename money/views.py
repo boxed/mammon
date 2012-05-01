@@ -458,47 +458,6 @@ class InvalidTransactionLogFormat(Exception):
     
     def __str__(self):
         return self.__repr__()
-    
-@login_required    
-def add_transactions_old(request):
-    invalid_lines = []
-    if request.POST:
-        duplicate_lines = []
-
-        if request.POST:
-            for line in request.POST['data'].splitlines():
-                if '\t' not in line: # ignore all non-table lines
-                    continue
-
-                date, amount, description = None, None, None
-                amount = str(amount)
-                import hashlib
-                original = (u'%s\t%s\t%s\t%s' % (request.user.id, amount, date, description)).encode('ascii', 'xmlcharrefreplace')
-                original_md5 = hashlib.md5(original).hexdigest()
-                if request.POST['accept_duplicates']:
-                    Transaction.objects.create(user=request.user, amount=amount, time=date, description=description, original_md5=original_md5)
-                else:
-                    if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
-                        duplicate_lines.append(line)
-                    else:
-                        Transaction.objects.create(user=request.user, amount=amount, time=date, description=description, original_md5=original_md5)
-            
-            #if invalid_lines:
-            #    mail_simple_error('failed to parse transaction(s)', {'bank':bank, 'lines':invalid_lines})
-                
-            update_matching(request)
-            
-            if not duplicate_lines and not invalid_lines:
-                return HttpResponseRedirect('/')
-            else:
-                form = AddForm(initial={'data':'\n'.join(duplicate_lines), 'accept_duplicates':True, 'bank':bank})
-                if duplicate_lines:
-                    form.errors['data'] = ('these rows appear to be duplicates, to accept them post them again',)
-    else:
-        form = AddForm(initial={'data':'', 'accept_duplicates':False, 'bank':bank})
-        
-    return render_to_response('money/add.html', RequestContext(request, {'form': form, 'invalid_lines': invalid_lines}))
-
 
 def original_line_hash(amount, date, description, user):
     assert isinstance(amount, float)

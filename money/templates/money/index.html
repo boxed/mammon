@@ -9,18 +9,6 @@
     
         {% include "money/transaction_list.html" with hide_commands="True" hide_classification="True" %}
 
-        <!--
-        <h2>{% trans "New category" %}</h2>
-        <form action="/categories/add/" method="post">
-            <table class="form">
-                <tr><td><label for="name">{% trans "Name" %}:</label></td><td><input type="text" id="name" name="name" /></td></tr>
-                <tr><td><label for="id_matching_rules">{% trans "Patterns" %}:</label></td><td><textarea style="height: 150px; width: 200px;" name="match" id="id_matching_rules" rows="3" cols="5" onKeyUp="highlight()"></textarea> <span class="help_text"><span class="help-pointer"></span>{% trans "One pattern per line. Note that the matching is case sensitive." %}</span> </td></tr>
-                <tr><td><label for="period">{% trans "Repeats every" %} </label></td><td><input type="text" id="period" name="period" value="-"/> {% trans "months" %} <span class="help_text"><span class="help-pointer"></span>{% trans "Repeating costs are displayed differently in the summary" %}</span></td></tr>
-                <tr><td></td><td><input type="submit" value="{% trans "Add" %}" class="button" /></td></tr>
-            </table>
-        </form>
-        -->
-
         <div id="id_classification_bar_bottom_space"></div>
 
         <div id="id_classification_bar">
@@ -51,13 +39,19 @@
             {% blocktrans %}No transactions added. Go to <a href="/add/">Add Transactions</a> to add some data.{% endblocktrans %}
         {% endif %}
     {% endif %}
-    
-{#    <span id="id_row_marker_left" style="display: None">&#x2794;</span>#}
 
     <script>
         function only_this() {
+            if (!$('#id_category').val()) {
+                window.setTimeout(function (){
+                    $('#id_category').focus();
+                }, 100);
+                return;
+            }
+
+            var id = $('.row_marker').attr('transaction_id');
             $.ajax({
-                url: '/transactions/'+transaction_id+'/edit/properties/',
+                url: '/transactions/'+id+'/edit/properties/',
                 type: 'POST',
                 data: {
                     category: $('#id_category').val(),
@@ -65,7 +59,7 @@
                 },
                 success: function() {
                     transaction_marker_up();
-                    $('[transaction_id='+transaction_id+']').remove();
+                    $('[transaction_id='+id+']').remove();
                     $('#id_category').val('');
                     $('#id_account').val('');
                     window.setTimeout(function() {
@@ -76,6 +70,13 @@
             });
         }
         function all_like_this() {
+            if (!$('#id_category').val()) {
+                window.setTimeout(function (){
+                    $('#id_category').focus();
+                }, 100);
+                return;
+            }
+
             var id = $('.row_marker').attr('transaction_id');
             $.ajax({
                 url:'/transactions/'+id+'/all_like_this/',
@@ -134,15 +135,6 @@
                     left: pos.left-$('#id_row_marker_left').width()-4,
                     zIndex: -100
                 });
-
-//                var end_subpos = $('.end_sub_mark').offset();
-//                $('#end_marker').css({
-//                    position: "absolute",
-//                    marginLeft: 0,
-//                    marginTop: 0,
-//                    top: end_subpos.top+$('.end_mark').height()*0.5,
-//                    left: end_subpos.left+$('.end_sub_mark').width()-$('#end_marker').width()
-//                });
             }
 
             $($('#transaction_list tr')[$('#transaction_list tr').length-1]).addClass('row_marker');
