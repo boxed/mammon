@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}{% load auth %}
 
-{% block body_id %}id_classification_page{% endblock %}
+{% block body_id %}{% if transactions %}id_classification_page{% endif %}{% endblock %}
 
 {% block content %}
     {% if transactions %}

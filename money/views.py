@@ -1,7 +1,6 @@
 # coding=UTF8
-import sys
 from datetime import datetime, timedelta
-from collections import Counter
+from mammon.money.utils import Counter
 
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,10 +8,9 @@ from django.contrib.auth.views import login_required
 from django.template.context import RequestContext
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
-from django.core.paginator import Paginator, InvalidPage
+from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum
 from curia import *
-from mammon import *
 from mammon.money import *
 from mammon.money.models import *
 
@@ -254,7 +252,7 @@ def view_summary(request, period='month', year=None, month=None):
 
 @login_required
 def view_history(request):
-    from django.db import connection, transaction
+    from django.db import connection
     from datetime import datetime
     cursor = connection.cursor()
     reference = datetime.now()

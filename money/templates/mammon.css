@@ -34,7 +34,7 @@
 }
 
 #global-menu {
-    border-bottom: 4px solid #e3e3e3;
+    border-bottom: 4px solid #18799b;
     padding: 7px;
 }
 #global-menu li {
@@ -379,3 +379,10 @@ table td {
 #id_login {
     background: white;
 }
+
+#header-right .button {
+    background: #18799b;
+    border: 2px solid #0c5165;
+    color: white;
+}
+
