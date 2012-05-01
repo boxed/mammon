@@ -371,3 +371,11 @@ table td {
     background: white;
     color: black;
 }
+
+#id_all_like_this_dialog {
+    font-size: 30px;
+}
+
+#id_login {
+    background: white;
+}

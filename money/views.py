@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
 from django.template.context import RequestContext
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.core.paginator import Paginator, InvalidPage
 from django.db.models.aggregates import Sum
@@ -646,4 +647,32 @@ def add_transactions(request):
 @login_required
 def all_like_this(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
-    return render_to_response('money/all_like_this.html', RequestContext(request, {'transaction': transaction}))
+
+    if request.method == 'GET':
+        result = ''
+        for index, c in enumerate(transaction.description):
+            if index == 0 or c == ' ':
+                if index:
+                    result += '</span>'
+                result += ' <span class="word" index="%s">' % index
+            if c != ' ':
+                result += '<span class="letter" index="%s">%s</span>' % (index, c)
+        result += '</span>'
+        c = RequestContext(request, {
+            'transaction': transaction,
+            'description_spans': mark_safe(result),
+            'category': request.REQUEST['category'],
+            'account': request.REQUEST['account']
+        })
+        return render_to_response('money/all_like_this.html', c)
+    elif request.method == 'POST':
+        start_index = request.POST['start_index']
+        end_index = request.POST['end_index']
+        assert start_index < end_index
+        category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
+        category.add_rule(transaction.description[int(start_index):int(end_index)+1])
+        category.save()
+        if request.POST['account']:
+            transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
+        update_matching(request)
+        return HttpResponse('OK')

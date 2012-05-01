@@ -1,8 +1,25 @@
 {% load i18n %}{% load auth %}
-<form method="post" id="id_split_form" amount="{{ transaction.amount }}" action="/transactions/{{ transaction.id }}/split/">
-    {% blocktrans %}Split "{{ transaction }}" into <input type="text" name="parts" value="" id="parts" onKeyUp="parts_changed()"/> parts{% endblocktrans %}
+<div id="id_all_like_this_dialog">
+    <p style="font-size: 16px;">
+        {% trans "Category" %}: <span id="id_category">{{ category }}</span><br />
+        {% if account %}
+            {% trans "Account" %}: <span id="id_account">{{ account }}</span>
+        {% endif %}
+    </p>
 
-    <div id="part_list">
+    <div style="white-space: nowrap">
+        {{ description_spans }}
     </div>
-    <div id="rest"></div>
-</form>
+
+    <span id="start_marker">&#x21A6;</span>
+    <span id="end_marker">&#x21A4;</span>
+
+    <div style="font-size: 12px; padding-top: 40px">
+        {% blocktrans %}
+            Press S to select the starting marker<br />
+            Press E to select the ending marker<br />
+            Hold down shift to move just one character at a time
+        {% endblocktrans %}
+    </div>
+
+</div>

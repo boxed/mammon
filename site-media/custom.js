@@ -82,6 +82,7 @@ function split_transaction(id) {
             width: 600
         });
         $('input#parts').focus();
+        $('.ui-dialog').css({position: 'fixed', top: 20});
     });
 }
 
@@ -124,4 +125,127 @@ function parts_changed()
     $('#part_list').html(foo);
 
     update_rest();
+}
+
+function update_markers() {
+    var start_subpos = $('.start_sub_mark').offset();
+    start_subpos.top -= $(document).scrollTop();
+    start_subpos.left -= $(document).scrollLeft();
+    $('#start_marker').css({
+        position: "fixed",
+        marginLeft: 0,
+        marginTop: 0,
+        top: start_subpos.top+$('.start_mark').height()*0.5,
+        left: start_subpos.left
+    });
+
+    var end_subpos = $('.end_sub_mark').offset();
+    end_subpos.top -= $(document).scrollTop();
+    end_subpos.left -= $(document).scrollLeft();
+    $('#end_marker').css({
+        position: "fixed",
+        marginLeft: 0,
+        marginTop: 0,
+        top: end_subpos.top+$('.end_mark').height()*0.5,
+        left: end_subpos.left+$('.end_sub_mark').width()-$('#end_marker').width()
+    });
+}
+
+var mark_to_move = 'start';
+function select_start_marker() {
+    mark_to_move = 'start';
+    $('#start_marker').css({color: 'black'});
+    $('#end_marker').css({color: 'gray'});
+}
+function select_end_marker() {
+    mark_to_move = 'end';
+    $('#end_marker').css({color: 'black'});
+    $('#start_marker').css({color: 'gray'});
+}
+function setup_all_like_this() {
+    // set defaults
+    $($('.word')[0]).addClass('start_mark');
+    $($('.start_mark span')[0]).addClass('start_sub_mark');
+    $($('.word')[$('.word').length-1]).addClass('end_mark');
+    $($('.end_mark span')[$('.end_mark span').length-1]).addClass('end_sub_mark');
+    update_markers();
+    select_start_marker();
+
+    $(document).keydown(function(e) {
+        var pos = $('.word').index($('.'+mark_to_move+'_mark'));
+        var subpos = $('.'+mark_to_move+'_mark span').index($('.'+mark_to_move+'_sub_mark'));
+        switch (e.keyCode) {
+            case 'S'.charCodeAt(0): // S
+                select_start_marker();
+                break;
+            case 'E'.charCodeAt(0): // E
+                select_end_marker();
+                break;
+            case 39: // right arrow
+                if (event.shiftKey && $('.'+mark_to_move+'_mark span').length > subpos+1) {
+                    // move one character
+                    $('.'+mark_to_move+'_sub_mark').removeClass(mark_to_move+'_sub_mark');
+                    $($('.'+mark_to_move+'_mark span')[subpos+1]).addClass(mark_to_move+'_sub_mark');
+                    update_markers();
+                }
+                else {
+                    // move one word
+                    $('.'+mark_to_move+'_sub_mark').removeClass(mark_to_move+'_sub_mark');
+                    if ($('.word').length > pos+1){
+                        $('.'+mark_to_move+'_mark').removeClass(mark_to_move+'_mark');
+                        $($('.word')[pos+1]).addClass(mark_to_move+'_mark');
+                    }
+                    // these lines are out here to enable you to go from somewhere in the middle of the last word to the end of that word
+                    if (mark_to_move == 'start') {
+                        $($('.start_mark span')[0]).addClass('start_sub_mark');
+                    }
+                    else {
+                        $($('.end_mark span')[$('.end_mark span').length-1]).addClass('end_sub_mark');
+                    }
+                    update_markers();
+                }
+                e.preventDefault();
+                return false;
+
+            case 37: // left arrow
+                if (event.shiftKey) {
+                    if (subpos > 0) {
+                        // move one character
+                        $('.'+mark_to_move+'_sub_mark').removeClass(mark_to_move+'_sub_mark');
+                        $($('.'+mark_to_move+'_mark span')[subpos-1]).addClass(mark_to_move+'_sub_mark');
+                        update_markers();
+                    }
+                    else if (pos > 0) {
+                        // move to last character of prev word
+                        $('.'+mark_to_move+'_mark').removeClass(mark_to_move+'_mark');
+                        $('.'+mark_to_move+'_sub_mark').removeClass(mark_to_move+'_sub_mark');
+                        $($('.word')[pos-1]).addClass(mark_to_move+'_mark');
+                        $($('.'+mark_to_move+'_mark span')[$('.'+mark_to_move+'_mark span').length-1]).addClass(mark_to_move+'_sub_mark');
+                        update_markers();
+                    }
+                }
+                else {
+                    // move one word
+                    $('.'+mark_to_move+'_sub_mark').removeClass(mark_to_move+'_sub_mark');
+                    if (pos > 0) {
+                        $('.'+mark_to_move+'_mark').removeClass(mark_to_move+'_mark');
+                        $($('.word')[pos-1]).addClass(mark_to_move+'_mark');
+                    }
+                    // these lines are out here to enable you to go from somewhere in the middle of the first word to the start of that word
+                    if (mark_to_move == 'start') {
+                        $($('.start_mark span')[0]).addClass('start_sub_mark');
+                    }
+                    else {
+                        $($('.end_mark span')[$('.end_mark span').length-1]).addClass('end_sub_mark');
+                    }
+
+                    update_markers();
+                }
+                e.preventDefault();
+                return false;
+            default:
+                break;
+        }
+        return true;
+    });
 }

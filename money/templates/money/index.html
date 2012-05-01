@@ -76,17 +76,47 @@
             });
         }
         function all_like_this() {
-            // TODO: implement
             var id = $('.row_marker').attr('transaction_id');
-            $.get('/transactions/'+id+'/all_like_this/', success=function(text){
-                var buttons = {};
-                buttons[gettext("Cancel")] = function() { $(this).dialog("close"); };
-                buttons[gettext("Save")] = function() { $('#id_split_form').submit(); };
-                $(text).dialog({
-                    buttons: buttons,
-                    width: 800,
-                    height: 500
-                });
+            $.ajax({
+                url:'/transactions/'+id+'/all_like_this/',
+                type: 'GET',
+                data: {
+                    category: $('#id_category').val(),
+                    account: $('#id_account').val()
+                },
+                success: function(text) {
+                    var buttons = {};
+                    buttons[gettext("Cancel")] = function() { $(this).dialog("close"); };
+                    buttons[gettext("Save")] = function() {
+                        $.ajax({
+                            url: '/transactions/'+id+'/all_like_this/',
+                            type: 'POST',
+                            data: {
+                                start_index: $('.start_sub_mark').attr('index'),
+                                end_index: $('.end_sub_mark').attr('index'),
+                                category: $('#id_category').val(),
+                                account: $('#id_account').val()
+                            },
+                            success: function() {
+                                window.location.reload();
+                            }
+                        });
+                    };
+                    $(text).dialog({
+                        buttons: buttons,
+                        width: 800,
+                        height: 400,
+                        close: function () {
+                            $('.ui-dialog').remove();
+                            $('#id_all_like_this_dialog').remove();
+                            $('#id_category').val('');
+                            $('#id_account').val('');
+                            $('#id_category').focus();
+                        }
+                    });
+                    $('.ui-dialog').css({position: 'fixed', top: 20, left: 3, width: '99%'});
+                    setup_all_like_this();
+                }
             });
         }
         $(document).ready(function(){

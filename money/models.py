@@ -56,6 +56,9 @@ class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name=_('Name'), blank=False)
     matching_rules = models.TextField(blank=True, verbose_name=_('Matching rules'))
     period = models.IntegerField(default=None, null=True, blank=True, choices=PERIODS, verbose_name=_('Period'))
+
+    def add_rule(self, rule):
+        self.matching_rules = '\n'.join([x for x in self.matching_rules.split('\n') if x]+[rule])
     
     def __cmp__(self, other):
         return cmp(self.name, other.name)
