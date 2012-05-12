@@ -486,7 +486,7 @@ def split_transaction(request, transaction_id):
             raise Exception('invalid split parameters')
             
         for part in [str(part) for part in parts]: # need to convert to string for the Decimal class
-            Transaction.objects.create(user=request.user, description=transaction.description, time=transaction.time, category=transaction.category, virtual=True, amount=part, original_md5=transaction.original_md5)
+            Transaction.objects.create(user=request.user, description=transaction.description, time=transaction.time, category=transaction.category, virtual=True, amount=str(part), original_md5=transaction.original_md5)
 
         transaction.amount = str(float(transaction.amount)-sum(parts))
         transaction.save()
@@ -587,7 +587,7 @@ def add_transactions(request):
                         # duplicate line, ignore it
                         pass
                     else:
-                        Transaction.objects.create(user=request.user, amount=amount, time=date, description=description, original_md5=original_md5)
+                        Transaction.objects.create(user=request.user, amount=str(amount), time=date, description=description, original_md5=original_md5)
             return HttpResponse('redirect_home')
         except Format.DoesNotExist:
             number_default = find_default_number(table, most_significant_format)
