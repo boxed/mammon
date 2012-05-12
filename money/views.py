@@ -533,8 +533,6 @@ def settings(request):
     if request.POST:
         form = SettingsForm(request.POST)
 
-        duplicate_lines = []
-        
         try:
             int(form.data['period'])
         except:
@@ -579,16 +577,17 @@ def add_transactions(request):
 
         try:
             format = Format.objects.get(user=request.user, raw_format=most_significant_format)
-            # duplicate_lines = []
             for classification, row in table:
                 if classification == most_significant_format:
                     amount, date, description = format.parse_row(row)
                     original_md5 = original_line_hash(amount=amount, date=date, description=description, user=request.user)
                     if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
                         # duplicate line, ignore it
+                        #print 'ignored duplicate line'
                         pass
                     else:
                         Transaction.objects.create(user=request.user, amount=str(amount), time=date, description=description, original_md5=original_md5)
+            update_matches_for_user(request.user)
             return HttpResponse('redirect_home')
         except Format.DoesNotExist:
             number_default = find_default_number(table, most_significant_format)
