@@ -39,6 +39,15 @@ def update_matches_for_user(user, reset=False):
                 transaction.save()
                 continue
 
+def update_matches_for_user_and_category(user, category):
+    from mammon.money.models import Transaction
+    transactions = Transaction.objects.filter(user=user, category__isnull=True)
+
+    for transaction in transactions:
+        if category.matches(transaction):
+            transaction.category = category
+            transaction.save()
+            continue
 
 def has_requisite_data(classification):
     return 't' in classification and 'd' in classification and '1' in classification

@@ -1,6 +1,6 @@
 # coding=UTF8
 from datetime import datetime, timedelta
-from mammon.money.utils import Counter
+import re
 
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -13,6 +13,7 @@ from django.db.models.aggregates import Sum
 from curia import *
 from mammon.money import *
 from mammon.money.models import *
+from mammon.money.utils import Counter
 
 SUPPORTED_BANKS = [
     ('Nordea', 'Nordea'), 
@@ -627,9 +628,9 @@ def all_like_this(request, transaction_id):
         end_index = request.POST['end_index']
         assert start_index < end_index
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
-        category.add_rule(transaction.description[int(start_index):int(end_index)+1])
+        category.add_rule(re.escape(transaction.description[int(start_index):int(end_index)+1]))
         category.save()
         if request.POST['account']:
             transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
-        update_matching(request)
+        update_matches_for_user_and_category(request.user, category)
         return HttpResponse('OK')
