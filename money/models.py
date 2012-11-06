@@ -17,6 +17,9 @@ class Account(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __cmp__(self, other):
+        return cmp(self.name, other.name)
+
 class Format(models.Model):
     user = models.ForeignKey(User)
     raw_format = models.CharField(blank=False, max_length=100, db_index=True)
@@ -89,7 +92,7 @@ class Transaction(models.Model):
     category = models.ForeignKey(Category, blank=True, null=True)
     virtual = models.BooleanField(default=False)
     original_md5 = models.CharField(max_length=32, db_index=True)
-    
+
     def __unicode__(self):
         from time import strftime
         return '%s %s %s' % (strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)

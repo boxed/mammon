@@ -73,6 +73,8 @@ def view_category(request, category_id, page='1'):
         class Meta:
             model = Category
             fields = ('name', 'matching_rules', 'period', 'account')
+    f = EditForm.base_fields
+    EditForm.base_fields['account'].queryset = request.user.account_set.all()
 
     transactions = Transaction.objects.filter(category=category).order_by('-time')
 
@@ -83,11 +85,10 @@ def view_category(request, category_id, page='1'):
             post['period'] = None
         form = EditForm(post, instance=category)
         if form.is_valid():
-            form.save()
+            category = form.save()
             update_matches_for_user(request.user)
-            if 'update_existing_transactions' in request.REQUEST:
-                for transaction in transactions:
-                    transaction.account = category.account
+            if form.cleaned_data['update_existing_transactions']:
+                transactions.update(account=category.account)
     else:
         form = EditForm(initial={}, instance=category)
     
@@ -171,6 +172,7 @@ def create_summary(start_time, end_time, user):
 @login_required
 def view_summary(request, period='month', year=None, month=None):
     # from django.db.models import Sum
+    now = datetime.now()
     reference = datetime.now()
     if year is None:
         year = reference.year
@@ -187,7 +189,13 @@ def view_summary(request, period='month', year=None, month=None):
         end_time = get_end_of_period(start_time, request.user)
     elif period == 'year':
         start_time = datetime(int(year), 1, 1)
-        end_time = datetime(int(year)+1, 1, 1)
+        if now.year == year:
+#            if now.day > int(get_period_setting(request.user)):
+            end_time = datetime(now.month, 1, 1)
+#            else:
+#                end_time = first_of_previous_month(datetime(now.month, 1, 1))
+        else:
+            end_time = datetime(int(year)+1, 1, 1)
     else:
         raise Exception('Invalid period')
         
@@ -227,7 +235,7 @@ def view_summary(request, period='month', year=None, month=None):
     return render_to_response('money/view_period.html',
         RequestContext(request, {
             'lossgain':lossgain,
-            'account_summaries': accounts.items(),
+            'account_summaries': sorted(accounts.items()),
             'total': total,
             'year': year,
             'month': month,
@@ -342,10 +350,12 @@ def edit_transaction_properties(request, transaction_id):
 @login_required
 def edit_transaction_category(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
-    try:
-        category = Category.objects.get(pk=int(request.POST['new_content']), user=request.user)
-    except Category.DoesNotExist:
-        category = None
+    category = None
+    if request.POST['new_content']:
+        try:
+            category = Category.objects.get(pk=int(request.POST['new_content']), user=request.user)
+        except Category.DoesNotExist:
+            pass
     transaction.category = category
     transaction.save()
     return HttpResponse()
@@ -353,10 +363,12 @@ def edit_transaction_category(request, transaction_id):
 @login_required
 def edit_transaction_account(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
-    try:
-        account = Account.objects.get(pk=int(request.POST['new_content']), user=request.user)
-    except Account.DoesNotExist:
-        account = None
+    account = None
+    if request.POST['new_content']:
+        try:
+            account = Account.objects.get(pk=int(request.POST['new_content']), user=request.user)
+        except Account.DoesNotExist:
+            pass
     transaction.account = account
     transaction.save()
     return HttpResponse()
@@ -457,16 +469,6 @@ class InvalidTransactionLogFormat(Exception):
     
     def __str__(self):
         return self.__repr__()
-
-def original_line_hash(amount, date, description, user):
-    assert isinstance(amount, float)
-    assert isinstance(date, datetime)
-    assert isinstance(description, unicode)
-    import hashlib
-    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, datetime.strftime(date, '%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
-    original_md5 = hashlib.md5(original).hexdigest()
-    return original_md5
-
 
 @login_required
 def split_transaction(request, transaction_id):

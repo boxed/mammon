@@ -37,7 +37,11 @@ function delete_transaction(id, confirm) {
     if (confirm) {
         var buttons = {};
         buttons[gettext("Cancel")] = function() { $(this).dialog("close"); };
-        buttons[gettext("Delete")] = function() { del(); $(this).dialog("close"); };
+        buttons[gettext("Delete")] = function() {
+            del();
+            $(this).dialog("close");
+            $('.ui-dialog').remove();
+        };
         $('<div>'+gettext("Are you sure you want to delete this transaction?")+'</div>').dialog({
             buttons: buttons
         });
@@ -260,3 +264,17 @@ function setup_all_like_this() {
         return true;
     });
 }
+
+$(document).ready(function(){
+    $(document).keydown(function(e) {
+        switch (e.keyCode) {
+            case '\r'.charCodeAt(0):
+                if ($('.ui-button-text').length > 1) {
+                    $($('.ui-button-text')[1]).click();
+                    e.preventDefault();
+                    return false;
+                }
+        }
+        return true;
+    });
+});

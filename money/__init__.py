@@ -72,7 +72,10 @@ def datetime_from_string(string):
     try:
         return datetime(*strptime(string, '%Y-%m-%d %H:%M')[:6])
     except ValueError:
-        return datetime(*strptime(string, '%Y-%m-%d')[:3])
+        try:
+            return datetime(*strptime(string, '%Y-%m-%d')[:3])
+        except ValueError:
+            return datetime(*strptime(string, '%y-%m-%d')[:3])
 
 def standardize_number(s):
     if len(s) > 3 and s[-3] == ',':
@@ -124,3 +127,12 @@ def find_default_number(table, most_significant_format):
         if b+a == result or b-a == result:
             return index1
     return -1
+
+def original_line_hash(amount, date, description, user):
+    assert isinstance(amount, float)
+    assert isinstance(date, datetime)
+    assert isinstance(description, unicode)
+    import hashlib
+    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, datetime.strftime(date, '%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
+    original_md5 = hashlib.md5(original).hexdigest()
+    return original_md5

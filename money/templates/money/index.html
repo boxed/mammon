@@ -50,6 +50,8 @@
             }
 
             var id = $('.row_marker').attr('transaction_id');
+            // TODO: add $('#id_category').val() to autocomplete list
+            // TODO: add $('#id_account').val() to autocomplete list
             $.ajax({
                 url: '/transactions/'+id+'/edit/properties/',
                 type: 'POST',
@@ -141,6 +143,10 @@
             $('.row_marker').intoViewport();
             update_row_markers();
             $('#id_row_marker_left').show();
+            
+            $('button').click(function() {
+                $('#id_category').focus();
+            });
 
             $(document).keydown(function(e) {
                 if (!e.ctrlKey) {
