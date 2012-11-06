@@ -22,6 +22,19 @@ SUPPORTED_BANKS = [
     ('Handelsbanken', 'Handelsbanken'),
 ]
 
+def get_page_size(request):
+    if 'page_size' in request.REQUEST:
+        return int(request.REQUEST['page_size'])
+    return 20
+
+def transaction_filter(request, transactions):
+    # limit the transactions for display
+    if 'start_time' in request.GET and 'end_time' in request.GET:
+        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']), time__lt=datetime_from_string(request.GET['end_time']))
+    if 'q' in request.GET:
+        transactions = transactions.filter(description__icontains=request.GET['q'])
+    return transactions.order_by('-time')
+
 @login_required
 def index(request):
     try:
@@ -32,7 +45,7 @@ def index(request):
         RequestContext(request, {
             'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
             'unmatched_count':Transaction.objects.filter(user=request.user, category__isnull=True).count(),
-            'transactions':Transaction.objects.filter(user=request.user, category__isnull=True),
+            'transactions':transaction_filter(request, Transaction.objects.filter(user=request.user, category__isnull=True)),
             'last_transaction':last_transaction,
             'categories': Category.objects.filter(user=request.user),
         }))
@@ -76,7 +89,7 @@ def view_category(request, category_id, page='1'):
     f = EditForm.base_fields
     EditForm.base_fields['account'].queryset = request.user.account_set.all()
 
-    transactions = Transaction.objects.filter(category=category).order_by('-time')
+    transactions = transaction_filter(request, Transaction.objects.filter(category=category))
 
     if request.POST:
         from copy import copy
@@ -91,13 +104,8 @@ def view_category(request, category_id, page='1'):
                 transactions.update(account=category.account)
     else:
         form = EditForm(initial={}, instance=category)
-    
-    # limit the transactions for display
-    if 'start_time' in request.GET and 'end_time' in request.GET:
-        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']), time__lt=datetime_from_string(request.GET['end_time']))
 
-    page_size = 20
-    paginator = Paginator(transactions, page_size)
+    paginator = Paginator(transactions, get_page_size(request))
     return render_to_response('money/view_category.html', RequestContext(request, {
         'paginator': paginator,
         'page': page,
@@ -112,8 +120,8 @@ def view_category(request, category_id, page='1'):
         
 @login_required
 def view_transaction_list(request, page='1'):
-    page_size = 20
-    paginator = Paginator(Transaction.objects.filter(user=request.user).order_by('-time'), page_size)
+    transactions = transaction_filter(request, Transaction.objects.filter(user=request.user))
+    paginator = Paginator(transactions, get_page_size(request))
     return render_to_response('money/view_transaction_list.html', RequestContext(request, {
         'paginator': paginator,
         'page': page,
@@ -122,11 +130,11 @@ def view_transaction_list(request, page='1'):
         'categories': Category.objects.filter(user=request.user),
     }))
         
-def transactions_for_period(start_time, end_time, user):
-    return list(Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time))
+def transactions_for_period(request, start_time, end_time, user):
+    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)))
         
-def create_summary(start_time, end_time, user):
-    transactions = transactions_for_period(start_time, end_time, user)
+def create_summary(request, start_time, end_time, user):
+    transactions = transactions_for_period(request, start_time, end_time, user)
     accounts = {}
     default_account = Account(name=' default')
     default_category = Category(name=' other')
@@ -202,14 +210,14 @@ def view_summary(request, period='month', year=None, month=None):
     last_period_start_time = get_start_of_period(reference-timedelta(days=15), request.user)
     last_period_end_time = get_end_of_period(last_period_start_time, request.user)
     
-    accounts, transactions = create_summary(start_time, end_time, request.user)
+    accounts, transactions = create_summary(request, start_time, end_time, request.user)
 
     projected_transactions = []
     last_month = False
     # calculate projections for the current unfinished month only
     if year == datetime.now().year and month == datetime.now().month:
         last_month = True
-        last_period_transactions = transactions_for_period(last_period_start_time, last_period_end_time, request.user)
+        last_period_transactions = transactions_for_period(request, last_period_start_time, last_period_end_time, request.user)
         transaction_descriptions = set([x.description for x in transactions])
         for last_period_transaction in last_period_transactions:
             if last_period_transaction.category and last_period_transaction.category.period == 1 and last_period_transaction.description not in transaction_descriptions:
