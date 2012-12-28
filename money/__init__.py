@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 from time import strptime
-from curia import *
+from curia import first_of_next_month, first_of_previous_month
 from curia.authentication.models import Detail
 
 def get_start_of_period(reference, user):

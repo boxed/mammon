@@ -44,9 +44,9 @@ def index(request):
     return render_to_response('money/index.html',
         RequestContext(request, {
             'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
-            'unmatched_count':Transaction.objects.filter(user=request.user, category__isnull=True).count(),
-            'transactions':transaction_filter(request, Transaction.objects.filter(user=request.user, category__isnull=True)),
-            'last_transaction':last_transaction,
+            'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
+            'transactions': transaction_filter(request, Transaction.objects.filter(user=request.user, category__isnull=True)),
+            'last_transaction': last_transaction,
             'categories': Category.objects.filter(user=request.user),
         }))
 
@@ -196,14 +196,16 @@ def view_summary(request, period='month', year=None, month=None):
         start_time = get_start_of_period(reference, request.user)
         end_time = get_end_of_period(start_time, request.user)
     elif period == 'year':
-        start_time = datetime(int(year), 1, 1)
-        if now.year == year:
-#            if now.day > int(get_period_setting(request.user)):
-            end_time = datetime(now.month, 1, 1)
-#            else:
-#                end_time = first_of_previous_month(datetime(now.month, 1, 1))
+        if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST: # allow start/end time to be overwritten by URL
+            from mammon.money import datetime_from_string
+            start_time = datetime_from_string(request.REQUEST['start_time'])
+            end_time = datetime_from_string(request.REQUEST['end_time'])
         else:
-            end_time = datetime(int(year)+1, 1, 1)
+            start_time = datetime(int(year), 1, 1)
+            if now.year == year:
+                end_time = datetime(now.month, 1, 1)
+            else:
+                end_time = datetime(int(year)+1, 1, 1)
     else:
         raise Exception('Invalid period')
         
@@ -239,10 +241,12 @@ def view_summary(request, period='month', year=None, month=None):
         previous_year, previous_month = year-1, None
         next_year, next_month = year+1, None
         next_period = year < datetime.now().year
+    else:
+        assert False
         
     return render_to_response('money/view_period.html',
         RequestContext(request, {
-            'lossgain':lossgain,
+            'lossgain': lossgain,
             'account_summaries': sorted(accounts.items()),
             'total': total,
             'year': year,
