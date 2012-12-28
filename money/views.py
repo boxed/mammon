@@ -604,7 +604,7 @@ def all_like_this(request, transaction_id):
 
     if request.method == 'GET':
         result = ''
-        for index, c in enumerate(transaction.description):
+        for index, c in enumerate(transaction.description.strip()):
             if index == 0 or c == ' ':
                 if index:
                     result += '</span>'
