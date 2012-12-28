@@ -134,8 +134,8 @@
         {% if transactions %}
         $(document).ready(function() {
             $('#id_category').focus();
-            $("#id_category").inlineComplete({terms: [{% for category in categories %}"{{ category }}",{% endfor %}]});
-            $("#id_account").inlineComplete({terms: [{% for account in accounts %}"{{ account }}",{% endfor %}]});
+            $("#id_category").inlineComplete({terms: [{% for category in categories %}"{{ category|escapejs }}",{% endfor %}]});
+            $("#id_account").inlineComplete({terms: [{% for account in accounts %}"{{ account|escapejs }}",{% endfor %}]});
 
             function update_row_markers() {
                 var pos = $('.row_marker').offset();
