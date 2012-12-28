@@ -112,6 +112,9 @@
                                 after_dialog_closed();
                                 $('tr.row_marker').remove();
                                 $('#transaction_list tr:last').addClass('row_marker');
+                                if ($('#transaction_list tr').length == 1) {
+                                    document.location.reload();
+                                }
                             }
                         });
                     };
@@ -128,7 +131,8 @@
                 }
             });
         }
-        $(document).ready(function(){
+        {% if transactions %}
+        $(document).ready(function() {
             $('#id_category').focus();
             $("#id_category").inlineComplete({terms: [{% for category in categories %}"{{ category }}",{% endfor %}]});
             $("#id_account").inlineComplete({terms: [{% for account in accounts %}"{{ account }}",{% endfor %}]});
@@ -203,5 +207,6 @@
                 return true;
             });
         });
+        {% endif %}
     </script>
 {% endblock %}
