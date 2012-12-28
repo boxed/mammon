@@ -182,7 +182,7 @@ function setup_all_like_this() {
     update_markers();
     select_start_marker();
 
-    $(document).keydown(function(e) {
+    $('.ui-dialog').keydown(function(e) {
         var pos = $('.word').index($('.'+mark_to_move+'_mark'));
         var subpos = $('.'+mark_to_move+'_mark span').index($('.'+mark_to_move+'_sub_mark'));
         switch (e.keyCode) {

@@ -1,6 +1,7 @@
 # coding=UTF8
 from datetime import datetime, timedelta
 import re
+from curia.authentication import AccessDeniedException
 
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -385,23 +386,6 @@ def edit_transaction_account(request, transaction_id):
     transaction.save()
     return HttpResponse()
 
-# example usage:
-# edit_object_foreign_key(request, Transaction, transaction_id, fk_class=Account)
-# def edit_object_foreign_key(request, object_class, object_id, fk_class, fk_name=None):
-#     if fk_name == None:
-#         fk_name = fk_class.__name__.lower()
-#     from django.utils.encoding import smart_unicode
-#     obj = object_class.objects.get(pk=object_id, user=request.user)
-#     fk_obj = None
-#     fk_id = int(request.POST['new_content'])
-#     if fk_id != 0:
-#         fk_obj = fk_class.objects.get(pk=fk_id, user=request.user)
-#     setattr(obj, fk_name, fk_obj)
-#     obj.save()
-#     return HttpResponse()
-
-# edit_object_property(request, Account, account_id, 'name', str)
-# edit_object_property(request, Account, account_id, 'time', datetime)
 @login_required
 def edit_transaction_date(request, transaction_id):
     from django.utils.encoding import smart_unicode
@@ -466,7 +450,6 @@ def add_category(request):
     
 @login_required
 def update_matching(request):
-    categories = list(Category.objects.filter(user=request.user))
     reset = 'reset' in request.REQUEST
     update_matches_for_user(request.user, reset)
     return HttpResponseRedirect('/')
@@ -641,7 +624,7 @@ def all_like_this(request, transaction_id):
         end_index = request.POST['end_index']
         assert start_index < end_index
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
-        category.add_rule(re.escape(transaction.description[int(start_index):int(end_index)+1]))
+        category.add_rule(transaction.description[int(start_index):int(end_index)+1])
         category.save()
         if request.POST['account']:
             transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]

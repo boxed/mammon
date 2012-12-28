@@ -71,6 +71,13 @@
                 }
             });
         }
+        function after_dialog_closed() {
+            $('.ui-dialog').remove();
+            $('#id_all_like_this_dialog').remove();
+            $('#id_category').val('');
+            $('#id_account').val('');
+            $('#id_category').focus();
+        }
         function all_like_this() {
             if (!$('#id_category').val()) {
                 window.setTimeout(function (){
@@ -101,7 +108,10 @@
                                 account: $('#id_account').val()
                             },
                             success: function() {
-                                window.location.reload();
+                                $('.ui-dialog').remove();
+                                after_dialog_closed();
+                                $('tr.row_marker').remove();
+                                $('#transaction_list tr:last').addClass('row_marker');
                             }
                         });
                     };
@@ -110,11 +120,7 @@
                         width: 800,
                         height: 400,
                         close: function () {
-                            $('.ui-dialog').remove();
-                            $('#id_all_like_this_dialog').remove();
-                            $('#id_category').val('');
-                            $('#id_account').val('');
-                            $('#id_category').focus();
+                            after_dialog_closed();
                         }
                     });
                     $('.ui-dialog').css({position: 'fixed', top: 20, left: 3, width: '99%'});

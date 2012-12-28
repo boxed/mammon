@@ -70,7 +70,7 @@ class Category(models.Model):
         import re
         for rule in self.matching_rules.splitlines():
             if rule.strip() != '':
-                if re.compile('.*%s.*' % rule.strip(), re.IGNORECASE).match(transaction.description):
+                if rule.strip().lower() in transaction.description.lower():
                     return True
         return False
         
