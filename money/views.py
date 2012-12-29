@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
 from django.template.context import RequestContext
+from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.core.paginator import Paginator
@@ -120,7 +121,7 @@ def view_category(request, category_id, page='1'):
         }))
         
 @login_required
-def view_transaction_list(request, page='1'):
+def view_transactions(request, page='1'):
     transactions = transaction_filter(request, Transaction.objects.filter(user=request.user))
     paginator = Paginator(transactions, get_page_size(request))
     return render_to_response('money/view_transaction_list.html', RequestContext(request, {
@@ -130,7 +131,30 @@ def view_transaction_list(request, page='1'):
         'transactions': paginator.page(page).object_list,
         'categories': Category.objects.filter(user=request.user),
     }))
-        
+
+@login_required
+def export_transactions(request):
+    transactions = transaction_filter(request, Transaction.objects.filter(user=request.user)).order_by('time')
+    def export():
+        for transaction in transactions:
+            yield u'%s\t%s\t%s\t%s\t%s\n' % (transaction.time.date().isoformat(), transaction.description, transaction.amount, transaction.category or '', transaction.account or '')
+    return HttpResponse(export(), mimetype='text/csv; charset="utf8')
+
+@login_required
+def import_transactions(request):
+    if not request.POST:
+        return render_to_response('money/import.html', RequestContext(request, {}))
+    else:
+        data = force_unicode(request.POST['data'])
+        rows = [row for row in data.replace('\r\n', '\n').split('\n') if row]
+        for row in rows:
+            date, description, amount, category, account = row.split('\t')
+            category = Category.objects.get_or_create(user=request.user, name=category)[0] if category.strip() else None
+            account = Account.objects.get_or_create(user=request.user, name=account)[0] if account.strip() else None
+            Transaction.objects.create(user=request.user, time=datetime.strptime(date, '%Y-%m-%d'), description=description, amount=amount, category=category, account=account)
+        return HttpResponse('Imported %s transactions' % len(rows))
+
+
 def transactions_for_period(request, start_time, end_time, user):
     return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)))
         
@@ -306,7 +330,7 @@ def view_history(request):
         where user_id = %s
         group by account_id, bracket""" % (when_statements, request.user.id)
     cursor.execute(statement)
-    
+
     class DataPoint:
         def __init__(self, date, amount):
             self.date, self.amount = datetime_from_string(date), amount

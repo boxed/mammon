@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <style>
+        textarea
+        {
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+
+    <form method="post">
+    
+        <div id="id_post_data">
+            <p>
+                <button id="id_import" class="button">{% trans "Import transactions" %}</button>
+            </p>
+
+            <div class="content">
+                <textarea id="id_data" rows="10" cols="40" name="data"></textarea>
+            </div>
+        </div>
+        <span id="id_spinner" style="display: none">Processing...</span>
+    </form>
+
+{% endblock %}
