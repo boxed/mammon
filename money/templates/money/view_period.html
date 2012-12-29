@@ -89,10 +89,6 @@
 		{% endifnotequal %}
    	</table>
 
-    <p>
-        <span class="button" onClick="$('#log').toggle();">{% trans "Details..." %}</span>
-    </p>
-
     {% if projected_transactions %}
     	<p>
         	{% trans "Projected" %}: {{ projected_sum }} <span class="button" onClick="$('#projection_log').toggle();">{% trans "Details..." %}</span>
@@ -104,6 +100,10 @@
     {% endif %}
 
     {% if period == 'month' %}
+        <p>
+            <span class="button" onClick="$('#log').toggle();">{% trans "Details..." %}</span>
+        </p>
+
         <div id="log" style="display:none;">
             {% include "money/transaction_list.html" %}
         </div>

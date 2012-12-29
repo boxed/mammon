@@ -201,7 +201,7 @@ def view_summary(request, period='month', year=None, month=None):
     now = datetime.now()
     reference = datetime.now()
     if year is None:
-        year = reference.year
+        year = reference.year if period == 'month' else reference.year-1
     else:
         year = int(year)
     if month is None:
