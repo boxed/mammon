@@ -103,9 +103,11 @@
         </div>
     {% endif %}
 
-    <div id="log" style="display:none;">
-        {% include "money/transaction_list.html" %}
-    </div>
+    {% if period == 'month' %}
+        <div id="log" style="display:none;">
+            {% include "money/transaction_list.html" %}
+        </div>
+    {% endif %}
 
 	{% else %}
 		<p>

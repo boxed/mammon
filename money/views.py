@@ -156,25 +156,18 @@ def import_transactions(request):
 
 
 def transactions_for_period(request, start_time, end_time, user):
-    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)))
+    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category'))
         
 def create_summary(request, start_time, end_time, user):
     transactions = transactions_for_period(request, start_time, end_time, user)
     accounts = {}
     default_account = Account(name=' default')
     default_category = Category(name=' other')
-    
-    def get_or_insert(dic, key, default=None):
-        if default is None:
-            default = {}
-        if key not in dic:
-            dic[key] = default
-        return dic[key]
-    
+
     for transaction in transactions:
-        categories = get_or_insert(accounts, transaction.account or default_account, {})
+        categories = accounts.setdefault(transaction.account or default_account, {})
         if transaction.account is None or not transaction.account.hide:
-            category = get_or_insert(categories, transaction.category or default_category, {})
+            category = categories.setdefault(transaction.category or default_category, {})
             category['sum'] = category.get('sum', 0)+transaction.amount
 
     for account, categories in accounts.items():
@@ -191,7 +184,7 @@ def create_summary(request, start_time, end_time, user):
             values['severity'] = 0
             if max_value:
                 values['severity'] = abs(values['sum'])/max_value
-    
+
     for account, categories in accounts.items():
         account.total = sum([x[1]['sum'] for x in categories.items()])
         if account.total < 0:
@@ -236,13 +229,13 @@ def view_summary(request, period='month', year=None, month=None):
         
     last_period_start_time = get_start_of_period(reference-timedelta(days=15), request.user)
     last_period_end_time = get_end_of_period(last_period_start_time, request.user)
-    
+
     accounts, transactions = create_summary(request, start_time, end_time, request.user)
 
     projected_transactions = []
     last_month = False
     # calculate projections for the current unfinished month only
-    if year == datetime.now().year and month == datetime.now().month:
+    if period == 'month' and year == datetime.now().year and month == datetime.now().month:
         last_month = True
         last_period_transactions = transactions_for_period(request, last_period_start_time, last_period_end_time, request.user)
         transaction_descriptions = set([x.description for x in transactions])
@@ -268,7 +261,7 @@ def view_summary(request, period='month', year=None, month=None):
         next_period = year < datetime.now().year
     else:
         assert False
-        
+
     return render_to_response('money/view_period.html',
         RequestContext(request, {
             'lossgain': lossgain,
