@@ -302,6 +302,10 @@ msgstr "Visa..."
 msgid "Delete this category"
 msgstr "Radera denna kategori"
 
+#: money/templates/money/view_category.html:41
+msgid "Delete this account"
+msgstr "Radera detta konto"
+
 #: money/templates/money/view_category.html:57
 msgid "Transactions"
 msgstr "Transaktioner"

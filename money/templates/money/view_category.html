@@ -3,12 +3,12 @@
 
 {% block content %}
     <script type="text/javascript">
-        function delete_category(id)
+        function delete_group(id)
         {
-            $('<div>{{ _("Are you sure you want to delete this category?") }}</div>').dialog({
+            $('<div>{{ confirm_delete_message }}</div>').dialog({
                 buttons: {
                     '{{ _("Cancel") }}': function() { $(this).dialog("close"); },
-                    '{{ _("Delete") }}': function() {window.location = '/categories/'+id+'/delete/?next='+window.location;}
+                    '{{ _("Delete") }}': function() {window.location = '{{ base_url }}/delete/?next='+window.location;}
                 }
             });
         }
@@ -25,7 +25,7 @@
     </div>
     
     <p>
-        <span class="button" onClick="delete_category({{ category.id }})"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {{ _("Delete this category") }}</span>
+        <span class="button" onClick="delete_group({{ group.id }})"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {{ delete_message }}</span>
     </p>
 
     <form method="post">

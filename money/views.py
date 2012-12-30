@@ -1,8 +1,6 @@
 # coding=UTF8
 from datetime import datetime, timedelta
-import re
-from curia.authentication import AccessDeniedException
-
+from copy import copy
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
@@ -12,10 +10,15 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum
+from django.forms import ModelForm
+from django import forms
 from curia import *
 from mammon.money import *
 from mammon.money.models import *
 from mammon.money.utils import Counter
+
+class AccessDeniedException(Exception):
+    pass
 
 SUPPORTED_BANKS = [
     ('Nordea', 'Nordea'), 
@@ -57,6 +60,10 @@ def view_categories(request):
     return render_to_response('money/view_categories.html', RequestContext(request, {'categories': Category.objects.filter(user=request.user)}))
 
 @login_required
+def view_accounts(request):
+    return render_to_response('money/view_accounts.html', RequestContext(request, {'accounts': Account.objects.filter(user=request.user)}))
+
+@login_required
 def delete_account(request, account_id):
     account = get_object_or_404(Account, pk=account_id)
     if account.user != request.user:
@@ -74,50 +81,63 @@ def delete_category(request, category_id):
     Transaction.objects.filter(category=category).update(category=None)
     category.delete()
     return HttpResponseRedirect('/')
-    
+
 @login_required
 def view_category(request, category_id, page='1'):
-    category = get_object_or_404(Category, pk=category_id)
-    if category.user != request.user:
-        raise AccessDeniedException('cannot edit others categories')
-        
-    from django.forms import ModelForm
-    from django import forms
     class EditForm(ModelForm):
         update_existing_transactions = forms.BooleanField(label=_('Update existing transactions'), required=False)
         class Meta:
             model = Category
             fields = ('name', 'matching_rules', 'period', 'account')
-    f = EditForm.base_fields
     EditForm.base_fields['account'].queryset = request.user.account_set.all()
 
-    transactions = transaction_filter(request, Transaction.objects.filter(category=category))
+    return view_grouping(request, Category, category_id, EditForm, 'category', '/categories', page)
+
+@login_required
+def view_account(request, account_id, page='1'):
+    class EditForm(ModelForm):
+        class Meta:
+            model = Account
+            fields = ('name',)
+
+    return view_grouping(request, Account, account_id, EditForm, 'account', '/accounts', page)
+
+@login_required
+def view_grouping(request, group_class, group_id, form_class, group_name, url_base, page):
+    group = get_object_or_404(group_class, pk=group_id)
+    if group.user != request.user:
+        raise AccessDeniedException('cannot edit others categories')
+
+    transactions = transaction_filter(request, Transaction.objects.filter(**{group_name: group}))
 
     if request.POST:
-        from copy import copy
         post = copy(request.POST)
-        if post['period'] == 'None':
-            post['period'] = None
-        form = EditForm(post, instance=category)
+        for key, value in post.items()  :
+            if value == 'None':
+                post[key] = None
+        form = form_class(post, instance=group)
         if form.is_valid():
-            category = form.save()
+            group = form.save()
             update_matches_for_user(request.user)
-            if form.cleaned_data['update_existing_transactions']:
-                transactions.update(account=category.account)
+            if 'update_existing_transactions' in form.cleaned_data:
+                transactions.update(account=group.account)
     else:
-        form = EditForm(initial={}, instance=category)
+        form = form_class(initial={}, instance=group)
 
     paginator = Paginator(transactions, get_page_size(request))
     return render_to_response('money/view_category.html', RequestContext(request, {
         'paginator': paginator,
         'page': page,
-        'base_url': '/categories/%d/' % category.id,
-        'form': form, 
+        'base_url': '%s/%d/' % (url_base, group.id),
+        'form': form,
         'transactions': paginator.page(page).object_list,
         'unmatched_transactions':Transaction.objects.filter(user=request.user, category__isnull=True),
         'categories': Category.objects.filter(user=request.user),
-        'category': category,
+        'group': group,
+        'group_name': group_name,
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
+        'delete_message': _('Delete this %s' % group_name),
+        'confirm_delete_message': _('Are you sure you want to delete this %s?' % group_name),
         }))
         
 @login_required

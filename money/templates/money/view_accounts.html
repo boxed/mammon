@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+    {% if accounts %}
+        <div style="text-align:left; display:table; margin-left:auto; margin-right:auto;">
+        {% for account in accounts %}
+            <a href="{{ account.id }}/">{{ account }}</a><br />
+        {% endfor %}
+        </div>
+    {% else %}
+        {% blocktrans %}No accounts defined yet.{% endblocktrans %}
+    {% endif %}
+{% endblock %}

@@ -26,11 +26,14 @@ urlpatterns = patterns('',
     (r'^transactions/delete_range/$', 'mammon.money.views.delete_range'),
     
     (r'^categories/$', 'mammon.money.views.view_categories'),
-    (r'^categories/(?P<category_id>\d+)/page/(?P<page>\d+)/$', 'mammon.money.views.view_category'),
     (r'^categories/(?P<category_id>\d+)/$', 'mammon.money.views.view_category'),
+    (r'^categories/(?P<category_id>\d+)/page/(?P<page>\d+)/$', 'mammon.money.views.view_category'),
     (r'^categories/(?P<category_id>\d+)/delete/$', 'mammon.money.views.delete_category'),
     (r'^categories/add/$', 'mammon.money.views.add_category'),
-    
+
+    (r'^accounts/$', 'mammon.money.views.view_accounts'),
+    (r'^accounts/(?P<account_id>\d+)/$', 'mammon.money.views.view_account'),
+    (r'^accounts/(?P<account_id>\d+)/page/(?P<page>\d+)/$', 'mammon.money.views.view_account'),
     (r'^accounts/add/$', 'mammon.money.views.add_account'),
     (r'^accounts/(?P<account_id>\d+)/edit/name/$', 'mammon.money.views.edit_account_name'),
     (r'^accounts/(?P<account_id>\d+)/delete/$', 'mammon.money.views.delete_account'),
