@@ -152,7 +152,7 @@ def view_transactions(request, page='1'):
     categories = Category.objects.filter(user=request.user)
     accounts = Account.objects.filter(user=request.user)
 
-    data = {key: value for key, value in request.REQUEST.items() if value}
+    data = dict([(key, value) for key, value in request.REQUEST.items() if value])
 
     class FilterForm(forms.Form):
         q = forms.CharField(label=_('Description'), required=False)
