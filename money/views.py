@@ -34,10 +34,15 @@ def get_page_size(request):
 
 def transaction_filter(request, transactions):
     # limit the transactions for display
-    if 'start_time' in request.GET and 'end_time' in request.GET:
-        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']), time__lt=datetime_from_string(request.GET['end_time']))
-    if 'q' in request.GET:
-        transactions = transactions.filter(description__icontains=request.GET['q'])
+    transactions = transactions.filter(user=request.user)
+    if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST and request.REQUEST['start_time'] and request.REQUEST['end_time']:
+        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']), time__lt=datetime_from_string(request.REQUEST['end_time']))
+    if 'q' in request.REQUEST and request.REQUEST['q']:
+        transactions = transactions.filter(description__icontains=request.REQUEST['q'])
+    if 'category' in request.REQUEST and request.REQUEST['category']:
+        transactions = transactions.filter(category__pk=request.REQUEST['category'])
+    if 'account' in request.REQUEST and request.REQUEST['account']:
+        transactions = transactions.filter(account__pk=request.REQUEST['account'])
     return transactions.order_by('-time')
 
 @login_required
@@ -144,12 +149,51 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
 def view_transactions(request, page='1'):
     transactions = transaction_filter(request, Transaction.objects.filter(user=request.user))
     paginator = Paginator(transactions, get_page_size(request))
+    categories = Category.objects.filter(user=request.user)
+    accounts = Account.objects.filter(user=request.user)
+
+    data = {key: value for key, value in request.REQUEST.items() if value}
+
+    class FilterForm(forms.Form):
+        q = forms.CharField(label=_('Description'), required=False)
+        start_time = forms.DateTimeField(required=False)
+        end_time = forms.DateTimeField(required=False)
+        category = forms.ChoiceField(choices=[('', '')]+[(category.pk, category.name) for category in categories], required=False)
+        account = forms.ChoiceField(choices=[('', '')]+[(account.pk, account.name) for account in accounts], required=False)
+
+    class BulkEditForm(forms.Form):
+        bulk_description = forms.CharField(label=_('Append description'), required=False)
+        bulk_category = forms.ChoiceField(choices=[('', '')]+[(category.pk, category.name) for category in categories], required=False)
+        bulk_account = forms.ChoiceField(choices=[('', '')]+[(account.pk, account.name) for account in accounts], required=False)
+
+    for name, field in FilterForm.base_fields.items():
+        BulkEditForm.base_fields[name] = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    filter_form = FilterForm(data)
+    bulk_edit_form = BulkEditForm(data)
+
+    if request.POST:
+        update = {}
+        if bulk_edit_form.is_valid():
+            if bulk_edit_form.cleaned_data['bulk_description']:
+                for transaction in transactions:
+                    transaction.description += ' '+bulk_edit_form.cleaned_data['bulk_description']
+                    transaction.save()
+            if bulk_edit_form.cleaned_data['bulk_category']:
+                update['category'] = Category.objects.get(user=request.user, pk=bulk_edit_form.cleaned_data['bulk_category'])
+            if bulk_edit_form.cleaned_data['bulk_account']:
+                update['account'] = Account.objects.get(user=request.user, pk=bulk_edit_form.cleaned_data['bulk_account'])
+            transactions.update(**update)
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
     return render_to_response('money/view_transaction_list.html', RequestContext(request, {
+        'filter_form': filter_form,
+        'bulk_edit_form': bulk_edit_form,
         'paginator': paginator,
         'page': page,
         'base_url': '/transactions/',
         'transactions': paginator.page(page).object_list,
-        'categories': Category.objects.filter(user=request.user),
+        'categories': categories,
     }))
 
 @login_required

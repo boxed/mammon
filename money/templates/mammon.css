@@ -40,7 +40,7 @@
 #global-menu li {
     display: inline;
     padding: 0;
-    padding-right: 10px;
+    padding-right: 15px;
     margin: 0;
 }
 #global-menu a {
@@ -308,6 +308,10 @@ table td {
     padding-right: 5px;
 }
 
+table td h2 {
+    margin: 0;
+}
+
 #id_classification_bar {
     padding: 4px;
     background: rgba(255, 255, 255, 0.9);
@@ -361,6 +365,11 @@ table td {
 #id_row_marker_left {
     font-size: 24px;
     font-family: arial, sans-serif;
+}
+
+#transaction_list {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 #id_classification_page #body, #id_classification_page #transaction_list tr td {

@@ -2,7 +2,35 @@
 {% load i18n %}{% load auth %}
 
 {% block content %}
+    <form>
+        <table class="form">
+            <tr>
+                <td colspan="2"><h2>{{ _("Filter") }}</h2></td>
+            </tr>
+            {{ filter_form.as_table }}
+            <tr>
+                <td colspan="2" style="text-align: right">
+                    <button>{{ _("Filter") }}</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+
     {% include "money/transaction_list.html" %}
 
-	{% digg_paginator %}
+    {% digg_paginator %}
+
+    <form method="post">
+        <table class="form" style="padding-top: 20px;">
+            <tr>
+                <td colspan="2"><h2>{{ _("Bulk Edit") }}</h2></td>
+            </tr>
+            {{ bulk_edit_form.as_table }}
+            <tr>
+                <td colspan="2" style="text-align: right">
+                    <button>{{ _("Bulk edit") }}</button>
+                </td>
+            </tr>
+        </table>
+    </form>
 {% endblock %}

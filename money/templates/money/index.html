@@ -33,7 +33,6 @@
             <p />
             <div style="font-size: 80%; padding-top: 20px">
                 {% trans "Latest transaction" %}: {{ last_transaction.time|relative_date }} 
-                <a href="/transactions/" class="button">{% trans "full transaction log" %}</a>
             </div>
         {% else %}
             {% blocktrans %}No transactions added. Go to <a href="/add/">Add Transactions</a> to add some data.{% endblocktrans %}
