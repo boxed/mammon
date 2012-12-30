@@ -83,7 +83,7 @@
 				<td class="amount {{ lossgain }}">{{ total|floatformat:2 }}</td>
 				<td></td>
 				{% if period == "year" %}
-					<td class="amount {{ lossgain }}">{{ total|divide:12|floatformat:2 }}</td>
+					<td class="amount {{ lossgain }}">{{ total|divide:monthly_average_divisor|floatformat:2 }}</td>
 				{% endif %}
 			</tr>
 		{% endifnotequal %}

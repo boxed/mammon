@@ -217,17 +217,9 @@ def create_summary(request, start_time, end_time, user):
     
 @login_required
 def view_summary(request, period='month', year=None, month=None):
-    # from django.db.models import Sum
-    now = datetime.now()
     reference = datetime.now()
-    if year is None:
-        year = reference.year if period == 'month' else reference.year-1
-    else:
-        year = int(year)
-    if month is None:
-        month = reference.month 
-    else:
-        year = int(year)
+    year = reference.year if year is None else int(year)
+    month = reference.month if month is None else int(month)
     reference = datetime(int(year), int(month), 1)
 
     if period == 'month':
@@ -240,10 +232,7 @@ def view_summary(request, period='month', year=None, month=None):
             end_time = datetime_from_string(request.REQUEST['end_time'])
         else:
             start_time = datetime(int(year), 1, 1)
-            if now.year == year:
-                end_time = datetime(now.month, 1, 1)
-            else:
-                end_time = datetime(int(year)+1, 1, 1)
+            end_time = datetime(int(year)+1, 1, 1)
     else:
         raise Exception('Invalid period')
         
@@ -264,11 +253,7 @@ def view_summary(request, period='month', year=None, month=None):
                 projected_transactions.append(last_period_transaction)
 
     total = sum([x.total for x in accounts])
-    if total < 0:
-        lossgain = 'loss'
-    else:
-        lossgain = 'gain'
-    
+
     if period == 'month':
         prev = first_of_previous_month(end_time)
         previous_year, previous_month = prev.year, prev.month
@@ -284,12 +269,13 @@ def view_summary(request, period='month', year=None, month=None):
 
     return render_to_response('money/view_period.html',
         RequestContext(request, {
-            'lossgain': lossgain,
+            'lossgain': 'loss' if total < 0 else 'gain',
             'account_summaries': sorted(accounts.items()),
             'total': total,
             'year': year,
             'month': month,
             'period': period,
+            'monthly_average_divisor': (end_time-start_time).days/30,
             
             'projected_transactions': projected_transactions,
             'projected_sum': sum([x.amount for x in projected_transactions]),
