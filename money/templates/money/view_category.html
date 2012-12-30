@@ -44,9 +44,4 @@
     
     <h3>{% trans "Transactions" %}</h3>
     {% include "money/transaction_list.html" %}
-    {% digg_paginator %}
-    
-	{% if sum %}
-    	<div>{% trans "Sum" %}: {{ sum }}</div>
-	{% endif %}
 {% endblock %}

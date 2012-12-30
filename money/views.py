@@ -194,6 +194,7 @@ def view_transactions(request, page='1'):
         'base_url': '/transactions/',
         'transactions': paginator.page(page).object_list,
         'categories': categories,
+        'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
     }))
 
 @login_required

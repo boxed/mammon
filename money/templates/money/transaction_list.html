@@ -47,6 +47,13 @@
             </tr>
         {% endfor %}
     </table>
+
+    {% digg_paginator %}
+
+    {% if sum %}
+        <div>{% trans "Sum" %}: {{ sum }}</div>
+    {% endif %}
+
 {% else %}
 	{% trans "No transactions" %}
 {% endif %}
