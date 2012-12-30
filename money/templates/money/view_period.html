@@ -59,7 +59,7 @@
 	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px; background: {% if d.sum|is_negative %}red{% else %}green{% endif %};">&nbsp;</div>
 	                    </td>
 						{% if period == "year" %}
-							<td class="amount">{{ d.sum|divide:12|floatformat:2 }}</td>
+							<td class="amount">{{ d.sum|divide:monthly_average_divisor|floatformat:2 }}</td>
 						{% endif %}
 	                </tr>
 	            {% endif %}
@@ -69,7 +69,7 @@
 				<td class="amount {{ account.lossgain }}">{{ account.total|floatformat:2 }}</td>
 				<td></td>
 				{% if period == "year" %}
-					<td class="amount {{ account.lossgain }}">{{ account.total|divide:12|floatformat:2 }}</td>
+					<td class="amount {{ account.lossgain }}">{{ account.total|divide:monthly_average_divisor|floatformat:2 }}</td>
 				{% endif %}
 			</tr>
 	    {% endfor %}
