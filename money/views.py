@@ -1,6 +1,8 @@
 # coding=UTF8
 from datetime import datetime, timedelta
 from copy import copy
+from math import sqrt
+import numpy
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
@@ -229,11 +231,22 @@ def create_summary(request, start_time, end_time, user):
     default_account = Account(name=' default')
     default_category = Category(name=' other')
 
+    sum_per_account_per_category_per_month = {}
+
+    period_setting = get_period_setting(request.user)
+    def month_from_transaction(transaction):
+        if transaction.time.day > period_setting:
+            return transaction.time.month
+        else:
+            return transaction.time.month-1
+
     for transaction in transactions:
         categories = accounts.setdefault(transaction.account or default_account, {})
         if transaction.account is None or not transaction.account.hide:
             category = categories.setdefault(transaction.category or default_category, {})
             category['sum'] = category.get('sum', 0)+transaction.amount
+            sum_of_month = sum_per_account_per_category_per_month.setdefault(transaction.account or default_account, {}).setdefault(transaction.category or default_category, dict([(i, {'sum': 0}) for i in range(1, 12)])).setdefault(month_from_transaction(transaction), {})
+            sum_of_month['sum'] = sum_of_month.get('sum', 0)+transaction.amount
 
     for account, categories in accounts.items():
         if not len(categories.items()):
@@ -249,6 +262,7 @@ def create_summary(request, start_time, end_time, user):
             values['severity'] = 0
             if max_value:
                 values['severity'] = abs(values['sum'])/max_value
+            values['std_deviation'] = numpy.std([float(month['sum']) for month in sum_per_account_per_category_per_month[account][category].values()], ddof=1)
 
     for account, categories in accounts.items():
         account.total = sum([x[1]['sum'] for x in categories.items()])

@@ -15,9 +15,6 @@ def get_end_of_period(reference, user):
     end_time += timedelta(days=days_offset)
     return end_time
 
-def get_bank_setting(user):
-    return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_bank', defaults={'value':'Nordea'})[0]
-
 def get_period_setting(user):
     return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_period_days', defaults={'value':'25'})[0]
 

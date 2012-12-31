@@ -40,14 +40,15 @@
 				<th>{% trans "Part" %}</th>
 				{% if period == "year" %}
 					<th>{% trans "Monthly average" %}</th>
+                    <th>{% trans "Standard deviation" %}</th>
 				{% endif %}
 			</tr>
 		</thead>
     	{% for account, categories in account_summaries %}
 			{% ifnotequal account.name " default" %}
-				<tr><td colspan="4">&nbsp;</td></tr>
+				<tr><td colspan="5">&nbsp;</td></tr>
 				<tr>
-					<td colspan="4"><h3 style="text-align:center; margin: 4px;">{{ account }}</h3></td>
+					<td colspan="5"><h3 style="text-align:center; margin: 4px;">{{ account }}</h3></td>
 				</tr>
 			{% endifnotequal %}
 			{% for category, d in categories %}
@@ -60,7 +61,8 @@
 	                    </td>
 						{% if period == "year" %}
 							<td class="amount">{{ d.sum|divide:monthly_average_divisor|floatformat:2 }}</td>
-						{% endif %}
+                            <td class="amount">{{ d.std_deviation|floatformat:0 }}</td>
+                        {% endif %}
 	                </tr>
 	            {% endif %}
 			{% endfor %}
@@ -70,13 +72,14 @@
 				<td></td>
 				{% if period == "year" %}
 					<td class="amount {{ account.lossgain }}">{{ account.total|divide:monthly_average_divisor|floatformat:2 }}</td>
+                    <td></td>
 				{% endif %}
 			</tr>
 	    {% endfor %}
 
 		{% ifnotequal account_summaries|length 1 %}
 			{% ifnotequal account_summaries|length 0 %}
-				<tr><td colspan="4">&nbsp;</td></tr>
+				<tr><td colspan="5">&nbsp;</td></tr>
 			{% endifnotequal %}
     		<tr>
 				<td><b>{% trans "Total" %}</b></td>
@@ -84,6 +87,7 @@
 				<td></td>
 				{% if period == "year" %}
 					<td class="amount {{ lossgain }}">{{ total|divide:monthly_average_divisor|floatformat:2 }}</td>
+                    <td></td>
 				{% endif %}
 			</tr>
 		{% endifnotequal %}
