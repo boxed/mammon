@@ -45,6 +45,10 @@ def transaction_filter(request, transactions):
         transactions = transactions.filter(category__pk=request.REQUEST['category'])
     if 'account' in request.REQUEST and request.REQUEST['account']:
         transactions = transactions.filter(account__pk=request.REQUEST['account'])
+    if 'greater_than' in request.REQUEST and request.REQUEST['greater_than']:
+        transactions = transactions.filter(amount__gt=request.REQUEST['greater_than'])
+    if 'less_than' in request.REQUEST and request.REQUEST['less_than']:
+        transactions = transactions.filter(amount__lt=request.REQUEST['less_than'])
     return transactions.order_by('-time')
 
 @login_required
@@ -160,6 +164,8 @@ def view_transactions(request, page='1'):
         q = forms.CharField(label=_('Description'), required=False)
         start_time = forms.DateTimeField(required=False)
         end_time = forms.DateTimeField(required=False)
+        greater_than = forms.FloatField(required=False)
+        less_than = forms.FloatField(required=False)
         category = forms.ChoiceField(choices=[('', '')]+[(category.pk, category.name) for category in categories], required=False)
         account = forms.ChoiceField(choices=[('', '')]+[(account.pk, account.name) for account in accounts], required=False)
 
