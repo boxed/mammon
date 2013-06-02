@@ -396,3 +396,8 @@ table td h2 {
     color: white;
 }
 
+#legend table, #legend td, #legend table {
+    border: 0 transparent;
+    background: transparent;
+}
+

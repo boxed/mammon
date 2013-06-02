@@ -18,6 +18,8 @@
 
 {% trans "Sum" %}: {{ total_sum }}
 
+<div id="legend"></div>
+
 <div align="center">
     <div id="placeholder" style="width:600px; height:500px"></div>
 </div>
@@ -63,6 +65,9 @@ jQuery(function () {
         bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
         xaxis: { mode: "time" },
         selection: { mode: "xy" },
+        legend: {
+            container: $('#legend')
+        }
     });
 
     function showTooltip(x, y, contents) {
