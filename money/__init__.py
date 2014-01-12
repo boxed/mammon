@@ -47,7 +47,7 @@ def update_matches_for_user_and_category(user, category):
             continue
 
 def has_requisite_data(classification):
-    return 't' in classification and 'd' in classification and '1' in classification
+    return 'd' in classification and '1' in classification
 
 def expand_format(format):
     m = {
@@ -75,14 +75,13 @@ def datetime_from_string(string):
             return datetime(*strptime(string, '%y-%m-%d')[:3])
 
 def standardize_number(s):
+    if s == '':
+        return 0.0
     if len(s) > 3 and s[-3] == ',':
         s = s.replace('.', '').replace(',', '.').replace(' ', '')
     else:
         s = s.replace(',', '').replace(' ', '')
-    if s == '':
-        raise ValueError()
-    else:
-        return float(s)
+    return float(s)
 
 def classify(item):
     item = item.strip()
@@ -97,7 +96,7 @@ def classify(item):
     except ValueError:
         pass
     if item == '':
-        return '_'
+        return '1'
     return 't'
 
 def classify_row(row):
@@ -105,9 +104,6 @@ def classify_row(row):
     for item in row:
         classification += classify(item)
     return classification, row
-
-def has_requisite_data(classification):
-    return 't' in classification and 'd' in classification and '1' in classification
 
 def find_default_number(table, most_significant_format):
     from itertools import permutations

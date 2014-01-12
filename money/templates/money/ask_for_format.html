@@ -29,7 +29,7 @@
             {% for classification in format %}
                 <td class="choice">
                     {% if classification == '1' %}
-                        <input type="radio" class="number_choice choice_{{ forloop.counter0 }}" name="number" value="{{ forloop.counter }}">
+                        <input type="checkbox" class="number_choice choice_{{ forloop.counter0 }}" name="number" value="{{ forloop.counter }}">
                     {% endif %}
                 </td>
             {% endfor %}
@@ -76,14 +76,14 @@
                     date_choice = $(item).val() - 1;
                 }
             });
-            var number_choice = null;
-            $('input[type=radio].number_choice').each(function(index, item){
+            var number_choices = [];
+            $('input[type=checkbox].number_choice').each(function(index, item){
                 if ($(item).attr('checked')) {
-                    number_choice = $(item).val() - 1;
+                    number_choices.push($(item).val() - 1);
                 }
             });
             var text_choices = [];
-            $('input[type=checkbox]').each(function(index, item){
+            $('input[type=checkbox].text_choice').each(function(index, item){
                 if ($(item).attr('checked')) {
                     text_choices.push($(item).val() - 1);
                 }
@@ -93,7 +93,7 @@
                 data: {
                     data: '{{ data|escapejs }}',
                     date_choice: date_choice,
-                    number_choice: number_choice,
+                    number_choices: number_choices,
                     text_choices: text_choices
                 },
                 success: function (data, textStatus, jqXHR) {

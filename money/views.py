@@ -10,7 +10,7 @@ from django.template.context import RequestContext
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
 from django.db.models.aggregates import Sum
 from django.forms import ModelForm
 from django import forms
@@ -21,13 +21,6 @@ from mammon.money.utils import Counter
 
 class AccessDeniedException(Exception):
     pass
-
-SUPPORTED_BANKS = [
-    ('Nordea', 'Nordea'), 
-    ('SEB', 'SEB'),
-    ('Swedbank', 'Swedbank'),
-    ('Handelsbanken', 'Handelsbanken'),
-]
 
 def get_page_size(request):
     if 'page_size' in request.REQUEST:
@@ -55,7 +48,7 @@ def transaction_filter(request, transactions):
 def index(request):
     try:
         last_transaction = Transaction.objects.filter(user=request.user).order_by('-time')[0]
-    except:
+    except Transaction.DoesNotExist:
         last_transaction = None
     return render_to_response('money/index.html',
         RequestContext(request, {
@@ -194,13 +187,19 @@ def view_transactions(request, page='1'):
             transactions.update(**update)
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+    try:
+        transactions = paginator.page(page).object_list
+    except EmptyPage:
+        page = 1
+        transactions = paginator.page(page).object_list
+
     return render_to_response('money/view_transaction_list.html', RequestContext(request, {
         'filter_form': filter_form,
         'bulk_edit_form': bulk_edit_form,
         'paginator': paginator,
         'page': page,
         'base_url': '/transactions/',
-        'transactions': paginator.page(page).object_list,
+        'transactions': transactions,
         'categories': categories,
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
     }))
@@ -642,8 +641,8 @@ def add_transactions(request):
         return render_to_response('money/add.html', RequestContext(request, {}))
     else:
         data = request.POST['data']
-        table = [list(classify_row(x.split('\t'))) for x in data.split('\n')]
-        table = [(classification, r) for classification, r in table if has_requisite_data(classification)]
+        table_raw = [list(classify_row(x.split('\t'))) for x in data.split('\n')]
+        table = [(classification, r) for classification, r in table_raw if has_requisite_data(classification)]
 
         counter = Counter([classification for classification, r in table])
         most_significant_format = max([(x, y) for y, x in counter.items()])[1]
@@ -651,10 +650,11 @@ def add_transactions(request):
         if 'date_choice' in request.POST:
             text_columns = [int(x) for x in request.POST.getlist('text_choices[]')]
             date_column = int(request.POST['date_choice'])
-            number_column = int(request.POST['number_choice'])
+            number_columns = [int(x) for x in request.POST.getlist('number_choices[]')]
             parse_format = [' ' for x in range(len(most_significant_format))]
             parse_format[date_column] = 'd'
-            parse_format[number_column] = '1'
+            for nc in number_columns:
+                parse_format[nc] = '1'
             for tc in text_columns:
                 parse_format[tc] = 't'
             parse_format = ''.join(parse_format)
@@ -663,7 +663,7 @@ def add_transactions(request):
         try:
             format = Format.objects.get(user=request.user, raw_format=most_significant_format)
             for classification, row in table:
-                if classification == most_significant_format:
+                if format.compatible_with(classification):
                     amount, date, description = format.parse_row(row)
                     original_md5 = original_line_hash(amount=amount, date=date, description=description, user=request.user)
                     if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
@@ -704,7 +704,7 @@ def all_like_this(request, transaction_id):
             'transaction': transaction,
             'description_spans': mark_safe(result),
             'category': request.REQUEST['category'],
-            'account': request.REQUEST['account']
+            'account': request.REQUEST.get('account')
         })
         return render_to_response('money/all_like_this.html', c)
     elif request.method == 'POST':
@@ -714,7 +714,7 @@ def all_like_this(request, transaction_id):
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
         category.add_rule(transaction.description[int(start_index):int(end_index)+1])
         category.save()
-        if request.POST['account']:
+        if request.POST.get('account'):
             transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
         update_matches_for_user_and_category(request.user, category)
         return HttpResponse('OK')

@@ -26,7 +26,7 @@ class Format(models.Model):
     parse_format = models.CharField(blank=False, max_length=100)
 
     def __unicode__(self):
-        return u'%s, %s' % (self.raw_format, self.parse_format)
+        return u'%s: %s, %s' % (self.user, self.raw_format, self.parse_format)
 
     def parse_row(self, row):
         descriptions = []
@@ -34,7 +34,10 @@ class Format(models.Model):
         date = None
         for index, value in enumerate(self.parse_format):
             if value == '1':
-                amount = standardize_number(row[index])
+                new_amount = standardize_number(row[index])
+                assert not amount or not new_amount
+                if new_amount:
+                    amount = new_amount
             elif value == 'd':
                 date = datetime_from_string(row[index])
             elif value == 't':
@@ -43,6 +46,17 @@ class Format(models.Model):
         assert date is not None
         assert len(descriptions) > 0
         return amount, date, u' '.join(descriptions)
+
+    def compatible_with(self, classification):
+        if classification == self.raw_format:
+            return True
+        for c, f in zip(classification, self.parse_format):
+            if f == 'd' and c != f:
+                return False
+            if f == '1' and c != f:
+                return False
+        return True
+
 
 class Category(models.Model):
     PERIODS = (
@@ -95,7 +109,7 @@ class Transaction(models.Model):
 
     def __unicode__(self):
         from time import strftime
-        return '%s %s %s' % (strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)
+        return '%s %s %s %s' % (self.user, strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)
         
     class Meta:
         ordering = ('time','description')
