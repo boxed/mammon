@@ -29,6 +29,10 @@
         	<input id="month" name="month" value="{{ month }}" />
 		{% endif %}
         <button class="button" id="change">{% trans "Change" %}</button>
+
+        <div class="start-to-end-time">
+            {{ start_time|date:"Y-m-d" }} - {{ end_time|date:"Y-m-d" }}
+        </div>
     </form>
 
 	{% if transactions %}

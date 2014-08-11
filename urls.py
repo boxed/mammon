@@ -49,7 +49,7 @@ urlpatterns = patterns('',
 
     (r'^registration/user_agreement/$', 'django.views.generic.simple.direct_to_template', {'template': 'user_agreement.html'}),
 
-    (r'^login/', 'curia.authentication.views.login' ),
+    (r'^login/', 'mammon.views.login' ),
     (r'^logout/', 'curia.authentication.views.logout' ),
     (r'^registration/', include('curia.registration.urls')),
 

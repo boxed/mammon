@@ -3,6 +3,8 @@ from copy import copy
 
 import numpy
 
+# noinspection PyUnresolvedReferences
+from django.utils.translation import ugettext as _
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
@@ -52,7 +54,7 @@ def transaction_filter(request, transactions):
 def index(request):
     try:
         last_transaction = Transaction.objects.filter(user=request.user).order_by('-time')[0]
-    except Transaction.DoesNotExist:
+    except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
     return render_to_response('money/index.html',
                               RequestContext(request, {
@@ -336,8 +338,11 @@ def view_summary(request, period='month', year=None, month=None):
             start_time = datetime_from_string(request.REQUEST['start_time'])
             end_time = datetime_from_string(request.REQUEST['end_time'])
         else:
-            start_time = datetime(int(year), 1, 1)
-            end_time = datetime(int(year) + 1, 1, 1)
+            start_time = get_start_of_period(datetime(int(year), 1, 1), request.user)
+            end_time = get_end_of_period(datetime(int(year) + 1, 1, 1) - timedelta(days=31), request.user)
+
+            if end_time > datetime.now():
+                end_time = get_end_of_period(datetime.now() - timedelta(days=62), request.user)
     else:
         raise Exception('Invalid period')
 

@@ -401,3 +401,8 @@ table td h2 {
     background: transparent;
 }
 
+.start-to-end-time {
+    font-size: 60%;
+    opacity: 0.3;
+}
+
