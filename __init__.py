@@ -1,19 +1,18 @@
 # coding=utf8
 
 # FEATURE: Budget. Base it on a specific month or create it from scratch. On month view show the result compared to the budget if there is one.
-# FEATURE: view data on a specific account, similar to category views. Make a general purpose search system on transactions where viewing an account becomes a sub-part?
-# BUG: in history view, it looks like the bars are offset by one month
 # FEATURE: when viewing a month, put some warning if it is not yet completed
 # FEATURE: compare months so it is easy to see why the situation is so different one month to the next. Remember that months are of different length!
-# FEATURE: searching in transactions
 # FEATURE: view quarters/half years
 
 import sys
+
 
 def get_traceback(self, exc_info=None):
     """Helper function to return the traceback as a string"""
     import traceback
     return '\n'.join(traceback.format_exception(*(exc_info or sys.exc_info())))
+
 
 def mail_error(request, exc_info):
     from django.conf import settings
@@ -31,7 +30,8 @@ def mail_error(request, exc_info):
         request_repr = "Request repr() unavailable"
     message = "%s\n\n%s" % (get_traceback(exc_info), request_repr)
     mail_admins(subject, message, fail_silently=False, html_message=html)
-    
+
+
 def mail_simple_error(description, data):
     from django.conf import settings
     from django.core.mail import mail_admins

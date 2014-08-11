@@ -1,6 +1,7 @@
 # coding=utf8
 from django.utils.safestring import mark_safe
 
+
 def general(request):
     from django.conf import settings
     if 'HTTP_USER_AGENT' in request.META:

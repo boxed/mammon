@@ -3,11 +3,13 @@ from time import strptime
 from curia import first_of_next_month, first_of_previous_month
 from curia.authentication.models import Detail
 
+
 def get_start_of_period(reference, user):
     start_time = first_of_previous_month(reference)
     days_offset = int(get_period_setting(user).value)
-    start_time += timedelta(days=days_offset-1)
+    start_time += timedelta(days=days_offset - 1)
     return start_time
+
 
 def get_end_of_period(reference, user):
     end_time = first_of_next_month(reference)
@@ -15,12 +17,15 @@ def get_end_of_period(reference, user):
     end_time += timedelta(days=days_offset)
     return end_time
 
+
 def get_period_setting(user):
-    return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_period_days', defaults={'value':'25'})[0]
+    return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_period_days', defaults={'value': '25'})[0]
+
 
 def get_history_months_setting(user):
-    return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_history_months', defaults={'value':'12'})[0]
- 
+    return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_history_months', defaults={'value': '12'})[0]
+
+
 def update_matches_for_user(user, reset=False):
     from mammon.money.models import Category, Transaction
     categories = list(Category.objects.filter(user=user))
@@ -36,6 +41,7 @@ def update_matches_for_user(user, reset=False):
                 transaction.save()
                 continue
 
+
 def update_matches_for_user_and_category(user, category):
     from mammon.money.models import Transaction
     transactions = Transaction.objects.filter(user=user, category__isnull=True)
@@ -46,24 +52,27 @@ def update_matches_for_user_and_category(user, category):
             transaction.save()
             continue
 
+
 def has_requisite_data(classification):
     return 'd' in classification and '1' in classification
 
-def expand_format(format):
+
+def expand_format(fmt):
     m = {
         't': 'description',
         'd': 'date',
         '_': 'empty',
         '1': 'number',
     }
-    return ', '.join([m[x] for x in format])
+    return ', '.join([m[x] for x in fmt])
+
 
 def datetime_from_string(string):
     try:
         string = string.strip()
         string, dot, microseconds = string.partition('.')
         microseconds = int(microseconds.rstrip("Z") or '0')
-        return datetime(*strptime(string, '%Y-%m-%d %H:%M:%S')[:6])+timedelta(microseconds=microseconds)
+        return datetime(*strptime(string, '%Y-%m-%d %H:%M:%S')[:6]) + timedelta(microseconds=microseconds)
     except ValueError:
         pass
     try:
@@ -73,6 +82,7 @@ def datetime_from_string(string):
             return datetime(*strptime(string, '%Y-%m-%d')[:3])
         except ValueError:
             return datetime(*strptime(string, '%y-%m-%d')[:3])
+
 
 def standardize_number(s):
     if s == '':
@@ -84,6 +94,7 @@ def standardize_number(s):
     else:
         s = s.replace(',', '').replace(' ', '')
     return float(s)
+
 
 def classify(item):
     item = item.strip()
@@ -101,11 +112,13 @@ def classify(item):
         return '1'
     return 't'
 
+
 def classify_row(row):
     classification = ''
     for item in row:
         classification += classify(item)
     return classification, row
+
 
 def find_default_number(table, most_significant_format):
     from itertools import permutations
@@ -117,11 +130,12 @@ def find_default_number(table, most_significant_format):
         a = number_rows[index1][0]
         b = number_rows[index2][0]
         result = number_rows[index2][1]
-        if a+b == result or a-b == result:
+        if a + b == result or a - b == result:
             return index2
-        if b+a == result or b-a == result:
+        if b + a == result or b - a == result:
             return index1
     return -1
+
 
 def original_line_hash(amount, date, description, user):
     assert isinstance(amount, float)

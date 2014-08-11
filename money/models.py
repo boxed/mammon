@@ -5,20 +5,25 @@ from django.utils.translation import ugettext_lazy as _
 # a little hack to get curias change password page to redirect to the root
 from mammon.money import standardize_number, datetime_from_string
 
+
 def user_get_absolute_url(self):
     return '/'
+
+
 User.get_absolute_url = user_get_absolute_url
+
 
 class Account(models.Model):
     user = models.ForeignKey(User, verbose_name=_('User'))
     name = models.CharField(blank=False, max_length=100, verbose_name=_('Name'))
     hide = models.BooleanField(default=False, verbose_name=_('Hide'))
-    
+
     def __unicode__(self):
         return self.name
 
     def __cmp__(self, other):
         return cmp(self.name, other.name)
+
 
 class Format(models.Model):
     user = models.ForeignKey(User)
@@ -75,27 +80,29 @@ class Category(models.Model):
     period = models.IntegerField(default=None, null=True, blank=True, choices=PERIODS, verbose_name=_('Period'))
 
     def add_rule(self, rule):
-        self.matching_rules = '\n'.join([x for x in self.matching_rules.split('\n') if x]+[rule])
-    
+        self.matching_rules = '\n'.join([x for x in self.matching_rules.split('\n') if x] + [rule])
+
     def __cmp__(self, other):
         return cmp(self.name, other.name)
-    
+
     def matches(self, transaction):
         import re
+
         for rule in self.matching_rules.splitlines():
             if rule.strip() != '':
                 if rule.strip().lower() in transaction.description.lower():
                     return True
         return False
-        
+
     def __unicode__(self):
         if self.name.strip() != '':
             return self.name
         else:
             return '<no name>'
-    
+
     class Meta:
         ordering = ('name',)
+
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, verbose_name=_('User'))
@@ -109,7 +116,8 @@ class Transaction(models.Model):
 
     def __unicode__(self):
         from time import strftime
+
         return '%s %s %s %s' % (self.user, strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)
-        
+
     class Meta:
-        ordering = ('time','description')
+        ordering = ('time', 'description')
