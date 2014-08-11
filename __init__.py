@@ -15,7 +15,6 @@ def get_traceback(self, exc_info=None):
 
 
 def mail_error(request, exc_info):
-    from django.conf import settings
     from django.core.mail import mail_admins
 
     # When DEBUG is False, send an error message to the admins.
@@ -33,7 +32,6 @@ def mail_error(request, exc_info):
 
 
 def mail_simple_error(description, data):
-    from django.conf import settings
     from django.core.mail import mail_admins
     
     message = 'Mammon encountered an error: %s\n\nWith data:\n%s' % (description, data) 
