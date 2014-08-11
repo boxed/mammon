@@ -1,37 +1,40 @@
 # coding=UTF8
-from datetime import datetime, timedelta
 from copy import copy
-from math import sqrt
+
 import numpy
+
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
 from django.template.context import RequestContext
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models.aggregates import Sum
 from django.forms import ModelForm
 from django import forms
-from curia import *
 from mammon.money import *
 from mammon.money.models import *
 from mammon.money.utils import Counter
 
+
 class AccessDeniedException(Exception):
     pass
+
 
 def get_page_size(request):
     if 'page_size' in request.REQUEST:
         return int(request.REQUEST['page_size'])
     return 20
 
+
 def transaction_filter(request, transactions):
     # limit the transactions for display
     transactions = transactions.filter(user=request.user)
-    if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST and request.REQUEST['start_time'] and request.REQUEST['end_time']:
-        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']), time__lt=datetime_from_string(request.REQUEST['end_time']))
+    if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST and request.REQUEST['start_time'] and \
+            request.REQUEST['end_time']:
+        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']),
+                                           time__lt=datetime_from_string(request.REQUEST['end_time']))
     if 'q' in request.REQUEST and request.REQUEST['q']:
         transactions = transactions.filter(description__icontains=request.REQUEST['q'])
     if 'category' in request.REQUEST and request.REQUEST['category']:
@@ -44,6 +47,7 @@ def transaction_filter(request, transactions):
         transactions = transactions.filter(amount__lt=request.REQUEST['less_than'])
     return transactions.order_by('-time')
 
+
 @login_required
 def index(request):
     try:
@@ -51,21 +55,30 @@ def index(request):
     except Transaction.DoesNotExist:
         last_transaction = None
     return render_to_response('money/index.html',
-        RequestContext(request, {
-            'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
-            'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
-            'transactions': transaction_filter(request, Transaction.objects.filter(user=request.user, category__isnull=True)),
-            'last_transaction': last_transaction,
-            'categories': Category.objects.filter(user=request.user),
-        }))
+                              RequestContext(request, {
+                                  'matched_count': Transaction.objects.filter(user=request.user,
+                                                                              category__isnull=False).count(),
+                                  'unmatched_count': Transaction.objects.filter(user=request.user,
+                                                                                category__isnull=True).count(),
+                                  'transactions': transaction_filter(request,
+                                                                     Transaction.objects.filter(user=request.user,
+                                                                                                category__isnull=True)),
+                                  'last_transaction': last_transaction,
+                                  'categories': Category.objects.filter(user=request.user),
+                              }))
+
 
 @login_required
 def view_categories(request):
-    return render_to_response('money/view_categories.html', RequestContext(request, {'categories': Category.objects.filter(user=request.user)}))
+    return render_to_response('money/view_categories.html',
+                              RequestContext(request, {'categories': Category.objects.filter(user=request.user)}))
+
 
 @login_required
 def view_accounts(request):
-    return render_to_response('money/view_accounts.html', RequestContext(request, {'accounts': Account.objects.filter(user=request.user)}))
+    return render_to_response('money/view_accounts.html',
+                              RequestContext(request, {'accounts': Account.objects.filter(user=request.user)}))
+
 
 @login_required
 def delete_account(request, account_id):
@@ -77,6 +90,7 @@ def delete_account(request, account_id):
     account.delete()
     return HttpResponseRedirect('/settings/')
 
+
 @login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
@@ -86,16 +100,20 @@ def delete_category(request, category_id):
     category.delete()
     return HttpResponseRedirect('/')
 
+
 @login_required
 def view_category(request, category_id, page='1'):
     class EditForm(ModelForm):
         update_existing_transactions = forms.BooleanField(label=_('Update existing transactions'), required=False)
+
         class Meta:
             model = Category
             fields = ('name', 'matching_rules', 'period', 'account')
+
     EditForm.base_fields['account'].queryset = request.user.account_set.all()
 
     return view_grouping(request, Category, category_id, EditForm, 'category', '/categories', page)
+
 
 @login_required
 def view_account(request, account_id, page='1'):
@@ -105,6 +123,7 @@ def view_account(request, account_id, page='1'):
             fields = ('name',)
 
     return view_grouping(request, Account, account_id, EditForm, 'account', '/accounts', page)
+
 
 @login_required
 def view_grouping(request, group_class, group_id, form_class, group_name, url_base, page):
@@ -116,7 +135,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
 
     if request.POST:
         post = copy(request.POST)
-        for key, value in post.items()  :
+        for key, value in post.items():
             if value == 'None':
                 post[key] = None
         form = form_class(post, instance=group)
@@ -135,15 +154,16 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
         'base_url': '%s/%d/' % (url_base, group.id),
         'form': form,
         'transactions': paginator.page(page).object_list,
-        'unmatched_transactions':Transaction.objects.filter(user=request.user, category__isnull=True),
+        'unmatched_transactions': Transaction.objects.filter(user=request.user, category__isnull=True),
         'categories': Category.objects.filter(user=request.user),
         'group': group,
         'group_name': group_name,
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
         'delete_message': _('Delete this %s' % group_name),
         'confirm_delete_message': _('Are you sure you want to delete this %s?' % group_name),
-        }))
-        
+    }))
+
+
 @login_required
 def view_transactions(request, page='1'):
     transactions = transaction_filter(request, Transaction.objects.filter(user=request.user))
@@ -159,13 +179,17 @@ def view_transactions(request, page='1'):
         end_time = forms.DateTimeField(required=False)
         greater_than = forms.FloatField(required=False)
         less_than = forms.FloatField(required=False)
-        category = forms.ChoiceField(choices=[('', '')]+[(category.pk, category.name) for category in categories], required=False)
-        account = forms.ChoiceField(choices=[('', '')]+[(account.pk, account.name) for account in accounts], required=False)
+        category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories],
+                                     required=False)
+        account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts],
+                                    required=False)
 
     class BulkEditForm(forms.Form):
         bulk_description = forms.CharField(label=_('Append description'), required=False)
-        bulk_category = forms.ChoiceField(choices=[('', '')]+[(category.pk, category.name) for category in categories], required=False)
-        bulk_account = forms.ChoiceField(choices=[('', '')]+[(account.pk, account.name) for account in accounts], required=False)
+        bulk_category = forms.ChoiceField(
+            choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
+        bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts],
+                                         required=False)
 
     for name, field in FilterForm.base_fields.items():
         BulkEditForm.base_fields[name] = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -178,12 +202,14 @@ def view_transactions(request, page='1'):
         if bulk_edit_form.is_valid():
             if bulk_edit_form.cleaned_data['bulk_description']:
                 for transaction in transactions:
-                    transaction.description += ' '+bulk_edit_form.cleaned_data['bulk_description']
+                    transaction.description += ' ' + bulk_edit_form.cleaned_data['bulk_description']
                     transaction.save()
             if bulk_edit_form.cleaned_data['bulk_category']:
-                update['category'] = Category.objects.get(user=request.user, pk=bulk_edit_form.cleaned_data['bulk_category'])
+                update['category'] = Category.objects.get(user=request.user,
+                                                          pk=bulk_edit_form.cleaned_data['bulk_category'])
             if bulk_edit_form.cleaned_data['bulk_account']:
-                update['account'] = Account.objects.get(user=request.user, pk=bulk_edit_form.cleaned_data['bulk_account'])
+                update['account'] = Account.objects.get(user=request.user,
+                                                        pk=bulk_edit_form.cleaned_data['bulk_account'])
             transactions.update(**update)
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
@@ -204,13 +230,19 @@ def view_transactions(request, page='1'):
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
     }))
 
+
 @login_required
 def export_transactions(request):
     transactions = transaction_filter(request, Transaction.objects.filter(user=request.user)).order_by('time')
+
     def export():
         for transaction in transactions:
-            yield u'%s\t%s\t%s\t%s\t%s\n' % (transaction.time.date().isoformat(), transaction.description, transaction.amount, transaction.category or '', transaction.account or '')
+            yield u'%s\t%s\t%s\t%s\t%s\n' % (
+                transaction.time.date().isoformat(), transaction.description, transaction.amount,
+                transaction.category or '', transaction.account or '')
+
     return HttpResponse(export(), mimetype='text/csv; charset="utf8')
+
 
 @login_required
 def import_transactions(request):
@@ -223,13 +255,17 @@ def import_transactions(request):
             date, description, amount, category, account = row.split('\t')
             category = Category.objects.get_or_create(user=request.user, name=category)[0] if category.strip() else None
             account = Account.objects.get_or_create(user=request.user, name=account)[0] if account.strip() else None
-            Transaction.objects.create(user=request.user, time=datetime.strptime(date, '%Y-%m-%d'), description=description, amount=amount, category=category, account=account)
+            Transaction.objects.create(user=request.user, time=datetime.strptime(date, '%Y-%m-%d'),
+                                       description=description, amount=amount, category=category, account=account)
         return HttpResponse('Imported %s transactions' % len(rows))
 
 
 def transactions_for_period(request, start_time, end_time, user):
-    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category'))
-        
+    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time,
+                                                                       time__lt=end_time)).select_related('account',
+                                                                                                          'category'))
+
+
 def create_summary(request, start_time, end_time, user):
     transactions = transactions_for_period(request, start_time, end_time, user)
     accounts = {}
@@ -239,24 +275,25 @@ def create_summary(request, start_time, end_time, user):
     sum_per_account_per_category_per_month = {}
 
     period_setting = get_period_setting(request.user)
-    def month_from_transaction(transaction):
-        if transaction.time.day > period_setting:
-            return transaction.time.month
+
+    def month_from_transaction(t):
+        if t.time.day > period_setting:
+            return t.time.month
         else:
-            return transaction.time.month-1
+            return t.time.month - 1
 
     for transaction in transactions:
         categories = accounts.setdefault(transaction.account or default_account, {})
         if transaction.account is None or not transaction.account.hide:
             category = categories.setdefault(transaction.category or default_category, {})
-            category['sum'] = category.get('sum', 0)+transaction.amount
+            category['sum'] = category.get('sum', 0) + transaction.amount
             sum_of_month = sum_per_account_per_category_per_month.setdefault(transaction.account or default_account, {}).setdefault(transaction.category or default_category, dict([(i, {'sum': 0}) for i in range(1, 12)])).setdefault(month_from_transaction(transaction), {})
-            sum_of_month['sum'] = sum_of_month.get('sum', 0)+transaction.amount
+            sum_of_month['sum'] = sum_of_month.get('sum', 0) + transaction.amount
 
     for account, categories in accounts.items():
         if not len(categories.items()):
             del accounts[account]
-            
+
     max_value = None
     for account, categories in accounts.items():
         s = max([abs(x[1]['sum']) for x in categories.items()])
@@ -266,8 +303,10 @@ def create_summary(request, start_time, end_time, user):
         for category, values in categories.items():
             values['severity'] = 0
             if max_value:
-                values['severity'] = abs(values['sum'])/max_value
-            values['std_deviation'] = numpy.std([float(month['sum']) for month in sum_per_account_per_category_per_month[account][category].values()], ddof=1)
+                values['severity'] = abs(values['sum']) / max_value
+            values['std_deviation'] = numpy.std(
+                [float(month['sum']) for month in sum_per_account_per_category_per_month[account][category].values()],
+                ddof=1)
 
     for account, categories in accounts.items():
         account.total = sum([x[1]['sum'] for x in categories.items()])
@@ -278,7 +317,8 @@ def create_summary(request, start_time, end_time, user):
         accounts[account] = sorted(categories.items())
 
     return accounts, transactions
-    
+
+
 @login_required
 def view_summary(request, period='month', year=None, month=None):
     reference = datetime.now()
@@ -290,17 +330,18 @@ def view_summary(request, period='month', year=None, month=None):
         start_time = get_start_of_period(reference, request.user)
         end_time = get_end_of_period(start_time, request.user)
     elif period == 'year':
-        if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST: # allow start/end time to be overwritten by URL
+        if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST:  # allow start/end time to be overwritten by URL
             from mammon.money import datetime_from_string
+
             start_time = datetime_from_string(request.REQUEST['start_time'])
             end_time = datetime_from_string(request.REQUEST['end_time'])
         else:
             start_time = datetime(int(year), 1, 1)
-            end_time = datetime(int(year)+1, 1, 1)
+            end_time = datetime(int(year) + 1, 1, 1)
     else:
         raise Exception('Invalid period')
-        
-    last_period_start_time = get_start_of_period(reference-timedelta(days=15), request.user)
+
+    last_period_start_time = get_start_of_period(reference - timedelta(days=15), request.user)
     last_period_end_time = get_end_of_period(last_period_start_time, request.user)
 
     accounts, transactions = create_summary(request, start_time, end_time, request.user)
@@ -310,7 +351,8 @@ def view_summary(request, period='month', year=None, month=None):
     # calculate projections for the current unfinished month only
     if period == 'month' and year == datetime.now().year and month == datetime.now().month:
         last_month = True
-        last_period_transactions = transactions_for_period(request, last_period_start_time, last_period_end_time, request.user)
+        last_period_transactions = transactions_for_period(request, last_period_start_time, last_period_end_time,
+                                                           request.user)
         transaction_descriptions = set([x.description for x in transactions])
         for last_period_transaction in last_period_transactions:
             if last_period_transaction.category and last_period_transaction.category.period == 1 and last_period_transaction.description not in transaction_descriptions:
@@ -325,62 +367,65 @@ def view_summary(request, period='month', year=None, month=None):
         next_year, next_month = next.year, first_of_next_month(end_time).month if not last_month else None,
         next_period = next_month
     elif period == 'year':
-        previous_year, previous_month = year-1, None
-        next_year, next_month = year+1, None
+        previous_year, previous_month = year - 1, None
+        next_year, next_month = year + 1, None
         next_period = year < datetime.now().year
     else:
         assert False
 
     return render_to_response('money/view_period.html',
-        RequestContext(request, {
-            'lossgain': 'loss' if total < 0 else 'gain',
-            'account_summaries': sorted(accounts.items()),
-            'total': total,
-            'year': year,
-            'month': month,
-            'period': period,
-            'monthly_average_divisor': (end_time-start_time).days/30,
-            
-            'projected_transactions': projected_transactions,
-            'projected_sum': sum([x.amount for x in projected_transactions]),
-            
-            'previous_year': previous_year,
-            'previous_month': previous_month,
+                              RequestContext(request, {
+                                  'lossgain': 'loss' if total < 0 else 'gain',
+                                  'account_summaries': sorted(accounts.items()),
+                                  'total': total,
+                                  'year': year,
+                                  'month': month,
+                                  'period': period,
+                                  'monthly_average_divisor': (end_time - start_time).days / 30,
 
-            'next_year': next_year,
-            'next_month': next_month,
-            
-            'start_time': start_time,
-            'end_time': end_time,
-            
-            'next_period': next_period,
-            
-            'transactions': transactions,
-            'categories': Category.objects.filter(user=request.user),
-        }))
+                                  'projected_transactions': projected_transactions,
+                                  'projected_sum': sum([x.amount for x in projected_transactions]),
+
+                                  'previous_year': previous_year,
+                                  'previous_month': previous_month,
+
+                                  'next_year': next_year,
+                                  'next_month': next_month,
+
+                                  'start_time': start_time,
+                                  'end_time': end_time,
+
+                                  'next_period': next_period,
+
+                                  'transactions': transactions,
+                                  'categories': Category.objects.filter(user=request.user),
+                              }))
+
 
 @login_required
 def view_history(request):
     from django.db import connection
     from datetime import datetime
+
     cursor = connection.cursor()
     reference = datetime.now()
     months = get_history_months_setting(request.user)
     if 'months' in request.REQUEST:
         months.value = request.REQUEST['months']
         months.save()
-    
+
     when_statements = ''
     year = reference.year
     month = reference.month
-    for i in range(int(months.value)+1):
+    for i in range(int(months.value) + 1):
         period = get_start_of_period(datetime(year, month, 1), request.user)
-        when_statements += " when time > '%(year)d-%(month)d-%(day)d' then '%(year)d-%(month)d-%(day)d' \n" % {'year': period.year, 'month': period.month, 'day': period.day }
+        when_statements += " when time > '%(year)d-%(month)d-%(day)d' then '%(year)d-%(month)d-%(day)d' \n" % {
+            'year': period.year, 'month': period.month, 'day': period.day}
         month -= 1
         if not month:
             month = 12
             year -= 1
-    
+
     statement = """
         select 
         account_id,
@@ -397,8 +442,10 @@ def view_history(request):
     class DataPoint:
         def __init__(self, date, amount):
             self.date, self.amount = datetime_from_string(date), amount
+
         def __repr__(self):
             return '(%s, %s)' % (self.date, self.amount)
+
     result = {}
     for row in cursor.fetchall():
         try:
@@ -409,33 +456,41 @@ def view_history(request):
             result[account] = []
         if row[1]:
             result[account].append(DataPoint(row[1], row[2]))
-            
+
     sums = {}
     for key in result:
         sums[key] = sum([x.amount for x in result[key]])
-    return render_to_response('money/history.html', RequestContext(request, {'result': result, 'statement':statement, 'months':months.value, 'sums':sums, 'total_sum':sum(sums.values())}))
+    return render_to_response('money/history.html', RequestContext(request, {'result': result, 'statement': statement,
+                                                                             'months': months.value, 'sums': sums,
+                                                                             'total_sum': sum(sums.values())}))
+
 
 @login_required
 def delete_transaction(request, transaction_id):
     Transaction.objects.get(pk=transaction_id, user=request.user).delete()
     return HttpResponseRedirect(request.REQUEST['next'] if 'next' in request.REQUEST else '/')
 
+
 @login_required
 def delete_empty_transactions(request):
     Transaction.objects.filter(user=request.user, amount=0).delete()
     return HttpResponseRedirect('/')
 
+
 @login_required
 def edit_transaction_description(request, transaction_id):
     from django.utils.encoding import smart_unicode
+
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     transaction.description = smart_unicode(request.POST['new_content'])
     transaction.save()
     return HttpResponse(transaction.description)
 
+
 @login_required
 def edit_transaction_properties(request, transaction_id):
     from django.utils.encoding import smart_unicode
+
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     if 'category' in request.POST and request.POST['category']:
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'], defaults={})[0]
@@ -446,6 +501,7 @@ def edit_transaction_properties(request, transaction_id):
         transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
     transaction.save()
     return HttpResponse('ok')
+
 
 @login_required
 def edit_transaction_category(request, transaction_id):
@@ -460,6 +516,7 @@ def edit_transaction_category(request, transaction_id):
     transaction.save()
     return HttpResponse()
 
+
 @login_required
 def edit_transaction_account(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
@@ -473,22 +530,27 @@ def edit_transaction_account(request, transaction_id):
     transaction.save()
     return HttpResponse()
 
+
 @login_required
 def edit_transaction_date(request, transaction_id):
     from django.utils.encoding import smart_unicode
+
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     transaction.time = datetime_from_string(smart_unicode(request.POST['new_content']))
     transaction.save()
     return HttpResponse(transaction.time.strftime('%Y-%m-%d'))
 
+
 @login_required
 def edit_account_name(request, account_id):
     from django.utils.encoding import smart_unicode
+
     account = Account.objects.get(pk=account_id, user=request.user)
     account.name = smart_unicode(request.POST['new_content'])
     account.save()
     return HttpResponse(account.name)
-        
+
+
 @login_required
 def edit_transactions(request):
     if request.POST:
@@ -497,7 +559,7 @@ def edit_transactions(request):
                 transaction = Transaction.objects.get(pk=post_item[len('transaction_category_'):])
                 if transaction.user != request.user:
                     raise AccessDeniedException('cannot edit others transactions')
-                
+
                 if request.POST[post_item] != '':
                     transaction.category = Category.objects.get(pk=request.POST[post_item])
                 else:
@@ -517,11 +579,13 @@ def edit_transactions(request):
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
     return HttpResponseRedirect('/')
 
+
 @login_required
 def add_account(request):
     if request.POST:
         Account.objects.create(user=request.user, name=request.POST['name'])
     return HttpResponseRedirect('/settings/')
+
 
 @login_required
 def add_category(request):
@@ -531,26 +595,30 @@ def add_category(request):
             period = None
         else:
             period = int(period)
-        Category.objects.create(user=request.user, name=request.POST['name'], matching_rules=request.POST['match'], period=period)
+        Category.objects.create(user=request.user, name=request.POST['name'], matching_rules=request.POST['match'],
+                                period=period)
         update_matching(request)
     return HttpResponseRedirect('/')
-    
+
+
 @login_required
 def update_matching(request):
     reset = 'reset' in request.REQUEST
     update_matches_for_user(request.user, reset)
     return HttpResponseRedirect('/')
-    
+
+
 class InvalidTransactionLogFormat(Exception):
     def __init__(self, description, *args, **kwargs):
         super(InvalidTransactionLogFormat, self).__init__(*args, **kwargs)
         self.description = description
-        
+
     def __repr__(self):
         return 'InvalidTransactionLogFormat: %s' % self.description
-    
+
     def __str__(self):
         return self.__repr__()
+
 
 @login_required
 def split_transaction(request, transaction_id):
@@ -558,9 +626,9 @@ def split_transaction(request, transaction_id):
 
     if request.POST:
         parts = []
-        for part_id in range(int(request.POST['parts'])-1):
+        for part_id in range(int(request.POST['parts']) - 1):
             parts.append(float(request.POST['part_%s' % part_id]))
-        
+
         # ensure that the parts are in reasonable range
         if transaction.amount < 0:
             parts = [-abs(part) for part in parts]
@@ -569,15 +637,18 @@ def split_transaction(request, transaction_id):
 
         if sum([abs(x) for x in parts]) >= abs(transaction.amount):
             raise Exception('invalid split parameters')
-            
-        for part in [str(part) for part in parts]: # need to convert to string for the Decimal class
-            Transaction.objects.create(user=request.user, description=transaction.description, time=transaction.time, category=transaction.category, virtual=True, amount=str(part), original_md5=transaction.original_md5)
 
-        transaction.amount = str(float(transaction.amount)-sum(parts))
+        for part in [str(part) for part in parts]:  # need to convert to string for the Decimal class
+            Transaction.objects.create(user=request.user, description=transaction.description, time=transaction.time,
+                                       category=transaction.category, virtual=True, amount=str(part),
+                                       original_md5=transaction.original_md5)
+
+        transaction.amount = str(float(transaction.amount) - sum(parts))
         transaction.save()
         return HttpResponseRedirect('/')
-        
-    return render_to_response('money/split_transaction.html', RequestContext(request, {'transaction':transaction}))
+
+    return render_to_response('money/split_transaction.html', RequestContext(request, {'transaction': transaction}))
+
 
 @login_required
 def delete_range(request):
@@ -587,15 +658,17 @@ def delete_range(request):
     class RangeForm(forms.Form):
         start_time = forms.DateField(label=_('From date'), widget=DateWidget)
         end_time = forms.DateField(label=_('To date'), widget=DateWidget)
-        
+
     message = None
-        
+
     if request.POST:
-        Transaction.objects.filter(user=request.user, time__gt=datetime_from_string(request.POST['start_time']), time__lt=datetime_from_string(request.POST['end_time'])).delete()
+        Transaction.objects.filter(user=request.user, time__gt=datetime_from_string(request.POST['start_time']),
+                                   time__lt=datetime_from_string(request.POST['end_time'])).delete()
         message = _('Transactions deleted!')
     form = RangeForm(initial={})
 
-    return render_to_response('money/delete_range.html', RequestContext(request, {'form':form, 'message':message}))
+    return render_to_response('money/delete_range.html', RequestContext(request, {'form': form, 'message': message}))
+
 
 @login_required
 def settings(request):
@@ -603,13 +676,13 @@ def settings(request):
 
     if 'django_language' not in request.session:
         request.session['django_language'] = 'en'
-    
+
     period_setting = get_period_setting(request.user)
     languages = [
         ('sv', 'Svenska'),
         ('en', 'English'),
-        ]
-    
+    ]
+
     class SettingsForm(forms.Form):
         language = forms.ChoiceField(choices=languages, label=_('Language'))
         period = forms.IntegerField(label=_('Financial months begins on day'))
@@ -619,7 +692,7 @@ def settings(request):
 
         try:
             int(form.data['period'])
-        except:
+        except ValueError:
             form.errors['period'] = (_('Period must be a number'),)
 
         if form.is_valid():
@@ -631,9 +704,12 @@ def settings(request):
             request.session['django_language'] = meta.language
             return HttpResponseRedirect('/')
     else:
-        form = SettingsForm(initial={'language':request.session['django_language'], 'period':period_setting.value})
+        form = SettingsForm(initial={'language': request.session['django_language'], 'period': period_setting.value})
 
-    return render_to_response('money/settings.html', RequestContext(request, {'form': form, 'accounts':Account.objects.filter(user=request.user)}))
+    return render_to_response('money/settings.html', RequestContext(request, {'form': form,
+                                                                              'accounts': Account.objects.filter(
+                                                                                  user=request.user)}))
+
 
 @login_required
 def add_transactions(request):
@@ -651,7 +727,7 @@ def add_transactions(request):
             text_columns = [int(x) for x in request.POST.getlist('text_choices[]')]
             date_column = int(request.POST['date_choice'])
             number_columns = [int(x) for x in request.POST.getlist('number_choices[]')]
-            parse_format = [' ' for x in range(len(most_significant_format))]
+            parse_format = [' ' for _ in range(len(most_significant_format))]
             parse_format[date_column] = 'd'
             for nc in number_columns:
                 parse_format[nc] = '1'
@@ -665,13 +741,15 @@ def add_transactions(request):
             for classification, row in table:
                 if format.compatible_with(classification):
                     amount, date, description = format.parse_row(row)
-                    original_md5 = original_line_hash(amount=amount, date=date, description=description, user=request.user)
+                    original_md5 = original_line_hash(amount=amount, date=date, description=description,
+                                                      user=request.user)
                     if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
                         # duplicate line, ignore it
-                        #print 'ignored duplicate line'
+                        # print 'ignored duplicate line'
                         pass
                     else:
-                        Transaction.objects.create(user=request.user, amount=str(amount), time=date, description=description, original_md5=original_md5)
+                        Transaction.objects.create(user=request.user, amount=str(amount), time=date,
+                                                   description=description, original_md5=original_md5)
             update_matches_for_user(request.user)
             return HttpResponse('redirect_home')
         except Format.DoesNotExist:
@@ -686,19 +764,20 @@ def add_transactions(request):
                 'data': data,
             }))
 
+
 @login_required
 def all_like_this(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
 
     if request.method == 'GET':
         result = ''
-        for index, c in enumerate(transaction.description.strip()):
-            if index == 0 or c == ' ':
-                if index:
+        for i, c in enumerate(transaction.description.strip()):
+            if i == 0 or c == ' ':
+                if i:
                     result += '</span>'
-                result += ' <span class="word" index="%s">' % index
+                result += ' <span class="word" index="%s">' % i
             if c != ' ':
-                result += '<span class="letter" index="%s">%s</span>' % (index, c)
+                result += '<span class="letter" index="%s">%s</span>' % (i, c)
         result += '</span>'
         c = RequestContext(request, {
             'transaction': transaction,
@@ -712,7 +791,7 @@ def all_like_this(request, transaction_id):
         end_index = request.POST['end_index']
         assert start_index < end_index
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
-        category.add_rule(transaction.description[int(start_index):int(end_index)+1])
+        category.add_rule(transaction.description[int(start_index):int(end_index) + 1])
         category.save()
         if request.POST.get('account'):
             transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
