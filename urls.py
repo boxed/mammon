@@ -4,7 +4,6 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Example:
     (r'^$', 'mammon.money.views.index'),
     (r'^add/$', 'mammon.money.views.add_transactions'),
     (r'^update_matching/$', 'mammon.money.views.update_matching'),
@@ -53,15 +52,17 @@ urlpatterns = patterns('',
     (r'^logout/', 'curia.authentication.views.logout' ),
     (r'^registration/', include('curia.registration.urls')),
 
-    (r'^iphone-mammon.css$', 'curia.base.views.stylesheet', {'template':'iphone-mammon.css'}),
-    (r'^mammon.css$', 'curia.base.views.stylesheet', {'template':'mammon.css'}),
-    (r'^inline_edit.js$', 'curia.base.views.stylesheet', {'template':'inline_edit.js', 'mimetype':'text/javascript'}),
-    (r'^input_overlay.js$', 'curia.base.views.stylesheet', {'template':'input_overlay.js', 'mimetype':'text/javascript'}),
-    (r'^dialogs.js$', 'curia.base.views.stylesheet', {'template':'dialogs.js', 'mimetype':'text/javascript'}),
-    (r'^input_overlay.css$', 'curia.base.views.stylesheet', {'template':'input_overlay.css'}),
+    (r'^iphone-mammon.css$', 'curia.base.views.stylesheet', {'template': 'iphone-mammon.css'}),
+    (r'^mammon.css$', 'curia.base.views.stylesheet', {'template': 'mammon.css'}),
+    (r'^inline_edit.js$', 'curia.base.views.stylesheet', {'template': 'inline_edit.js', 'mimetype': 'text/javascript'}),
+    (r'^input_overlay.js$', 'curia.base.views.stylesheet', {'template': 'input_overlay.js', 'mimetype': 'text/javascript'}),
+    (r'^dialogs.js$', 'curia.base.views.stylesheet', {'template': 'dialogs.js', 'mimetype': 'text/javascript'}),
+    (r'^input_overlay.css$', 'curia.base.views.stylesheet', {'template': 'input_overlay.css'}),
     
-    (r'^echo_headers/', 'mammon.views.echo_headers' ),
-    (r'^bin2/gfskod', 'mammon.views.echo_headers' ),
+    (r'^echo_headers/', 'mammon.views.echo_headers'),
+    (r'^bin2/gfskod', 'mammon.views.echo_headers'),
+
+    (r'^error_test/$', 'mammon.views.error_test'),
 
     (r'^jsi18n/$', 'django.views.i18n.javascript_catalog', {'packages': 'django.conf'}),
 
@@ -70,6 +71,6 @@ urlpatterns = patterns('',
     # Uncomment this for admin:
     (r'^admin/', include(admin.site.urls)),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www-python/kodare/django/contrib/admin/media'}),
-    (r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT+'curia/site-media'}),
-    (r'^site-media2/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT+'mammon/site-media'}),
+    (r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT + 'curia/site-media'}),
+    (r'^site-media2/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT + 'mammon/site-media'}),
 )

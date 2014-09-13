@@ -111,7 +111,7 @@ class Transaction(models.Model):
     time = models.DateTimeField()
     description = models.TextField()
     category = models.ForeignKey(Category, blank=True, null=True)
-    virtual = models.BooleanField(default=False)
+    virtual = models.BooleanField(default=False)  # means that this isn't the original transaction, but a part of a split transaction
     original_md5 = models.CharField(max_length=32, db_index=True)
 
     def __unicode__(self):

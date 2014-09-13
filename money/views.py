@@ -743,6 +743,7 @@ def add_transactions(request):
 
         try:
             format = Format.objects.get(user=request.user, raw_format=most_significant_format)
+            to_add = []
             for classification, row in table:
                 if format.compatible_with(classification):
                     amount, date, description = format.parse_row(row)
@@ -753,8 +754,10 @@ def add_transactions(request):
                         # print 'ignored duplicate line'
                         pass
                     else:
-                        Transaction.objects.create(user=request.user, amount=str(amount), time=date,
-                                                   description=description, original_md5=original_md5)
+                        to_add.append(Transaction(user=request.user, amount=str(amount), time=date,description=description, original_md5=original_md5))
+            # TODO: change this to Transaction.objects.bulk_create() after updating to django 1.4
+            for t in to_add:
+                t.save()
             update_matches_for_user(request.user)
             return HttpResponse('redirect_home')
         except Format.DoesNotExist:

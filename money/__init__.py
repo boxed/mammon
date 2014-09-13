@@ -85,10 +85,11 @@ def datetime_from_string(string):
 
 
 def standardize_number(s):
+    s = s.strip()
     if s == '':
         return 0.0
-    if s.endswith(' kr'):
-        s = s[:-3]
+    if s.endswith('kr'):
+        s = s[:-2].replace(',', '.')
     if len(s) > 3 and s[-3] == ',':
         s = s.replace('.', '').replace(',', '.').replace(' ', '')
     else:

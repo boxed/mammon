@@ -1,5 +1,9 @@
 # coding=utf8
 
+# FEATURE: Split: "split and distribute evenly". So if you split in 6 pieces it cuts the transaction in 6 equal parts and places them on the 6 months from and including the one with the original transaction
+
+# FEATURE: show that a transaction has been split somehow?
+
 # FEATURE: Budget. Base it on a specific month or create it from scratch. On month view show the result compared to the budget if there is one.
 # FEATURE: when viewing a month, put some warning if it is not yet completed
 # FEATURE: compare months so it is easy to see why the situation is so different one month to the next. Remember that months are of different length!

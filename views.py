@@ -50,3 +50,7 @@ def login(request, template='authentication/login.html'):
         form = LoginForm(initial={})
 
     return render_to_response(request, template, {'login_form': form, 'next': next})
+
+
+def error_test(request):
+    asd()
