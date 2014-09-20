@@ -93,6 +93,12 @@ body {
     padding: 2px 6px 2px 6px;
 }
 
+.button.warning {
+    background-color: #d9534f;
+    border-color: #d43f3a;
+    color: white;
+}
+
 #header .button {
     font-size: 16px;
     padding: 4px;

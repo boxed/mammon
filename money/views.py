@@ -181,17 +181,13 @@ def view_transactions(request, page='1'):
         end_time = forms.DateTimeField(required=False)
         greater_than = forms.FloatField(required=False)
         less_than = forms.FloatField(required=False)
-        category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories],
-                                     required=False)
-        account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts],
-                                    required=False)
+        category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
+        account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False)
 
     class BulkEditForm(forms.Form):
         bulk_description = forms.CharField(label=_('Append description'), required=False)
-        bulk_category = forms.ChoiceField(
-            choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
-        bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts],
-                                         required=False)
+        bulk_category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
+        bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False)
 
     for name, field in FilterForm.base_fields.items():
         BulkEditForm.base_fields[name] = forms.CharField(required=False, widget=forms.HiddenInput)

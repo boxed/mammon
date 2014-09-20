@@ -10,7 +10,7 @@
             {{ filter_form.as_table }}
             <tr>
                 <td colspan="2" style="text-align: right">
-                    <button>{{ _("Filter") }}</button>
+                    <button class="button">{{ _("Filter") }}</button>
                 </td>
             </tr>
         </table>
@@ -26,7 +26,8 @@
             {{ bulk_edit_form.as_table }}
             <tr>
                 <td colspan="2" style="text-align: right">
-                    <button>{{ _("Bulk edit") }}</button>
+                    <button class="button">{{ _("Bulk edit") }}</button>
+                    <!-- <button class="button warning" name="delete">{{ _("Bulk delete") }}</button> -->
                 </td>
             </tr>
         </table>
