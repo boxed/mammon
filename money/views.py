@@ -1,5 +1,7 @@
 # coding=UTF8
 from copy import copy
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
 
 import numpy
 
@@ -626,25 +628,28 @@ def split_transaction(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
 
     if request.POST:
-        parts = []
-        for part_id in range(int(request.POST['parts']) - 1):
-            parts.append(float(request.POST['part_%s' % part_id]))
-
-        # ensure that the parts are in reasonable range
-        if transaction.amount < 0:
-            parts = [-abs(part) for part in parts]
+        num_parts = int(request.POST['parts'])
+        if 'equal_parts' in request.POST:
+            parts = [transaction.amount / Decimal(num_parts) for _ in range(num_parts - 1)]
         else:
-            parts = [abs(part) for part in parts]
+            parts = [Decimal(request.POST['part_%s' % part_id]) for part_id in range(num_parts - 1)]
 
-        if sum([abs(x) for x in parts]) >= abs(transaction.amount):
-            raise Exception('invalid split parameters')
+        distribute = 'distribute' in request.POST
 
-        for part in [str(part) for part in parts]:  # need to convert to string for the Decimal class
-            Transaction.objects.create(user=request.user, description=transaction.description, time=transaction.time,
-                                       category=transaction.category, virtual=True, amount=str(part),
+        time = transaction.time
+        for number, part in enumerate(parts):
+            if distribute:
+                time += relativedelta(months=1)
+            Transaction.objects.create(user=request.user,
+                                       description=transaction.description,
+                                       time=time,
+                                       category=transaction.category,
+                                       virtual=True,
+                                       amount=part,
                                        original_md5=transaction.original_md5)
 
-        transaction.amount = str(float(transaction.amount) - sum(parts))
+        # Final part
+        transaction.amount -= sum(parts)
         transaction.save()
         return HttpResponseRedirect('/')
 

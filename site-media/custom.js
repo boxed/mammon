@@ -72,6 +72,7 @@ function transaction_marker_down() {
 }
 
 function split_transaction(id) {
+    $('#id_split_form, .ui-dialog').remove();
     if (!id) {
         id = $('.row_marker').attr('transaction_id');
     }
@@ -105,14 +106,16 @@ for (var i = 0; i != split_values.length; i++) {
 }
 function update_rest()
 {
-    var rest = parseFloat($('#id_split_form').attr('amount'));
+    var total = parseFloat($('#id_split_form').attr('amount'));
+    var rest = total;
     if (rest < 0) {
         rest = -rest;
     }
-    var newValues = new Array();
+    var newValues = [];
     $(".part").each(function() {
+        var value = $(this).val();
         rest -= parseFloat($(this).val());
-        newValues.push($(this).val());
+        newValues.push(value);
     });
 
     for (var i = 0; i != newValues.length; i++) {
@@ -121,21 +124,36 @@ function update_rest()
         }
     }
 
+    if (total < 0) {
+        rest = -rest;
+    }
+
     $('#rest').html('Rest: '+rest);
 }
 
 function parts_changed()
 {
-    update_rest();
-    var foo = '';
-    for (i = 0; i < parseInt($('#parts').val())-1 && i < maxSplits; i++) {
-        var value = 0;
-        value = split_values[i];
-        foo += '<input type="text" class="part" onKeyUp="update_rest()" name="part_'+i+'" value="'+value+'" /><br />';
+    var total = parseFloat($('#id_split_form').attr('amount'));
+    if ($('#equal_parts').attr('checked')) {
+        var parts = parseInt($('#parts').val());
+        $('#part_list').html(total / parts);
+        $('#rest').hide();
     }
-    $('#part_list').html(foo);
-
-    update_rest();
+    else {
+        update_rest();
+        var foo = '';
+        for (i = 0; i < parseInt($('#parts').val())-1 && i < maxSplits; i++) {
+            var value = 0;
+            value = split_values[i];
+            if (total < 0) {
+                foo += '- '
+            }
+            foo += '<input type="text" class="part" onKeyUp="update_rest()" name="part_'+i+'" value="'+value+'" /><br />';
+        }
+        $('#part_list').html(foo);
+        update_rest();
+        $('#rest').show();
+    }
 }
 
 function update_markers() {

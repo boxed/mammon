@@ -88,7 +88,7 @@ body {
 }
 
 .button {
-    background-image: url();
+    background-image: none;
     border: 2px solid #999;
     padding: 2px 6px 2px 6px;
 }

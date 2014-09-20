@@ -2,6 +2,13 @@
 <form method="post" id="id_split_form" amount="{{ transaction.amount }}" action="/transactions/{{ transaction.id }}/split/">
     {% blocktrans %}Split "{{ transaction }}" into <input type="text" name="parts" value="" id="parts" onKeyUp="parts_changed()"/> parts{% endblocktrans %}
 
+    <div>
+        <input type="checkbox" id="equal_parts" name="equal_parts" onClick="parts_changed()"/><label for="equal_parts">{% trans "Equal parts" %}</label>
+    </div>
+    <div>
+        <input type="checkbox" id="distribute" name="distribute" onClick="parts_changed()"/><label for="distribute">{% trans "Distribute parts across following months" %}</label>
+    </div>
+
     <div id="part_list">
     </div>
     <div id="rest"></div>
