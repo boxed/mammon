@@ -1,4 +1,4 @@
-# coding=utf8
+# coding=utf-8
 
 # BUG: if no formats are found, there's a crash (most_significant_format = max([(x, y) for y, x in counter.items()])[1], ValueError: max() arg is an empty sequence), that mails the admin but doesn't give any feedback to the user
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-sys.path += ['..']
+sys.path = ['..'] + sys.path
 
 from django.core.management import execute_manager
 try:

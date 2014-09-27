@@ -1,12 +1,11 @@
-# coding=UTF8
+# coding=utf-8
 from copy import copy
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 import numpy
 
-# noinspection PyUnresolvedReferences
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
@@ -108,7 +107,7 @@ def delete_category(request, category_id):
 @login_required
 def view_category(request, category_id, page='1'):
     class EditForm(ModelForm):
-        update_existing_transactions = forms.BooleanField(label=_('Update existing transactions'), required=False)
+        update_existing_transactions = forms.BooleanField(label=ugettext_lazy('Update existing transactions'), required=False)
 
         class Meta:
             model = Category
@@ -163,8 +162,8 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
         'group': group,
         'group_name': group_name,
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
-        'delete_message': _('Delete this %s' % group_name),
-        'confirm_delete_message': _('Are you sure you want to delete this %s?' % group_name),
+        'delete_message': ugettext_lazy('Delete this %s' % group_name),
+        'confirm_delete_message': ugettext_lazy('Are you sure you want to delete this %s?' % group_name),
     }))
 
 
@@ -178,7 +177,7 @@ def view_transactions(request, page='1'):
     data = dict([(key, value) for key, value in request.REQUEST.items() if value])
 
     class FilterForm(forms.Form):
-        q = forms.CharField(label=_('Description'), required=False)
+        q = forms.CharField(label=ugettext_lazy('Description'), required=False)
         start_time = forms.DateTimeField(required=False)
         end_time = forms.DateTimeField(required=False)
         greater_than = forms.FloatField(required=False)
@@ -187,7 +186,7 @@ def view_transactions(request, page='1'):
         account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False)
 
     class BulkEditForm(forms.Form):
-        bulk_description = forms.CharField(label=_('Append description'), required=False)
+        bulk_description = forms.CharField(label=ugettext_lazy('Append description'), required=False)
         bulk_category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
         bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False)
 
@@ -443,10 +442,10 @@ def view_history(request):
     cursor.execute(statement)
 
     class DataPoint:
-        def __init__(self, date, amount):
+        def __init_ugettext_lazy(self, date, amount):
             self.date, self.amount = datetime_from_string(date), amount
 
-        def __repr__(self):
+        def __repr_ugettext_lazy(self):
             return '(%s, %s)' % (self.date, self.amount)
 
     result = {}
@@ -612,15 +611,15 @@ def update_matching(request):
 
 
 class InvalidTransactionLogFormat(Exception):
-    def __init__(self, description, *args, **kwargs):
-        super(InvalidTransactionLogFormat, self).__init__(*args, **kwargs)
+    def __init_ugettext_lazy(self, description, *args, **kwargs):
+        super(InvalidTransactionLogFormat, self).__init_ugettext_lazy(*args, **kwargs)
         self.description = description
 
-    def __repr__(self):
+    def __repr_ugettext_lazy(self):
         return 'InvalidTransactionLogFormat: %s' % self.description
 
-    def __str__(self):
-        return self.__repr__()
+    def __str_ugettext_lazy(self):
+        return self.__repr_ugettext_lazy()
 
 
 @login_required
@@ -662,15 +661,15 @@ def delete_range(request):
     from curia.widgets import DateWidget
 
     class RangeForm(forms.Form):
-        start_time = forms.DateField(label=_('From date'), widget=DateWidget)
-        end_time = forms.DateField(label=_('To date'), widget=DateWidget)
+        start_time = forms.DateField(label=ugettext_lazy('From date'), widget=DateWidget)
+        end_time = forms.DateField(label=ugettext_lazy('To date'), widget=DateWidget)
 
     message = None
 
     if request.POST:
         Transaction.objects.filter(user=request.user, time__gt=datetime_from_string(request.POST['start_time']),
                                    time__lt=datetime_from_string(request.POST['end_time'])).delete()
-        message = _('Transactions deleted!')
+        message = ugettext_lazy('Transactions deleted!')
     form = RangeForm(initial={})
 
     return render_to_response('money/delete_range.html', RequestContext(request, {'form': form, 'message': message}))
@@ -690,8 +689,8 @@ def settings(request):
     ]
 
     class SettingsForm(forms.Form):
-        language = forms.ChoiceField(choices=languages, label=_('Language'))
-        period = forms.IntegerField(label=_('Financial months begins on day'))
+        language = forms.ChoiceField(choices=languages, label=ugettext_lazy('Language'))
+        period = forms.IntegerField(label=ugettext_lazy('Financial months begins on day'))
 
     if request.POST:
         form = SettingsForm(request.POST)
@@ -699,7 +698,7 @@ def settings(request):
         try:
             int(form.data['period'])
         except ValueError:
-            form.errors['period'] = (_('Period must be a number'),)
+            form.errors['period'] = (ugettext_lazy('Period must be a number'),)
 
         if form.is_valid():
             meta = request.user.meta
@@ -727,6 +726,8 @@ def add_transactions(request):
         table = [(classification, r) for classification, r in table_raw if has_requisite_data(classification)]
 
         counter = Counter([classification for classification, r in table])
+        if not counter.items():
+            return HttpResponse(unicode(ugettext_lazy("Sorry, I couldn't figure out the format of that input")))
         most_significant_format = max([(x, y) for y, x in counter.items()])[1]
 
         if 'date_choice' in request.POST:
