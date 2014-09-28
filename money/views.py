@@ -419,6 +419,10 @@ def view_history(request):
     when_statements = ''
     year = reference.year
     month = reference.month
+
+    end_period = get_end_of_period(reference, request.user)
+    end_period = "'%(year)d-%(month)d-%(day)d'" % {'year': end_period.year if end_period.month != 1 else end_period.year - 1, 'month': end_period.month - 1, 'day': end_period.day}
+
     for i in range(int(months.value) + 1):
         period = get_start_of_period(datetime(year, month, 1), request.user)
         when_statements += " when time > '%(year)d-%(month)d-%(day)d' then '%(year)d-%(month)d-%(day)d' \n" % {
@@ -438,14 +442,15 @@ def view_history(request):
         ) as bracket, sum(amount)
         from money_transaction
         where user_id = %s
-        group by account_id, bracket""" % (when_statements, request.user.id)
+              and time < %s
+        group by account_id, bracket""" % (when_statements, request.user.id, end_period)
     cursor.execute(statement)
 
     class DataPoint:
-        def __init_ugettext_lazy(self, date, amount):
+        def __init__(self, date, amount):
             self.date, self.amount = datetime_from_string(date), amount
 
-        def __repr_ugettext_lazy(self):
+        def __repr__(self):
             return '(%s, %s)' % (self.date, self.amount)
 
     result = {}
@@ -462,9 +467,14 @@ def view_history(request):
     sums = {}
     for key in result:
         sums[key] = sum([x.amount for x in result[key]])
-    return render_to_response('money/history.html', RequestContext(request, {'result': result, 'statement': statement,
-                                                                             'months': months.value, 'sums': sums,
-                                                                             'total_sum': sum(sums.values())}))
+
+    c = {'result': result,
+         'statement': statement,
+         'months': months.value,
+         'sums': sums,
+         'total_sum': sum(sums.values())}
+
+    return render_to_response('money/history.html', RequestContext(request, c))
 
 
 @login_required
@@ -608,18 +618,6 @@ def update_matching(request):
     reset = 'reset' in request.REQUEST
     update_matches_for_user(request.user, reset)
     return HttpResponseRedirect('/')
-
-
-class InvalidTransactionLogFormat(Exception):
-    def __init_ugettext_lazy(self, description, *args, **kwargs):
-        super(InvalidTransactionLogFormat, self).__init_ugettext_lazy(*args, **kwargs)
-        self.description = description
-
-    def __repr_ugettext_lazy(self):
-        return 'InvalidTransactionLogFormat: %s' % self.description
-
-    def __str_ugettext_lazy(self):
-        return self.__repr_ugettext_lazy()
 
 
 @login_required
