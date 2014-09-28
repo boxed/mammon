@@ -5,3 +5,4 @@ FEATURE: Budget. Base it on a specific month or create it from scratch. On month
 FEATURE: when viewing a month, put some warning if it is not yet completed
 FEATURE: compare months so it is easy to see why the situation is so different one month to the next. Remember that months are of different length!
 FEATURE: view quarters/half years
+FEATURE: graph of a certain category over time. Maybe this should be a feature of the normal overview graph?

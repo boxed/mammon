@@ -281,12 +281,14 @@ def create_summary(request, start_time, end_time, user):
         else:
             return t.time.month - 1
 
+    number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month - 1
+
     for transaction in transactions:
         categories = accounts.setdefault(transaction.account or default_account, {})
         if transaction.account is None or not transaction.account.hide:
             category = categories.setdefault(transaction.category or default_category, {})
             category['sum'] = category.get('sum', 0) + transaction.amount
-            sum_of_month = sum_per_account_per_category_per_month.setdefault(transaction.account or default_account, {}).setdefault(transaction.category or default_category, dict([(i, {'sum': 0}) for i in range(1, 12)])).setdefault(month_from_transaction(transaction), {})
+            sum_of_month = sum_per_account_per_category_per_month.setdefault(transaction.account or default_account, {}).setdefault(transaction.category or default_category, dict([(i, {'sum': 0}) for i in range(1, number_of_months)])).setdefault(month_from_transaction(transaction), {})
             sum_of_month['sum'] = sum_of_month.get('sum', 0) + transaction.amount
 
     for account, categories in accounts.items():
