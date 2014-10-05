@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include
 import settings
 from django.contrib import admin
-admin.autodiscover()
+#admin.autodiscover()
 
 urlpatterns = patterns('',
     (r'^$', 'mammon.money.views.index'),

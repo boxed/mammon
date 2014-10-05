@@ -24,6 +24,7 @@ LANGUAGE_CODE = 'sv'
 
 ALLOWED_HOSTS = [
     '.kodare.net',
+    '127.0.0.1',
 ]
 
 LANGUAGES = (

@@ -1,10 +1,8 @@
 # coding=utf-8
 from copy import copy
 from decimal import Decimal
+from math import sqrt
 from dateutil.relativedelta import relativedelta
-
-import numpy
-
 from django.utils.translation import ugettext_lazy
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -19,6 +17,18 @@ from django import forms
 from mammon.money import *
 from mammon.money.models import *
 from mammon.money.utils import Counter
+
+
+def std_deviation(l):
+    sum1 = 0.0
+    sum2 = 0.0
+    n = 0.0
+    for x in l:
+        sum1 += x
+        sum2 += x * x
+        n += 1.0
+        sum1, sum2, n = sum1, sum2, n
+    return sqrt(sum2 / n - sum1 * sum1 / n / n)
 
 
 class AccessDeniedException(Exception):
@@ -303,9 +313,8 @@ def create_summary(request, start_time, end_time, user):
             values['severity'] = 0
             if max_value:
                 values['severity'] = abs(values['sum']) / max_value
-            values['std_deviation'] = numpy.std(
-                [float(month['sum']) for month in sum_per_account_per_category_per_month[account][category].values()],
-                ddof=1)
+            values['std_deviation'] = std_deviation(
+                [float(month['sum']) for month in sum_per_account_per_category_per_month[account][category].values()])
 
     for account, categories in accounts.items():
         account.total = sum([x[1]['sum'] for x in categories.items()])
