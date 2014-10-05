@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, include
 import settings
 from django.contrib import admin
 admin.autodiscover()
@@ -46,9 +46,7 @@ urlpatterns = patterns('',
     (r'^settings/$', 'mammon.money.views.settings'),
     (r'^settings/password/$', 'curia.authentication.views.edit_user_password'),
 
-    (r'^registration/user_agreement/$', 'django.views.generic.simple.direct_to_template', {'template': 'user_agreement.html'}),
-
-    (r'^login/', 'mammon.views.login' ),
+    (r'^login/', 'mammon.views.login'),
     (r'^logout/', 'curia.authentication.views.logout' ),
     (r'^registration/', include('curia.registration.urls')),
 

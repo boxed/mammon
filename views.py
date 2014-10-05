@@ -17,7 +17,7 @@ def echo_headers(request):
 
 
 def login(request, template='authentication/login.html'):
-    next = request.REQUEST.get('next', '/')
+    next_url = request.REQUEST.get('next', '/')
 
     if request.POST:
         form = LoginForm(request.POST)
@@ -25,7 +25,7 @@ def login(request, template='authentication/login.html'):
             try:
                 username = User.objects.get(email=form.cleaned_data['username']).username
                 user = authenticate(username=username, password=form.cleaned_data['password'])
-            except:
+            except User.DoesNotExist:
                 user = None
             if user is None:
                 form.errors['username'] = [_(u'Username or password incorrect')]
@@ -45,12 +45,13 @@ def login(request, template='authentication/login.html'):
                         meta.save()
                     except MetaUser.DoesNotExist:
                         pass
-                return HttpResponseRedirect(next)
+                return HttpResponseRedirect(next_url)
     else:
         form = LoginForm(initial={})
 
-    return render_to_response(request, template, {'login_form': form, 'next': next})
+    return render_to_response(request, template, {'login_form': form, 'next': next_url})
 
 
 def error_test(request):
+    # noinspection PyUnresolvedReferences
     asd()

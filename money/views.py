@@ -226,7 +226,7 @@ def view_transactions(request, page='1'):
         'base_url': '/transactions/',
         'transactions': transactions,
         'categories': categories,
-        'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
+        'sum': transactions.aggregate(Sum('amount'))['amount__sum'] if transactions else 0,
     }))
 
 
@@ -260,16 +260,14 @@ def import_transactions(request):
 
 
 def transactions_for_period(request, start_time, end_time, user):
-    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time,
-                                                                       time__lt=end_time)).select_related('account',
-                                                                                                          'category'))
+    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category'))
 
 
 def create_summary(request, start_time, end_time, user):
     transactions = transactions_for_period(request, start_time, end_time, user)
     accounts = {}
-    default_account = Account(name=' default')
-    default_category = Category(name=' other')
+    default_account = Account(name=' default', pk=0)
+    default_category = Category(name=' other', pk=0)
 
     sum_per_account_per_category_per_month = {}
 
@@ -367,8 +365,8 @@ def view_summary(request, period='month', year=None, month=None):
     if period == 'month':
         prev = first_of_previous_month(end_time)
         previous_year, previous_month = prev.year, prev.month
-        next = first_of_next_month(end_time)
-        next_year, next_month = next.year, first_of_next_month(end_time).month if not last_month else None,
+        next_url = first_of_next_month(end_time)
+        next_year, next_month = next_url.year, first_of_next_month(end_time).month if not last_month else None,
         next_period = next_month
     elif period == 'year':
         previous_year, previous_month = year - 1, None
@@ -744,19 +742,18 @@ def add_transactions(request):
             Format.objects.create(user=request.user, raw_format=most_significant_format, parse_format=parse_format)
 
         try:
-            format = Format.objects.get(user=request.user, raw_format=most_significant_format)
+            fmt = Format.objects.get(user=request.user, raw_format=most_significant_format)
             to_add = []
             for classification, row in table:
-                if format.compatible_with(classification):
-                    amount, date, description = format.parse_row(row)
-                    original_md5 = original_line_hash(amount=amount, date=date, description=description,
-                                                      user=request.user)
+                if fmt.compatible_with(classification):
+                    amount, date, description = fmt.parse_row(row)
+                    original_md5 = original_line_hash(amount=amount, date=date, description=description, user=request.user)
                     if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
                         # duplicate line, ignore it
                         # print 'ignored duplicate line'
                         pass
                     else:
-                        to_add.append(Transaction(user=request.user, amount=str(amount), time=date,description=description, original_md5=original_md5))
+                        to_add.append(Transaction(user=request.user, amount=str(amount), time=date, description=description, original_md5=original_md5))
             # TODO: change this to Transaction.objects.bulk_create() after updating to django 1.4
             for t in to_add:
                 t.save()

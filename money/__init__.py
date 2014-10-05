@@ -143,6 +143,6 @@ def original_line_hash(amount, date, description, user):
     assert isinstance(date, datetime)
     assert isinstance(description, unicode)
     import hashlib
-    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, datetime.strftime(date, '%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
+    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, datetime.datetime.strftime(date, '%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
     original_md5 = hashlib.md5(original).hexdigest()
     return original_md5

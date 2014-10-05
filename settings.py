@@ -11,11 +11,6 @@ ADMINS = (('Möller', 'boxed@killingar.net'),)
 
 MANAGERS = ADMINS
 
-try:
-    from settings_local import *
-except ImportError:
-    pass
-
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -26,6 +21,10 @@ TIME_ZONE = 'Europe/Stockholm'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'sv'
+
+ALLOWED_HOSTS = [
+    '.kodare.net',
+]
 
 LANGUAGES = (
     ('sv', 'Svenska'),
@@ -59,9 +58,8 @@ SECRET_KEY = 'h1p6ej(*2dmua-_^l!71*^!2d00-a+nt4-+b&u4pzaw6)iqh=h'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -70,12 +68,11 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.doc.XViewMiddleware',
-    'curia.middleware.CuriaMiddleware',
     'mammon.middleware.MammonMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.auth',
+    'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.debug',
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
@@ -106,3 +103,11 @@ INSTALLED_APPS = (
 REGISTRATION_SYSTEM = 'register'
 REGISTRATION_FIELDS = ('password', 'email',)
 REGISTRATION_NEXT = '/settings/'
+
+import os
+DOCUMENT_ROOT = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0] + '/'
+
+try:
+    from settings_local import *
+except ImportError:
+    pass
