@@ -10,7 +10,7 @@ def general(request):
         agent = 'unknown'
     from mammon.money.models import Account
     accounts = Account.objects.filter(user=request.user) if request.user.is_authenticated() else []
-    is_mac = 'Mac' in request.META['HTTP_USER_AGENT']
+    is_mac = 'Mac' in request.META.get('HTTP_USER_AGENT', '')
     return {
         'base':'base.html', 
         'community':'Mammon', 

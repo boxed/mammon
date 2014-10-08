@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-27 17:17+0200\n"
+"POT-Creation-Date: 2014-10-05 16:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,10 +15,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: views.py:31
-msgid "Username or password incorrect"
-msgstr "Felaktigt användarnamn eller lösenord"
 
 #: money/models.py:17 money/models.py:76 money/models.py:108
 msgid "User"
@@ -45,56 +41,6 @@ msgstr "Matchningsregler"
 #: money/models.py:80 money/templates/money/view_period.html:26
 msgid "Period"
 msgstr "Period"
-
-#: money/views.py:110
-msgid "Update existing transactions"
-msgstr "Uppdatera existerande transaktioner"
-
-#: money/views.py:165
-#, python-format
-msgid "Delete this %s"
-msgstr "Radera detta %s"
-
-#: money/views.py:166
-#, python-format
-msgid "Are you sure you want to delete this %s?"
-msgstr "Är du säker på att du vill radera detta %s?"
-
-#: money/views.py:180 money/templates/money/transaction_list.html:8
-msgid "Description"
-msgstr "Beskrivning"
-
-#: money/views.py:189
-msgid "Append description"
-msgstr "Lägg till beskrivning"
-
-#: money/views.py:664
-msgid "From date"
-msgstr "Från datum"
-
-#: money/views.py:665
-msgid "To date"
-msgstr "Till datum"
-
-#: money/views.py:672
-msgid "Transactions deleted!"
-msgstr "Transaktioner raderade!"
-
-#: money/views.py:692
-msgid "Language"
-msgstr "Språk"
-
-#: money/views.py:693
-msgid "Financial months begins on day"
-msgstr "Finansiell månad börjar på datum"
-
-#: money/views.py:701
-msgid "Period must be a number"
-msgstr "Perioden måste vara ett nummer"
-
-#: money/views.py:730
-msgid "Sorry, I couldn't figure out the format of that input"
-msgstr "Jag kunde inte lista ut formatet av det du gav mig"
 
 #: money/templates/base.html:23
 msgid "Admin"
@@ -144,14 +90,6 @@ msgstr "Inställningar"
 msgid "Log out"
 msgstr "Logga ut"
 
-#: money/templates/user_agreement.html:5
-msgid "User Agreement"
-msgstr "Användaravta"
-
-#: money/templates/user_agreement.html:6
-msgid "__ user agreement __"
-msgstr ""
-
 #: money/templates/money/add.html:15
 #, python-format
 msgid ""
@@ -183,10 +121,10 @@ msgstr ""
 "klistra in (%(command_button)s+V)</li>\n"
 "                    <li>Klicka på Importera-knappen</li>\n"
 "                </ol>\n"
-"                Mammon kommer automatiskt lista ut vad som är relevant "
-"från det du skickar in. Du kan få en fråga om hur den ska tolka om Mammon "
-"blir förvirrad, men det kommer bara hända en gång då Mammon kommer ihåg ditt "
-"val tills nästa gång."
+"                Mammon kommer automatiskt lista ut vad som är relevant från "
+"det du skickar in. Du kan få en fråga om hur den ska tolka om Mammon blir "
+"förvirrad, men det kommer bara hända en gång då Mammon kommer ihåg ditt val "
+"tills nästa gång."
 
 #: money/templates/money/add.html:30 money/templates/money/import.html:17
 msgid "Import transactions"
@@ -362,6 +300,10 @@ msgstr "Distribuera delarna över följande månader"
 msgid "Date"
 msgstr "Datum"
 
+#: money/templates/money/transaction_list.html:8 money/views.py:190
+msgid "Description"
+msgstr "Beskrivning"
+
 #: money/templates/money/transaction_list.html:9
 msgid "Amount"
 msgstr "Belopp"
@@ -438,3 +380,61 @@ msgstr "Ändra alla"
 #: money/templates/money/view_transaction_list.html:30
 msgid "Bulk delete"
 msgstr "Ta bort alla"
+
+#: money/templates/user_agreement.html:5
+msgid "User Agreement"
+msgstr "Användaravta"
+
+#: money/templates/user_agreement.html:6
+msgid "__ user agreement __"
+msgstr ""
+
+#: money/views.py:120
+msgid "Update existing transactions"
+msgstr "Uppdatera existerande transaktioner"
+
+#: money/views.py:175
+#, python-format
+msgid "Delete this %s"
+msgstr "Radera detta %s"
+
+#: money/views.py:176
+#, python-format
+msgid "Are you sure you want to delete this %s?"
+msgstr "Är du säker på att du vill radera detta %s?"
+
+#: money/views.py:199
+msgid "Append description"
+msgstr "Lägg till beskrivning"
+
+#: money/views.py:671
+msgid "From date"
+msgstr "Från datum"
+
+#: money/views.py:672
+msgid "To date"
+msgstr "Till datum"
+
+#: money/views.py:679
+msgid "Transactions deleted!"
+msgstr "Transaktioner raderade!"
+
+#: money/views.py:699
+msgid "Language"
+msgstr "Språk"
+
+#: money/views.py:700
+msgid "Financial months begins on day"
+msgstr "Finansiell månad börjar på datum"
+
+#: money/views.py:708
+msgid "Period must be a number"
+msgstr "Perioden måste vara ett nummer"
+
+#: money/views.py:737
+msgid "Sorry, I couldn't figure out the format of that input"
+msgstr "Jag kunde inte lista ut formatet av det du gav mig"
+
+#: views.py:31
+msgid "Username or password incorrect"
+msgstr "Felaktigt användarnamn eller lösenord"

@@ -9,6 +9,9 @@ SERVER_EMAIL = 'robot@eldmyra.se'
 
 ADMINS = (('Möller', 'boxed@killingar.net'),)
 
+import os
+DOCUMENT_ROOT = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0] + '/'
+
 MANAGERS = ADMINS
 
 # Local time zone for this installation. Choices can be found here:
@@ -26,6 +29,10 @@ ALLOWED_HOSTS = [
     '.kodare.net',
     '127.0.0.1',
 ]
+
+LOCALE_PATHS = (
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'locale'),
+)
 
 LANGUAGES = (
     ('sv', 'Svenska'),
@@ -104,9 +111,6 @@ INSTALLED_APPS = (
 REGISTRATION_SYSTEM = 'register'
 REGISTRATION_FIELDS = ('password', 'email',)
 REGISTRATION_NEXT = '/settings/'
-
-import os
-DOCUMENT_ROOT = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0] + '/'
 
 try:
     from settings_local import *

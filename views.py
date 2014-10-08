@@ -52,6 +52,12 @@ def login(request, template='authentication/login.html'):
     return render_to_response(request, template, {'login_form': form, 'next': next_url})
 
 
+def logout(request):
+    from django.contrib.auth import logout
+    logout(request)
+    return HttpResponseRedirect('/')
+
+
 def error_test(request):
     # noinspection PyUnresolvedReferences
     asd()
