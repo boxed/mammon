@@ -763,9 +763,7 @@ def add_transactions(request):
                         pass
                     else:
                         to_add.append(Transaction(user=request.user, amount=str(amount), time=date, description=description, original_md5=original_md5))
-            # TODO: change this to Transaction.objects.bulk_create() after updating to django 1.4
-            for t in to_add:
-                t.save()
+            Transaction.objects.bulk_create(to_add)
             update_matches_for_user(request.user)
             return HttpResponse('redirect_home')
         except Format.DoesNotExist:

@@ -107,13 +107,7 @@
                                 account: $('#id_account').val()
                             },
                             success: function() {
-                                $('.ui-dialog').remove();
-                                after_dialog_closed();
-                                $('tr.row_marker').remove();
-                                $('#transaction_list tr:last').addClass('row_marker');
-                                if ($('#transaction_list tr').length == 1) {
-                                    document.location.reload();
-                                }
+                                document.location.reload();
                             }
                         });
                     };
