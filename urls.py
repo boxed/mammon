@@ -3,7 +3,8 @@ import settings
 from django.contrib import admin
 #admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     (r'^$', 'mammon.money.views.index'),
     (r'^add/$', 'mammon.money.views.add_transactions'),
     (r'^update_matching/$', 'mammon.money.views.update_matching'),
@@ -47,7 +48,7 @@ urlpatterns = patterns('',
     (r'^settings/password/$', 'curia.authentication.views.edit_user_password'),
 
     (r'^login/', 'mammon.views.login'),
-    (r'^logout/', 'mammon.views.logout' ),
+    (r'^logout/', 'mammon.views.logout'),
     (r'^registration/', include('curia.registration.urls')),
 
     (r'^iphone-mammon.css$', 'curia.base.views.stylesheet', {'template': 'iphone-mammon.css'}),

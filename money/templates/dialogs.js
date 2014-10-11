@@ -10,7 +10,7 @@ document.onkeydown = function(evt)
         escape_handler();
     else if (return_handler && evt.keyCode == Return)
         return_handler();
-}
+};
 
 var Dialog = {};
 Dialog.Box = function(id) {
@@ -25,7 +25,7 @@ Dialog.Box = function(id) {
     this.parent_element = this.dialog_box.parentNode;
     
     $(this.dialog_box).addClass('dialog');
-}
+};
 
 Dialog.Box.prototype.moveDialogBox = function(where) {
     $(this.dialog_box).remove();
@@ -33,7 +33,7 @@ Dialog.Box.prototype.moveDialogBox = function(where) {
         this.dialog_box = $(this.parent_element).after(this.dialog_box);
     else
         this.dialog_box = $($('#dialog_overlay').parentNode).before(this.dialog_box, this.overlay);
-}
+};
 
 Dialog.Box.prototype.show = function() {
     this.overlay.style.height = getPageSize()[1]+'px';//"100%";//$('body').getHeight()+'px';
@@ -47,7 +47,7 @@ Dialog.Box.prototype.show = function() {
     this.dialog_box.style.top = lightboxTop+'px';
     this.dialog_box.style.left = lightboxLeft+'px';
     this.dialog_box.style.display = '';
-}
+};
 
 Dialog.Box.prototype.hide = function() {
     this.selectBoxes('show');
@@ -55,7 +55,7 @@ Dialog.Box.prototype.hide = function() {
     $(this.dialog_box).hide();
     this.moveDialogBox('back');
     //$(this.dialog_box)('input').each(function(e){if(e.type!='submit')e.value=''});
-}
+};
 
 Dialog.Box.prototype.selectBoxes = function(what) {
 /*    $(document.getElementsByTagName('select')).each(function(select) {
@@ -65,7 +65,7 @@ Dialog.Box.prototype.selectBoxes = function(what) {
     if(what == 'hide')
         $A(this.dialog_box.getElementsByTagName('select')).each(function(select){Element.show(select)})
     */
- }
+ };
 
 function init_dialog()
 {

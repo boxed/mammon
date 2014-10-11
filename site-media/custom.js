@@ -52,7 +52,7 @@ function delete_transaction(id, confirm) {
 }
 
 function transaction_marker_up() {
-    var rows = $('#transaction_list tr');
+    var rows = $('#transaction_list').find('tr');
     var pos = rows.index($('.row_marker'));
     if (pos > 0 && !$(rows[pos-1]).hasClass('header')) {
         $('.row_marker').removeClass('row_marker');
@@ -62,7 +62,7 @@ function transaction_marker_up() {
 }
 
 function transaction_marker_down() {
-    var rows = $('#transaction_list tr');
+    var rows = $('#transaction_list').find('tr');
     var pos = rows.index($('.row_marker'));
     if (pos+1 < rows.length) {
         $('.row_marker').removeClass('row_marker');
@@ -76,7 +76,7 @@ function split_transaction(id) {
     if (!id) {
         id = $('.row_marker').attr('transaction_id');
     }
-    $.get('/transactions/'+id+'/split/', success=function(text){
+    $.get('/transactions/'+id+'/split/', function(text){
         var buttons = {};
         buttons[gettext("Cancel")] = function() {
             $(this).dialog("close");

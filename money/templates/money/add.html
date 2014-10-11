@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block content %}
-    <style>
+    <style type="text/css">
         textarea
         {
             height: 300px;
@@ -36,7 +36,7 @@
     </div>
     <span id="id_spinner" style="display: none">Processing...</span>
 
-	<script>
+	<script type="text/javascript">
         $(document).ready(function(){
             $('#id_data').focus();
             $('#id_import').click(function(){

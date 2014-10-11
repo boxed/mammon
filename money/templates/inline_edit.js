@@ -72,12 +72,12 @@ function makeEditableSelect(obj) {
 }
 
 function selectChange(obj) {
-    var url = obj.attr('edit_url')
+    var url = obj.attr('edit_url');
     var new_content = $(obj).val();
 
-    var success = function(t){}
+    var success = function(t){};
     //var failure = function(t){alert(t.responseText);}
-    var failure = function(t){alert('error saving change');}
+    var failure = function(t){alert('error saving change');};
 
     // var params = 'new_content=' + new_content;
     // var myAjax = new Ajax.Request(url, {method:'post', postBody:params, onSuccess:success, onFailure:failure});

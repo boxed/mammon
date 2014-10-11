@@ -13,12 +13,9 @@
     margin: 10px;
 
 	/* The padding properties adjust the text content within the href block */
-	padding-top: 8px;
-	padding-right: 8px;
-	padding-bottom: 8px;
-	padding-left: 8px;
-	
-	text-decoration: none;
+    padding: 8px;
+
+    text-decoration: none;
 	color:black;
 }
 
@@ -58,13 +55,10 @@ body
 h1
 {
 	margin:0;
-	padding-top:10px;		  
-	padding-right:10px;		 
-	padding-bottom:10px;	
-	padding-left:10px;
-	
-	font-size:20px;
-	font-family: Helvetica;
+    padding: 10px;
+
+    font-size:20px;
+	font-family: Helvetica, sans-serif;
 	font-weight:bold;
 	color: rgb(76,86,108);	 /* Set each label color */		
 }
@@ -76,30 +70,27 @@ ul
 	margin-bottom:17px;		  /* Set each list 17 pixels from the top of the button bar(or the top of the next list) */
 	
 	font-size:17px;
-	font-family: Helvetica;
+	font-family: Helvetica, sans-serif;
 	font-weight:bold;
 	color:black;
 	
 	background-color: white;       /* Each list has a white background fill */
-	
-	border-width: 1px;		       /* Draw a rectangle around each list */
-	border-style:solid ;
-	border-color:rgb(217,217,217);
+
+    /* Draw a rectangle around each list */
+
+    border: 1px solid rgb(217, 217, 217);
 }
 
 
 li
 {	
-	list-style-type: none;	
-	
-	border-top-width:1px;	/* Create lines between cells. Each line is placed above each item */
-	border-top-style:solid;
-	border-top-color:rgb(217,217,217);
+	list-style-type: none;
 
-	padding-top:10px;		  
-	padding-right:10px;		 
-	padding-bottom:14px;	 /* Indent the cell content 14 pixels from the bottom edge of a cell */
-	padding-left:10px;	
+    /* Create lines between cells. Each line is placed above each item */
+    border-top: 1px solid rgb(217, 217, 217);
+
+    /* Indent the cell content 14 pixels from the bottom edge of a cell */
+    padding: 10px 10px 14px;
 }
 
 
@@ -114,18 +105,12 @@ a  /* Handle the click/tap highlight. Highlight an entire cell with the iPhone g
 	display: block;   /* Sets the href to be a block rather than inline */
 	
 	/* The padding properties adjust the text content within the href block */
-	padding-top: 8px;
-	padding-right: 8px;
-	padding-bottom: 8px;
-	padding-left: 8px;
-	
-	/* The margin properties adjust the size of the href block	*/
-	margin-top: -8px;
-	margin-right: -8px;
-	margin-bottom: -12px;
-	margin-left: -8px;	 
-	
-	text-decoration: none;
+    padding: 8px;
+
+    /* The margin properties adjust the size of the href block	*/
+    margin: -8px -8px -12px;
+
+    text-decoration: none;
 	color:black;
 }
 
@@ -134,10 +119,8 @@ a  /* Handle the click/tap highlight. Highlight an entire cell with the iPhone g
 {  
 	margin-right:10px;		
 	padding-right:16px;	   /* Distance between the arrow button and a text */
-	
-	background-image: url(images/chevron.png); 
-	background-repeat: no-repeat;
-	background-position: right; 
+
+    background: url(images/chevron.png) no-repeat right;
 }
 
 

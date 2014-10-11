@@ -1,4 +1,5 @@
 # coding=utf-8
+from collections import Counter
 from copy import copy
 from decimal import Decimal
 from math import sqrt
@@ -16,7 +17,6 @@ from django.forms import ModelForm
 from django import forms
 from mammon.money import *
 from mammon.money.models import *
-from mammon.money.utils import Counter
 
 
 def std_deviation(l):

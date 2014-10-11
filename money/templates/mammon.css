@@ -3,8 +3,7 @@
 
 #utils-menu li {
     display: inline;
-    padding: 0;
-    padding-left: 10px;
+    padding: 0 0 0 10px;
     margin: 0;
 }
 #utils-menu a, #utils-menu span {
@@ -39,8 +38,7 @@
 }
 #global-menu li {
     display: inline;
-    padding: 0;
-    padding-right: 15px;
+    padding: 0 15px 0 0;
     margin: 0;
 }
 #global-menu a {
@@ -101,9 +99,7 @@ body {
 
 #header .button {
     font-size: 16px;
-    padding: 4px;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding: 4px 15px;
 }
 
 #header {
@@ -124,13 +120,10 @@ body {
 }
 
 #body:first-child {
-    margin: 15px;
     text-align: left;
     display: table;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 15px;
-    padding-top: 0;
+    margin: 15px auto;
+    padding: 0 15px 15px;
 }
 
 table
@@ -148,8 +141,7 @@ h1, h2, h3, h4
 }
 
 #header-util-links {
-    padding: 5px;
-    padding-right: 10px;
+    padding: 5px 10px 5px 5px;
 }
 
 #header-right {
@@ -364,8 +356,8 @@ table td h2 {
     padding:0;
     z-index:99999;
     position: fixed;
-    top: 0px;
-    margin: 20px 0px 0px 0px; /* The top margin defines the offset of textbox */
+    top: 0;
+    margin: 20px 0 0 0; /* The top margin defines the offset of textbox */
 }
 
 #id_row_marker_left {

@@ -5,7 +5,7 @@
 	<script>
 		$(document).ready(function() {
 			$('#change').click(function() {
-				url = '/summary/{{ period }}/' + $('#year').val() + '/';
+				var url = '/summary/{{ period }}/' + $('#year').val() + '/';
 				{% if period == "month" %}
 					url += $('#month').val() + '/';
 				{% endif %}

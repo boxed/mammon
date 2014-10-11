@@ -5,7 +5,7 @@
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
-SERVER_EMAIL = 'robot@eldmyra.se'
+SERVER_EMAIL = 'robot@kodare.net'
 
 ADMINS = (('Möller', 'boxed@killingar.net'),)
 
@@ -40,6 +40,25 @@ LANGUAGES = (
 )
 
 SITE_ID = 1
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 LOGIN_URL = '/login/'
 

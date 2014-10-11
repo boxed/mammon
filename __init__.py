@@ -3,6 +3,7 @@
 import sys
 
 
+# noinspection PyUnusedLocal
 def get_traceback(self, exc_info=None):
     """Helper function to return the traceback as a string"""
     import traceback

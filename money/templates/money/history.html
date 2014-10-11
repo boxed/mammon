@@ -4,7 +4,7 @@
 {% block extra_head %}
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.pack.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.time.min.js"></script>
-<style>
+<style type="text/css">
 .tickLabel
 {
     white-space:nowrap;
@@ -24,13 +24,13 @@
     <div id="placeholder" style="width:600px; height:500px"></div>
 </div>
 
-<p>
-<form>
-    <label>{% trans "Number of months to show" %}:</label>
+<form action="">
+    <label for="months">{% trans "Number of months to show" %}:</label>
     <input id="months" name="months" value="{{ months }}" />
     <input type="submit" value="{% trans "Change" %}" class="button"/>
 </form>
-</p>
+
+<p></p>
 
 <script id="source" language="javascript" type="text/javascript">
 
@@ -122,7 +122,6 @@ jQuery(function () {
                 $("#tooltip").remove();
                 var x = item.datapoint[0].toFixed(2),
                     y = item.datapoint[1].toFixed(2);
-                var d = new Date();
                 d.setTime(x);
 
                 showTooltip(item.pageX, item.pageY, y + ' (' + item.series.label + " " + (d.getYear()+1900)+'-'+(d.getMonth()+1)+')');

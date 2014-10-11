@@ -101,7 +101,7 @@
             if(searchTerm != '') {
                 
                 for(var i = 0; i < termList.length; i++) {
-                    currentTerm = termList[i];
+                    var currentTerm = termList[i];
 
                     if(!options.matchCase) {
                         currentTerm = currentTerm.toLowerCase();
@@ -155,7 +155,7 @@
         } else {
             return this.selection('start');
         }
-    }
+    };
 
     /**
       * Register the select plugin in the inlineComplete settings. Selects a range in the selected text fields.
@@ -184,7 +184,7 @@
         }
 
         return this;
-    }
+    };
 
     /**
       * Get the selection start or end point.
@@ -221,7 +221,7 @@
         }
 
         return this;
-    }
+    };
 
     /**
       * Register inlineComplete plugin. This enables you to use $('input').inlineComplete();

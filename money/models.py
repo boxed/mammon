@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from mammon.money import standardize_number, datetime_from_string
 
 
+# noinspection PyUnusedLocal
 def user_get_absolute_url(self):
     return '/'
 
@@ -86,8 +87,6 @@ class Category(models.Model):
         return cmp(self.name, other.name)
 
     def matches(self, transaction):
-        import re
-
         for rule in self.matching_rules.splitlines():
             if rule.strip() != '':
                 if rule.strip().lower() in transaction.description.lower():

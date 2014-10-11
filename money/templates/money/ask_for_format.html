@@ -17,6 +17,7 @@
             {% for classification in format %}
                 <td class="choice">
                     {% if classification == 'd' %}
+                        <!--suppress HtmlFormInputWithoutLabel -->
                         <input type="radio" class="date_choice choice_{{ forloop.counter0 }}" name="date" value="{{ forloop.counter }}">
                     {% endif %}
                 </td>
@@ -29,6 +30,7 @@
             {% for classification in format %}
                 <td class="choice">
                     {% if classification == '1' %}
+                        <!--suppress HtmlFormInputWithoutLabel -->
                         <input type="checkbox" class="number_choice choice_{{ forloop.counter0 }}" name="number" value="{{ forloop.counter }}">
                     {% endif %}
                 </td>
@@ -41,6 +43,7 @@
             {% for classification in format %}
                 <td class="choice">
                     {% if classification == 't' or classification == '1' %}
+                        <!--suppress HtmlFormInputWithoutLabel -->
                         <input type="checkbox" class="text_choice choice_{{ forloop.counter0 }}" name="text" value="{{ forloop.counter }}">
                     {% endif %}
                 </td>
@@ -61,7 +64,7 @@
 
 <span id="id_spinner" style="display: none">Processing...</span>
 
-<script>
+<script type="text/javascript">
     $(document).ready(function(){
         $('.date_choice.choice_{{ date_default }}').attr('checked', 'checked');
         $('.number_choice.choice_{{ number_default }}').attr('checked', 'checked');

@@ -30,7 +30,7 @@
     {% else %}
         {% if last_transaction %}
             {% trans "All transactions have been classified" %}
-            <p />
+            <p ></p>
             <div style="font-size: 80%; padding-top: 20px">
                 {% trans "Latest transaction" %}: {{ last_transaction.time|relative_date }} 
             </div>
@@ -142,7 +142,7 @@
                 });
             }
 
-            $($('#transaction_list tr')[$('#transaction_list tr').length-1]).addClass('row_marker');
+            $($('#transaction_list').find('tr')[$('#transaction_list').find('tr').length-1]).addClass('row_marker');
             $('.row_marker').intoViewport();
             update_row_markers();
             $('#id_row_marker_left').show();
@@ -155,7 +155,7 @@
                 if (!e.ctrlKey) {
                     return;
                 }
-                var rows = $('#transaction_list tr');
+                var rows = $('#transaction_list').find('tr');
                 var pos = rows.index($('.row_marker'));
 
 
