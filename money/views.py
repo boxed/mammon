@@ -756,7 +756,7 @@ def add_transactions(request):
             for classification, row in table:
                 if fmt.compatible_with(classification):
                     amount, date, description = fmt.parse_row(row)
-                    original_md5 = original_line_hash(amount=amount, date=date, description=description, user=request.user)
+                    original_md5 = original_line_hash(amount, date, description, request.user)
                     if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
                         # duplicate line, ignore it
                         # print 'ignored duplicate line'

@@ -138,11 +138,11 @@ def find_default_number(table, most_significant_format):
     return -1
 
 
-def original_line_hash(amount, date, description, user):
+def original_line_hash(amount, a_datetime, description, user):
     assert isinstance(amount, float)
-    assert isinstance(date, datetime)
+    assert isinstance(a_datetime, datetime)
     assert isinstance(description, unicode)
     import hashlib
-    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, datetime.datetime.strftime(date, '%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
+    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, a_datetime.strftime('%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
     original_md5 = hashlib.md5(original).hexdigest()
     return original_md5
