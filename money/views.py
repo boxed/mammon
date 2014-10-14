@@ -250,7 +250,7 @@ def export_transactions(request):
                 transaction.time.date().isoformat(), transaction.description, transaction.amount,
                 transaction.category or '', transaction.account or '')
 
-    return HttpResponse(export(), mimetype='text/csv; charset="utf8')
+    return HttpResponse(export(), content_type='text/csv; charset="utf8')
 
 
 @login_required
