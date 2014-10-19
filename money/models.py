@@ -23,6 +23,8 @@ class Account(models.Model):
         return self.name
 
     def __cmp__(self, other):
+        if other is None:
+            return cmp(self.name, other)
         return cmp(self.name, other.name)
 
 

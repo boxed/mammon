@@ -6,7 +6,7 @@
 	        <tr class="header">
 	            <th>{% trans "Date" %}</th>
 	            <th>{% trans "Description" %}</th>
-                <th>{% trans "Amount" %}</th>
+                <th class="amount">{% trans "Amount" %}</th>
                 {% if not hide_classification %}
                     <th>{% trans "Category" %}</th>
                     {% ifnotequal accounts|length 0 %}
@@ -17,8 +17,8 @@
 		</thead>
         {% for transaction in transactions %}
             <tr class="category_{{ transaction.category.id }}" transaction_id="{{ transaction.id }}">
-                <td class="time"><div class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/date/" id="{{ transaction.id }}">{{ transaction.time|date:"Y-m-d" }}</div></td>
-                <td class="description"><div class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/description/" id="{{ transaction.id }}">{{ transaction.description }}</div></td>
+                <td class="time"><span class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/date/" id="{{ transaction.id }}">{{ transaction.time|date:"Y-m-d" }}</span></td>
+                <td class="description"><span class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/description/" id="{{ transaction.id }}">{{ transaction.description }}</span></td>
                 <td class="amount">{{ transaction.amount|floatformat:2 }}</td>
                 {% if not hide_classification %}
                     <td>
@@ -41,8 +41,8 @@
                     {% endifnotequal %}
                 {% endif %}
                 {% if not hide_commands %}
-                    <td class="split"><span onClick="split_transaction({{ transaction.id }})" class="button">{% trans "Split" %}</span></td>
-                    <td class="delete"><span onClick="delete_transaction({{ transaction.id }}, true)" class="button"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {% trans "Delete" %}</span></td>
+                    <td class="split"><span onClick="split_transaction({{ transaction.id }})" class="inline-button"><i class="fa fa-share-alt"></i> {% trans "Split" %}</span></td>
+                    <td class="delete"><span onClick="delete_transaction({{ transaction.id }}, true)" class="inline-button"><i class="fa fa-minus-circle"></i> {% trans "Delete" %}</span></td>
                 {% endif %}
             </tr>
         {% endfor %}

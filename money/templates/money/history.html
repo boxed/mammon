@@ -65,7 +65,7 @@ function create_timestamp(year, month, day)
 }
 jQuery(function () {
     dataset = [
-        {% for key, value in result.items %}
+        {% for key, value in result %}
             {
                 label: '{% ifequal key None %}{% trans "Default" %}{% else %}{{ key }}{% endifequal %}',
                 data:
@@ -83,9 +83,15 @@ jQuery(function () {
     ];
 
     somePlot = $.plot($("#placeholder"), dataset, {
-        grid: { hoverable: true, clickable: true, backgroundColor: "#fffaff"},
+        grid: { hoverable: true, clickable: true, backgroundColor: "white", borderWidth: 0, markings: [{color: 'white'}]},
         bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
-        xaxis: { mode: "time" },
+        xaxis: {
+            mode: "time",
+            tickColor: 'white'
+        },
+        yaxis: {
+            tickColor: 'white'
+        },
         selection: { mode: "xy" },
         legend: {
             container: $('#legend'),

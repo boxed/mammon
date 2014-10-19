@@ -2,7 +2,7 @@
 {% load i18n %}{% load auth %}
 
 {% block content %}
-	<script>
+	<script type="text/javascript">
 		$(document).ready(function() {
 			$('#change').click(function() {
 				var url = '/summary/{{ period }}/' + $('#year').val() + '/';
@@ -17,18 +17,18 @@
 	
     <p>
     
-    <a href="/summary/{{ period }}/{{ previous_year }}/{% if period == "month" %}{{ previous_month }}/{% endif %}" class="button">&lt;&lt; {% trans "Previous period" %}</a>
-    {% if next_period %}<a href="/summary/{{ period }}/{{ next_year }}/{% if period == "month" %}{{ next_month }}/{% endif %}" class="button">{% trans "Next period" %} &gt;&gt;</a>{% endif %}
+    <a href="/summary/{{ period }}/{{ previous_year }}/{% if period == "month" %}{{ previous_month }}/{% endif %}" class="link-button"><i class="fa fa-chevron-circle-left"></i> {% trans "Previous period" %}</a>
+    {% if next_period %}<a href="/summary/{{ period }}/{{ next_year }}/{% if period == "month" %}{{ next_month }}/{% endif %}" class="link-button">{% trans "Next period" %} <i class="fa fa-chevron-circle-right"></i></a>{% endif %}
     
     </p>
 
-    <form>
-        <label>{% trans "Period" %}:</label>
+    <form action=".">
+        <label for="year">{% trans "Period" %}:</label>
         <input id="year" name="year" value="{{ year }}" />
 		{% if period == "month" %}
         	<input id="month" name="month" value="{{ month }}" />
 		{% endif %}
-        <button class="button" id="change">{% trans "Change" %}</button>
+        <button class="button" id="change">{% trans "Go to" %}</button>
 
         <div class="start-to-end-time">
             {{ start_time|date:"Y-m-d" }} - {{ end_time|date:"Y-m-d" }}
@@ -40,11 +40,11 @@
 		<thead>
 			<tr>
 				<th>{% trans "Category" %}</th>
-				<th>{% trans "Sum" %}</th>
+				<th class="amount">{% trans "Sum" %}</th>
 				<th></th>
 				{% if period == "year" %}
-					<th>{% trans "Monthly average" %}</th>
-                    <th>{% trans "Standard deviation" %}</th>
+					<th class="amount">{% trans "Monthly average" %}</th>
+                    <th class="amount">{% trans "Standard deviation" %}</th>
 				{% endif %}
 			</tr>
 		</thead>
@@ -69,7 +69,7 @@
                         </td>
 	                    <td class="amount">{{ d.sum|floatformat:2 }}</td>
 	                    <td>
-	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px; background: {% if d.sum|is_negative %}red{% else %}green{% endif %};">&nbsp;</div>
+	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px;" class="{% if d.sum|is_negative %}loss{% else %}gain{% endif %}">&nbsp;</div>
 	                    </td>
 						{% if period == "year" %}
 							<td class="amount">{{ d.sum|divide:monthly_average_divisor|floatformat:2 }}</td>
@@ -117,7 +117,7 @@
 
     {% if period == 'month' %}
         <p>
-            <span class="button" onClick="$('#log').toggle();">{% trans "Details..." %}</span>
+            <a class="link-button" onClick="$('#log').toggle();">{% trans "Details" %} <i class="fa fa-chevron-circle-down"></i></a>
         </p>
 
         <div id="log" style="display:none;">

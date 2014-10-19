@@ -31,7 +31,7 @@
 	</script>
 	
 	<p>
-        <a href="/settings/password/" class="button">{% trans "Change password" %}</a>
+        <a href="/settings/password/">{% trans "Change password" %}</a>
     </p>
 
 	<div>
@@ -57,7 +57,7 @@
 					<td>
 						<div class="inline_editable" edit_url="/accounts/{{ account.id }}/edit/name/">{{ account }}</div>
 					</td>
-					<td class="delete"><span id="{{ account.id }}" class="delete button"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {% trans "Delete" %}</span></td>
+					<td><span id="{{ account.id }}" class="inline-button"><i class="fa fa-minus-circle"> {% trans "Delete" %}</span></td>
 				</tr>
 			{% endfor %}
 			<tr>

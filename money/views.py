@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 from collections import Counter
 from copy import copy
 from decimal import Decimal
@@ -188,17 +189,17 @@ def view_transactions(request, page='1'):
 
     class FilterForm(forms.Form):
         q = forms.CharField(label=ugettext_lazy('Description'), required=False)
-        start_time = forms.DateTimeField(required=False)
-        end_time = forms.DateTimeField(required=False)
-        greater_than = forms.FloatField(required=False)
-        less_than = forms.FloatField(required=False)
-        category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
-        account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False)
+        start_time = forms.DateTimeField(required=False, label=ugettext_lazy('Start time'))
+        end_time = forms.DateTimeField(required=False, label=ugettext_lazy('End time'))
+        greater_than = forms.FloatField(required=False, label=ugettext_lazy('Greater than'))
+        less_than = forms.FloatField(required=False, label=ugettext_lazy('Less than'))
+        category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False, label=ugettext_lazy('Category'))
+        account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False, label=ugettext_lazy('Account'))
 
     class BulkEditForm(forms.Form):
         bulk_description = forms.CharField(label=ugettext_lazy('Append description'), required=False)
-        bulk_category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False)
-        bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False)
+        bulk_category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False, label=ugettext_lazy('Category'))
+        bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False, label=ugettext_lazy('Account'))
 
     for name, field in FilterForm.base_fields.items():
         BulkEditForm.base_fields[name] = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -246,7 +247,7 @@ def export_transactions(request):
 
     def export():
         for transaction in transactions:
-            yield u'%s\t%s\t%s\t%s\t%s\n' % (
+            yield '%s\t%s\t%s\t%s\t%s\n' % (
                 transaction.time.date().isoformat(), transaction.description, transaction.amount,
                 transaction.category or '', transaction.account or '')
 
@@ -477,7 +478,7 @@ def view_history(request):
     for key in result:
         sums[key] = sum([x.amount for x in result[key]])
 
-    c = {'result': result,
+    c = {'result': sorted(result.items()),
          'statement': statement,
          'months': months.value,
          'sums': sums,

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ _("Error") }}{% endblock %}
+
+{% block content %}
+	<h1>{{ _("Error") }}</h1>
+	{{ _("An error has occurred and has been sent to the administrators.") }}
+{% endblock %}

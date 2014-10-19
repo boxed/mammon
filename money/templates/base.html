@@ -12,6 +12,8 @@
         <script type="text/javascript" src="/site-media2/custom.js"></script>
         <link media="screen" href="/mammon.css" type="text/css" rel="stylesheet" />
         <link media="screen" href="/input_overlay.css" type="text/css" rel="stylesheet" />
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
         {% block extra_head %}{% endblock %}
     </head>
     <body onLoad="window.scrollTo(0,1)" id="{% block body_id %}{% endblock %}">
@@ -27,7 +29,7 @@
                 {% endif %}
                 <div id="header-right">
                     {% if not user.is_anonymous %}
-                        <a href="/add/" class="button">{% trans "Add transactions" %}</a>
+                        <a href="/add/" class="add-button"><i class="fa fa-plus-circle"></i> {% trans "Add transactions" %}</a>
                     {% endif %}
                 </div>
                 <h1 id="header-title" alt=""><a href="/">Mammon</a></h1>

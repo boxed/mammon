@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-05 16:42+0200\n"
+"POT-Creation-Date: 2014-10-19 18:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,77 +16,95 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: money/models.py:17 money/models.py:76 money/models.py:108
+#: money/models.py:18 money/models.py:77 money/models.py:107
 msgid "User"
 msgstr "Användare"
 
-#: money/models.py:18 money/models.py:78
+#: money/models.py:19 money/models.py:79
 msgid "Name"
 msgstr "Namn"
 
-#: money/models.py:19
+#: money/models.py:20
 msgid "Hide"
 msgstr "Dölj"
 
-#: money/models.py:77 money/templates/money/all_like_this.html:6
+#: money/models.py:78 money/templates/money/all_like_this.html:6
 #: money/templates/money/index.html:20
-#: money/templates/money/transaction_list.html:13
+#: money/templates/money/transaction_list.html:13 money/views.py:197
+#: money/views.py:202
 msgid "Account"
 msgstr "Konto"
 
-#: money/models.py:79
+#: money/models.py:80
 msgid "Matching rules"
 msgstr "Matchningsregler"
 
-#: money/models.py:80 money/templates/money/view_period.html:26
+#: money/models.py:81 money/templates/money/view_period.html:26
 msgid "Period"
 msgstr "Period"
 
-#: money/templates/base.html:23
+#: money/templates/403.html:4 money/templates/403.html.py:7
+msgid "Access denied"
+msgstr "Åtkomst nekad"
+
+#: money/templates/404.html:4 money/templates/404.html.py:7
+#: money/templates/500.html:4 money/templates/500.html.py:7
+msgid "Error"
+msgstr "Fel"
+
+#: money/templates/404.html:8
+msgid "There is no page at this address."
+msgstr "Det finns ingen sida på denna adress."
+
+#: money/templates/500.html:8
+msgid "An error has occurred and has been sent to the administrators."
+msgstr "Ett fel har inträffat. Ett meddelande har skickats till administratörerna."
+
+#: money/templates/base.html:25
 msgid "Admin"
 msgstr "Admin"
 
-#: money/templates/base.html:24
+#: money/templates/base.html:26
 msgid "Update matching"
 msgstr "Uppdatera matchningar"
 
-#: money/templates/base.html:30
+#: money/templates/base.html:32
 msgid "Add transactions"
 msgstr "Lägg till transaktioner"
 
-#: money/templates/base.html:36
+#: money/templates/base.html:38
 msgid "Home"
 msgstr "Start"
 
-#: money/templates/base.html:37
+#: money/templates/base.html:39
 msgid "Year view"
 msgstr "Årsvy"
 
-#: money/templates/base.html:38
+#: money/templates/base.html:40
 msgid "Month view"
 msgstr "Månadsvy"
 
-#: money/templates/base.html:39
+#: money/templates/base.html:41
 msgid "Overview"
 msgstr "Översikt"
 
-#: money/templates/base.html:40 money/templates/money/view_category.html:45
+#: money/templates/base.html:42 money/templates/money/view_category.html:45
 msgid "Transactions"
 msgstr "Transaktioner"
 
-#: money/templates/base.html:41
+#: money/templates/base.html:43
 msgid "Categories"
 msgstr "Kategorier"
 
-#: money/templates/base.html:42 money/templates/money/settings.html:51
+#: money/templates/base.html:44 money/templates/money/settings.html:51
 msgid "Accounts"
 msgstr "Konton"
 
-#: money/templates/base.html:43
+#: money/templates/base.html:45
 msgid "Settings"
 msgstr "Inställningar"
 
-#: money/templates/base.html:44
+#: money/templates/base.html:46
 msgid "Log out"
 msgstr "Logga ut"
 
@@ -133,7 +151,8 @@ msgstr "Importera transactioner"
 #: money/templates/money/all_like_this.html:4
 #: money/templates/money/index.html:18
 #: money/templates/money/transaction_list.html:11
-#: money/templates/money/view_period.html:42
+#: money/templates/money/view_period.html:42 money/views.py:196
+#: money/views.py:201
 msgid "Category"
 msgstr "Kategori"
 
@@ -173,11 +192,11 @@ msgstr "Spara formatet och importera datat"
 msgid "Transaction Date"
 msgstr "Transaktionsdatum"
 
-#: money/templates/money/ask_for_format.html:27
+#: money/templates/money/ask_for_format.html:28
 msgid "Transaction Size"
 msgstr "Transaktionsstorlek"
 
-#: money/templates/money/ask_for_format.html:39
+#: money/templates/money/ask_for_format.html:41
 msgid "Transaction Description"
 msgstr "Transaktionsbeskrivning"
 
@@ -191,12 +210,11 @@ msgstr "Radera spann"
 msgid "Sum"
 msgstr "Summa"
 
-#: money/templates/money/history.html:29
+#: money/templates/money/history.html:28
 msgid "Number of months to show"
 msgstr "Antalet månader att visa"
 
-#: money/templates/money/history.html:31
-#: money/templates/money/view_period.html:31
+#: money/templates/money/history.html:30
 msgid "Change"
 msgstr "Ändra"
 
@@ -300,7 +318,7 @@ msgstr "Distribuera delarna över följande månader"
 msgid "Date"
 msgstr "Datum"
 
-#: money/templates/money/transaction_list.html:8 money/views.py:190
+#: money/templates/money/transaction_list.html:8 money/views.py:191
 msgid "Description"
 msgstr "Beskrivning"
 
@@ -341,6 +359,10 @@ msgstr "Föregående period"
 msgid "Next period"
 msgstr "Nästa period"
 
+#: money/templates/money/view_period.html:31
+msgid "Go to"
+msgstr "Gå till"
+
 #: money/templates/money/view_period.html:46
 msgid "Monthly average"
 msgstr "Medel för månaden"
@@ -360,8 +382,8 @@ msgstr "Förväntat"
 
 #: money/templates/money/view_period.html:110
 #: money/templates/money/view_period.html:120
-msgid "Details..."
-msgstr "Detaljerat..."
+msgid "Details"
+msgstr "Detaljerat"
 
 #: money/templates/money/view_period.html:130
 msgid "No transactions for this period"
@@ -389,49 +411,66 @@ msgstr "Användaravta"
 msgid "__ user agreement __"
 msgstr ""
 
-#: money/views.py:120
+#: money/views.py:121
 msgid "Update existing transactions"
 msgstr "Uppdatera existerande transaktioner"
 
-#: money/views.py:175
+#: money/views.py:176
 #, python-format
 msgid "Delete this %s"
 msgstr "Radera detta %s"
 
-#: money/views.py:176
+#: money/views.py:177
 #, python-format
 msgid "Are you sure you want to delete this %s?"
 msgstr "Är du säker på att du vill radera detta %s?"
 
-#: money/views.py:199
+#: money/views.py:192
+msgid "Start time"
+msgstr "Starttid"
+
+#: money/views.py:193
+msgid "End time"
+msgstr "Sluttid"
+
+#: money/views.py:194
+#| msgid "Create account"
+msgid "Greater than"
+msgstr "Större än"
+
+#: money/views.py:195
+msgid "Less than"
+msgstr "Mindre än"
+
+#: money/views.py:200
 msgid "Append description"
 msgstr "Lägg till beskrivning"
 
-#: money/views.py:671
+#: money/views.py:672
 msgid "From date"
 msgstr "Från datum"
 
-#: money/views.py:672
+#: money/views.py:673
 msgid "To date"
 msgstr "Till datum"
 
-#: money/views.py:679
+#: money/views.py:680
 msgid "Transactions deleted!"
 msgstr "Transaktioner raderade!"
 
-#: money/views.py:699
+#: money/views.py:700
 msgid "Language"
 msgstr "Språk"
 
-#: money/views.py:700
+#: money/views.py:701
 msgid "Financial months begins on day"
 msgstr "Finansiell månad börjar på datum"
 
-#: money/views.py:708
+#: money/views.py:709
 msgid "Period must be a number"
 msgstr "Perioden måste vara ett nummer"
 
-#: money/views.py:737
+#: money/views.py:738
 msgid "Sorry, I couldn't figure out the format of that input"
 msgstr "Jag kunde inte lista ut formatet av det du gav mig"
 

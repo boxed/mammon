@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ _("Error") }}{% endblock %}
+
+{% block content %}
+	<h1>404 {{ _("Error") }}</h1>
+	{{ _("There is no page at this address.") }}
+{% endblock %}
