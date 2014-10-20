@@ -156,7 +156,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
         if form.is_valid():
             group = form.save()
             update_matches_for_user(request.user)
-            if 'update_existing_transactions' in form.cleaned_data:
+            if 'update_existing_transactions' in form.cleaned_data and form.cleaned_data['update_existing_transactions']:
                 transactions.update(account=group.account)
     else:
         form = form_class(initial={}, instance=group)

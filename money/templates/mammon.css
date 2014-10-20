@@ -26,6 +26,7 @@
 
 #header a {
     color: white;
+    text-decoration: none;
 }
 
 #header-title {
@@ -68,7 +69,6 @@
 }
 #global-menu a {
     font-size: 16px;
-    text-decoration: none;
 }
 
 /********/

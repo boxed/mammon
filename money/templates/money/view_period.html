@@ -107,7 +107,7 @@
 
     {% if projected_transactions %}
     	<p>
-        	{% trans "Projected" %}: {{ projected_sum }} <span class="button" onClick="$('#projection_log').toggle();">{% trans "Details..." %}</span>
+        	{% trans "Projected" %}: {{ projected_sum }} <a onClick="$('#projection_log').toggle();">{% trans "Details" %} <i class="fa fa-chevron-circle-down"></i></a>
 		</p>
 
         <div id="projection_log" style="display:none;">
