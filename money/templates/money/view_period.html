@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 {% load i18n %}{% load auth %}
 
+{% block extra_head %}
+
+    <link rel="prefetch" href="/summary/{{ period }}/{{ previous_year }}/{% if period == "month" %}{{ previous_month }}/{% endif %}" >
+    {% if next_period %}
+        <link rel="prefetch" href="/summary/{{ period }}/{{ next_year }}/{% if period == "month" %}{{ next_month }}/{% endif %}">
+    {% endif %}
+
+{% endblock %}
+
 {% block content %}
 	<script type="text/javascript">
 		$(document).ready(function() {

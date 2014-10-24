@@ -4,7 +4,9 @@ from collections import Counter
 from copy import copy
 from decimal import Decimal
 from math import sqrt
+from datetime import time
 from dateutil.relativedelta import relativedelta
+from django.utils.http import http_date
 from django.utils.translation import ugettext_lazy
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -385,7 +387,7 @@ def view_summary(request, period='month', year=None, month=None):
     else:
         assert False
 
-    return render_to_response('money/view_period.html',
+    resp = render_to_response('money/view_period.html',
                               RequestContext(request, {
                                   'lossgain': 'loss' if total < 0 else 'gain',
                                   'account_summaries': sorted(accounts.items()),
@@ -412,6 +414,9 @@ def view_summary(request, period='month', year=None, month=None):
                                   'transactions': transactions,
                                   'categories': Category.objects.filter(user=request.user),
                               }))
+    import time
+    resp['Expires'] = http_date(time.time() + 1000)
+    return resp
 
 
 @login_required
