@@ -18,18 +18,19 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db.models.aggregates import Sum
 from django.forms import ModelForm
 from django import forms
+from curia.authentication.models import MetaUser
 from mammon.money import *
 from mammon.money.models import *
 
 
 def std_deviation(l):
-    sum1 = 0.0
-    sum2 = 0.0
-    n = 0.0
+    sum1 = Decimal(0.0)
+    sum2 = Decimal(0.0)
+    n = Decimal(0.0)
     for x in l:
         sum1 += x
         sum2 += x * x
-        n += 1.0
+        n += Decimal(1.0)
         sum1, sum2, n = sum1, sum2, n
     return sqrt(sum2 / n - sum1 * sum1 / n / n)
 
@@ -249,11 +250,11 @@ def export_transactions(request):
 
     def export():
         for transaction in transactions:
-            yield '%s\t%s\t%s\t%s\t%s\n' % (
+            yield ('%s\t%s\t%s\t%s\t%s\n' % (
                 transaction.time.date().isoformat(), transaction.description, transaction.amount,
-                transaction.category or '', transaction.account or '')
+                transaction.category or '', transaction.account or '')).encode('utf8')
 
-    return HttpResponse(export(), content_type='text/csv; charset="utf8')
+    return HttpResponse(export(), content_type='text/csv; charset=utf-8')
 
 
 @login_required
@@ -273,61 +274,71 @@ def import_transactions(request):
 
 
 def transactions_for_period(request, start_time, end_time, user):
-    return list(transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category'))
+    return transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category')
 
 
 def create_summary(request, start_time, end_time, user):
     transactions = transactions_for_period(request, start_time, end_time, user)
-    accounts = {}
-    default_account = Account(name=' default', pk=0)
-    default_category = Category(name=' other', pk=0)
-
-    sum_per_account_per_category_per_month = {}
-
     period_setting = get_period_setting(request.user)
 
-    def month_from_transaction(t):
-        if t.time.day > period_setting:
-            return t.time.month
-        else:
-            return t.time.month - 1
+    number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month
 
-    number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month - 1
+    extra_select = {
+        'year': 'YEAR(time)',
+        'month': 'IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH)))' % int(period_setting.value)
+    }
+    new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'year', 'month').annotate(Sum('amount'))
+    account_by_pk = {x.pk: x for x in Account.objects.filter(user=user)}
+    account_by_pk[None] = Account(name=' default', pk=0)
+    category_by_pk = {x.pk: x for x in Category.objects.filter(user=user)}
+    category_by_pk[None] = Category(name=' other', pk=0)
+    q = str(new_way.query)
+    # TODO: replace nulls for account and category
+    new_way = list(new_way)
+    for r in new_way:
+        r['account'] = account_by_pk[r['account_id']]
+        r['category'] = category_by_pk[r['category_id']]
+        r['sum'] = r['amount__sum']
+        del r['account_id']
+        del r['category_id']
+        del r['amount__sum']
+    years = nest_dict(new_way, ['year', 'account', 'category', 'month'])
 
-    for transaction in transactions:
-        categories = accounts.setdefault(transaction.account or default_account, {})
-        if transaction.account is None or not transaction.account.hide:
-            category = categories.setdefault(transaction.category or default_category, {})
-            category['sum'] = category.get('sum', 0) + transaction.amount
-            sum_of_month = sum_per_account_per_category_per_month.setdefault(transaction.account or default_account, {}).setdefault(transaction.category or default_category, dict([(i, {'sum': 0}) for i in range(1, number_of_months)])).setdefault(month_from_transaction(transaction), {})
-            sum_of_month['sum'] = sum_of_month.get('sum', 0) + transaction.amount
+    # TODO: Assert that the aggregation ended up with at most one month if we're in the month view
 
-    for account, categories in accounts.items():
-        if not len(categories.items()):
-            del accounts[account]
+    # Set the sum of months key
+    for year, accounts in years.items():
+        for account, categories in accounts.items():
+            for category, months in categories.items():
+                months['sum'] = sum([x['sum'] for x in months.values()])
 
     max_value = None
-    for account, categories in accounts.items():
-        s = max([abs(x[1]['sum']) for x in categories.items()])
-        max_value = max(max_value, s)
+    for year, accounts in years.items():
+        for account, categories in accounts.items():
+            s = max([abs(months['sum']) for _, months in categories.items()])
+            max_value = max(max_value, s)
 
-    for account, categories in accounts.items():
-        for category, values in categories.items():
-            values['severity'] = 0
-            if max_value:
-                values['severity'] = abs(values['sum']) / max_value
-            values['std_deviation'] = std_deviation(
-                [float(month['sum']) for month in sum_per_account_per_category_per_month[account][category].values()])
+    # TODO: reimplement standard deviation with new data structure
+    for year, accounts in years.items():
+        for account, categories in accounts.items():
+            for category, months in categories.items():
+                months['severity'] = 0
+                if max_value:
+                    months['severity'] = abs(months['sum']) / max_value
+                months['std_deviation'] = std_deviation([v['sum'] for k, v in months.items() if type(k) != unicode])
 
-    for account, categories in accounts.items():
-        account.total = sum([x[1]['sum'] for x in categories.items()])
-        if account.total < 0:
-            account.lossgain = 'loss'
-        else:
-            account.lossgain = 'gain'
-        accounts[account] = sorted(categories.items())
+    total = Decimal(0)
+    for year, accounts in years.items():
+        for account, categories in accounts.items():
+            account.total = sum([x['sum'] for x in categories.values()])
+            total += account.total
+            if account.total < 0:
+                account.lossgain = 'loss'
+            else:
+                account.lossgain = 'gain'
+            accounts[account] = sorted(categories.items())
 
-    return accounts, transactions
+    return years, transactions, total
 
 
 @login_required
@@ -358,7 +369,7 @@ def view_summary(request, period='month', year=None, month=None):
     last_period_start_time = get_start_of_period(reference - timedelta(days=15), request.user)
     last_period_end_time = get_end_of_period(last_period_start_time, request.user)
 
-    accounts, transactions = create_summary(request, start_time, end_time, request.user)
+    years, transactions, total = create_summary(request, start_time, end_time, request.user)
 
     projected_transactions = []
     last_month = False
@@ -371,8 +382,6 @@ def view_summary(request, period='month', year=None, month=None):
         for last_period_transaction in last_period_transactions:
             if last_period_transaction.category and last_period_transaction.category.period == 1 and last_period_transaction.description not in transaction_descriptions:
                 projected_transactions.append(last_period_transaction)
-
-    total = sum([x.total for x in accounts])
 
     if period == 'month':
         prev = first_of_previous_month(end_time)
@@ -390,7 +399,7 @@ def view_summary(request, period='month', year=None, month=None):
     resp = render_to_response('money/view_period.html',
                               RequestContext(request, {
                                   'lossgain': 'loss' if total < 0 else 'gain',
-                                  'account_summaries': sorted(accounts.items()),
+                                  'years': years,
                                   'total': total,
                                   'year': year,
                                   'month': month,
@@ -714,7 +723,7 @@ def settings(request):
             form.errors['period'] = (ugettext_lazy('Period must be a number'),)
 
         if form.is_valid():
-            meta = request.user.meta
+            meta = MetaUser.objects.get_or_create(user=request.user)[0]
             meta.language = form.cleaned_data['language']
             meta.save()
             period_setting.value = form.cleaned_data['period']

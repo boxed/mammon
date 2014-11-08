@@ -1,0 +1,11 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block title %}{{ _("E-mail sent") }}{% endblock %}
+{% block header %}{{ _("E-mail sent") }}{% endblock %}
+
+{% block content %}
+  
+    {% blocktrans %}Instructions on how to change your password has been sent to the specified email.{% endblocktrans %}
+ 
+{% endblock %}

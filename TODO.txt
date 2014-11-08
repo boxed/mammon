@@ -6,3 +6,5 @@ FEATURE: when viewing a month, put some warning if it is not yet completed
 FEATURE: compare months so it is easy to see why the situation is so different one month to the next. Remember that months are of different length!
 FEATURE: view quarters/half years
 FEATURE: graph of a certain category over time. Maybe this should be a feature of the normal overview graph?
+FEATURE: the "expected" on the current month needs to be split per account
+FEATURE: when creating a new account: choose language, and create a localized "Exceptions" account

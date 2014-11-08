@@ -49,7 +49,7 @@ urlpatterns = patterns(
 
     (r'^login/', 'mammon.views.login'),
     (r'^logout/', 'mammon.views.logout'),
-    (r'^registration/', include('curia.registration.urls')),
+    (r'^registration/', include('mammon.registration.urls')),
 
     (r'^iphone-mammon.css$', 'curia.base.views.stylesheet', {'template': 'iphone-mammon.css'}),
     (r'^mammon.css$', 'curia.base.views.stylesheet', {'template': 'mammon.css'}),

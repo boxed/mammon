@@ -122,13 +122,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.flatpages',
     'curia.authentication',
-    'curia.registration',
+    'mammon.registration',
     'mammon.money',
     'curia.base',
 )
 
-REGISTRATION_SYSTEM = 'register'
-REGISTRATION_FIELDS = ('password', 'email',)
 REGISTRATION_NEXT = '/settings/'
 
 try:

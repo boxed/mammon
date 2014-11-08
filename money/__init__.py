@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import timedelta, datetime
 from time import strptime
 from curia import first_of_next_month, first_of_previous_month
@@ -146,3 +147,16 @@ def original_line_hash(amount, a_datetime, description, user):
     original = (u'%s\t%s\t%s\t%s' % (user.id, amount, a_datetime.strftime('%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
     original_md5 = hashlib.md5(original).hexdigest()
     return original_md5
+
+
+def nest_dict(list_of_dicts, keys, unroll_last_list=True):
+    if not keys:
+        if unroll_last_list and type(list_of_dicts) in (tuple, list) and len(list_of_dicts) == 1:
+            return list_of_dicts[0]
+        return list_of_dicts
+    first_key = keys[0]
+    rest_keys = keys[1:]
+    result = defaultdict(list)
+    for r in list_of_dicts:
+        result[r[first_key]] += [{k: v for k, v in r.items() if k != first_key}]
+    return {k: nest_dict(v, rest_keys) for k, v in result.items()}

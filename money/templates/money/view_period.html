@@ -57,13 +57,14 @@
 				{% endif %}
 			</tr>
 		</thead>
-    	{% for account, categories in account_summaries %}
-			{% ifnotequal account.name " default" %}
+    {% for year, accounts in years.items %}
+    	{% for account, categories in accounts.items %}
+			{% if account.name != " default" %}
 				<tr><td colspan="5">&nbsp;</td></tr>
 				<tr>
 					<td colspan="5"><h3 style="text-align:center; margin: 4px;">{{ account }}</h3></td>
 				</tr>
-			{% endifnotequal %}
+			{% endif %}
 			{% for category, d in categories %}
 	            {% if d.sum %}
 	                <tr class="category_id_{{ category.id }} category_period_{{ category.period }}_month">
@@ -98,10 +99,10 @@
 			</tr>
 	    {% endfor %}
 
-		{% ifnotequal account_summaries|length 1 %}
-			{% ifnotequal account_summaries|length 0 %}
+		{% if account_summaries|length != 1 %}
+			{% if account_summaries|length != 0 %}
 				<tr><td colspan="5">&nbsp;</td></tr>
-			{% endifnotequal %}
+			{% endif %}
     		<tr>
 				<td><b>{% trans "Total" %}</b></td>
 				<td class="amount {{ lossgain }}">{{ total|floatformat:2 }}</td>
@@ -111,7 +112,8 @@
                     <td></td>
 				{% endif %}
 			</tr>
-		{% endifnotequal %}
+		{% endif %}
+    {% endfor %}
    	</table>
 
     {% if projected_transactions %}
@@ -130,7 +132,7 @@
         </p>
 
         <div id="log" style="display:none;">
-            {% include "money/transaction_list.html" %}
+{#            {% include "money/transaction_list.html" %}#}
         </div>
     {% endif %}
 
