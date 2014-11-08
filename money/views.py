@@ -284,8 +284,8 @@ def create_summary(request, start_time, end_time, user):
     number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month
 
     extra_select = {
-        'year': 'YEAR(time)',
-        'month': 'IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH)))' % int(period_setting.value)
+        'year': 'IF(DAY(time) <= %s, YEAR(time), YEAR(DATE_ADD(time, INTERVAL 1 MONTH)))' % int(period_setting.value),
+        'month': 'IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH)))' % int(period_setting.value),
     }
     new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'year', 'month').annotate(Sum('amount'))
     account_by_pk = {x.pk: x for x in Account.objects.filter(user=user)}
@@ -304,8 +304,6 @@ def create_summary(request, start_time, end_time, user):
         del r['amount__sum']
     years = nest_dict(new_way, ['year', 'account', 'category', 'month'])
 
-    # TODO: Assert that the aggregation ended up with at most one month if we're in the month view
-
     # Set the sum of months key
     for year, accounts in years.items():
         for account, categories in accounts.items():
@@ -318,7 +316,6 @@ def create_summary(request, start_time, end_time, user):
             s = max([abs(months['sum']) for _, months in categories.items()])
             max_value = max(max_value, s)
 
-    # TODO: reimplement standard deviation with new data structure
     for year, accounts in years.items():
         for account, categories in accounts.items():
             for category, months in categories.items():

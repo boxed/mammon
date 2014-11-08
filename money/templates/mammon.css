@@ -385,6 +385,10 @@ table td h2 {
     margin-bottom: 10px;
 }
 
+.row_marker {
+    font-weight: bold;
+}
+
 #id_all_like_this_dialog {
     font-size: 30px;
 }
