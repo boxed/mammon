@@ -89,7 +89,7 @@ a {
     cursor: pointer;
 }
 
-.fa-minus-circle {
+.fa-trash {
     color: #f8000e;
 }
 
@@ -265,8 +265,12 @@ textarea
 {
     text-align: center;
     clear: both;
-    padding-bottom: 4px;
+    padding-bottom: 3px;
     padding-top: 4px;
+    background-color: #f7f7f7;
+}
+
+.paginator .page {
 }
 
 .paginator .prev-na,
@@ -277,14 +281,12 @@ textarea
 
 .paginator .prev a, .paginator .next a {
     color: #000;
-    padding: 2px;
-    margin: 1px 3px;
+    padding: 6px;
 }
 
 .paginator .page a, .paginator .curr {
-    padding: 2px;
     color: #000;
-    margin: 1px 3px;
+    padding: 6px;
 }
 
 .paginator .curr { 
@@ -295,10 +297,8 @@ textarea
 }
 
 .paginator a:hover {
-    color: #000;
-    border: 1px solid #664;
-    margin: 0 2px;
     text-decoration: none;
+    background-color: white;
 }
 
 .content {

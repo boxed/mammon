@@ -41,8 +41,8 @@
                     {% endifnotequal %}
                 {% endif %}
                 {% if not hide_commands %}
-                    <td class="split"><span onClick="split_transaction({{ transaction.id }})" class="inline-button"><i class="fa fa-share-alt"></i> {% trans "Split" %}</span></td>
-                    <td class="delete"><span onClick="delete_transaction({{ transaction.id }}, true)" class="inline-button"><i class="fa fa-minus-circle"></i> {% trans "Delete" %}</span></td>
+                    <td class="split"><span title="{% trans "Split" %}" onClick="split_transaction({{ transaction.id }})" class="inline-button"><i class="fa fa-share-alt"></i></span></td>
+                    <td class="delete"><span title="{% trans "Delete" %}" onClick="delete_transaction({{ transaction.id }}, true)" class="inline-button"><i class="fa fa-trash"></i></span></td>
                 {% endif %}
             </tr>
         {% endfor %}
