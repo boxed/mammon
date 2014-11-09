@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n %}{% load auth %}
+
+{% block content %}
+
+    {% trans "Type the category you want and hit enter to apply it." %}
+
+    <table>
+        <thead>
+        <tr>
+            <th>{% trans "Description" %}</th>
+            <th>{% trans "Count" %}</th>
+            <th>{% trans "Category" %}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for description, count in foo %}
+            <tr>
+                <td class="description">{{ description }}</td>
+                <td>{{ count }}</td>
+                <td><input type="text"/></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $($('input')[0]).focus();
+            var inputs = $("input");
+            inputs.inlineComplete({terms: [{% for category in categories %}"{{ category|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}]});
+            inputs.keydown(function (e) {
+                if (e.keyCode == 13) {
+                    // TODO:
+                    var category = $(e.target).val();
+                    var description = $(e.target).parent().parent().find('.description').html();
+                    $.ajax({
+                        url: '.',
+                        type: 'POST',
+                        data: {
+                            category: category,
+                            description: description
+                        },
+                        success: function() {
+                            window.history.go(0);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+{% endblock %}

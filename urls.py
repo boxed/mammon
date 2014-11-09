@@ -8,6 +8,8 @@ urlpatterns = patterns(
     (r'^$', 'mammon.money.views.index'),
     (r'^add/$', 'mammon.money.views.add_transactions'),
     (r'^update_matching/$', 'mammon.money.views.update_matching'),
+
+    (r'^getting_started/$', 'mammon.money.views.getting_started'),
     
     (r'^transactions/edit/$', 'mammon.money.views.edit_transactions'),
     (r'^transactions/$', 'mammon.money.views.view_transactions'),

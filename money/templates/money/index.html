@@ -39,9 +39,10 @@
         {% endif %}
     {% endif %}
 
-    <script>
+    <script type="text/javascript">
         function only_this() {
-            if (!$('#id_category').val()) {
+            var category = $('#id_category').val();
+            if (!category) {
                 window.setTimeout(function (){
                     $('#id_category').focus();
                 }, 100);
@@ -55,7 +56,7 @@
                 url: '/transactions/'+id+'/edit/properties/',
                 type: 'POST',
                 data: {
-                    category: $('#id_category').val(),
+                    category: category,
                     account: $('#id_account').val()
                 },
                 success: function() {
@@ -78,7 +79,8 @@
             $('#id_category').focus();
         }
         function all_like_this() {
-            if (!$('#id_category').val()) {
+            var category = $('#id_category').val();
+            if (!category) {
                 window.setTimeout(function (){
                     $('#id_category').focus();
                 }, 100);
@@ -90,7 +92,7 @@
                 url:'/transactions/'+id+'/all_like_this/',
                 type: 'GET',
                 data: {
-                    category: $('#id_category').val(),
+                    category: category,
                     account: $('#id_account').val()
                 },
                 success: function(text) {

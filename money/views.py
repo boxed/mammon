@@ -15,7 +15,7 @@ from django.template.context import RequestContext
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core.paginator import Paginator, EmptyPage
-from django.db.models.aggregates import Sum
+from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
 from curia.authentication.models import MetaUser
@@ -845,3 +845,24 @@ def all_like_this(request, transaction_id):
             transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
         update_matches_for_user_and_category(request.user, category)
         return HttpResponse('OK')
+
+
+@login_required
+def getting_started(request):
+    if request.method == 'POST':
+        category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
+        description = request.POST['description']
+        category.add_rule(description)
+        transactions_for_user(request.user).filter(description=description).update(category=category)
+        category.save()
+        return HttpResponse('OK')
+
+    transactions = transactions_for_user(request.user).filter(category__isnull=True)
+    foo = [(x['description'], x['description__count']) for x in transactions.values('description').annotate(Count('description')).order_by('-description__count') if x['description__count'] > 1]
+
+    c = {
+        'foo': foo,
+        'categories': Category.objects.filter(user=request.user),
+    }
+
+    return render_to_response('money/getting_started.html', RequestContext(request, c))
