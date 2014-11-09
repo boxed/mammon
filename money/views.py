@@ -273,6 +273,10 @@ def import_transactions(request):
         return HttpResponse('Imported %s transactions' % len(rows))
 
 
+def transactions_for_user(user):
+    return Transaction.objects.filter(user=user).select_related('account', 'category')
+
+
 def transactions_for_period(request, start_time, end_time, user):
     return transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category')
 
@@ -322,7 +326,10 @@ def create_summary(request, start_time, end_time, user):
                 months['severity'] = 0
                 if max_value:
                     months['severity'] = abs(months['sum']) / max_value
-                months['std_deviation'] = std_deviation([v['sum'] for k, v in months.items() if type(k) != unicode])
+                sums = [v['sum'] for k, v in months.items() if type(k) != unicode]
+                sums += [Decimal(0.0)] * (number_of_months - len(sums))
+                assert len(sums) == number_of_months
+                months['std_deviation'] = std_deviation(sums)
 
     total = Decimal(0)
     for year, accounts in years.items():
@@ -350,16 +357,31 @@ def view_summary(request, period='month', year=None, month=None):
         end_time = get_end_of_period(start_time, request.user)
     elif period == 'year':
         if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST:  # allow start/end time to be overwritten by URL
-            from mammon.money import datetime_from_string
-
             start_time = datetime_from_string(request.REQUEST['start_time'])
             end_time = datetime_from_string(request.REQUEST['end_time'])
         else:
             start_time = get_start_of_period(datetime(int(year), 1, 1), request.user)
-            end_time = get_end_of_period(datetime(int(year) + 1, 1, 1) - timedelta(days=31), request.user)
+            end_time = datetime(start_time.year + 1, start_time.month, start_time.day)
 
-            if end_time > datetime.now():
-                end_time = get_end_of_period(datetime.now() - timedelta(days=62), request.user)
+            if transactions_for_user(request.user):
+                first_time = transactions_for_user(request.user).order_by('time')[0].time
+                last_time = transactions_for_user(request.user).order_by('-time')[0].time
+
+                def next_month(d):
+                    if d.month == 12:
+                        return datetime(d.year + 1, 1, d.day)
+                    else:
+                        return datetime(d.year, d.month + 1, d.day)
+
+                # Adjust so that start_time starts on a month we have complete data for
+                if first_time > start_time:
+                    start_time = get_start_of_period(first_time, request.user)
+                while first_time > start_time:
+                    start_time = next_month(start_time)
+
+                # Adjust so that end_time ends on a month we have complete data for
+                if end_time > last_time:
+                    end_time = get_end_of_period(last_time - timedelta(days=62), request.user)
     else:
         raise Exception('Invalid period')
 
