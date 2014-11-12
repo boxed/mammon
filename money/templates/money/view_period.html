@@ -57,8 +57,7 @@
 				{% endif %}
 			</tr>
 		</thead>
-    {% for year, accounts in years.items %}
-    	{% for account, categories in accounts.items %}
+    	{% for account, categories in summary.items %}
 			{% if account.name != " default" %}
 				<tr><td colspan="5">&nbsp;</td></tr>
 				<tr>
@@ -113,7 +112,6 @@
 				{% endif %}
 			</tr>
 		{% endif %}
-    {% endfor %}
    	</table>
 
     {% if projected_transactions %}

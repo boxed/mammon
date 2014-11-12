@@ -286,10 +286,9 @@ def create_summary(request, start_time, end_time, user):
     number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month
 
     extra_select = {
-        'year': 'IF(DAY(time) <= %s, YEAR(time), YEAR(DATE_ADD(time, INTERVAL 1 MONTH)))' % int(period_setting.value),
-        'month': 'IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH)))' % int(period_setting.value),
+        'month': 'CONCAT(IF(DAY(time) <= %s, YEAR(time), YEAR(DATE_ADD(time, INTERVAL 1 MONTH))), "-", IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH))), "-", "1")' % (int(period_setting.value), int(period_setting.value)),
     }
-    new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'year', 'month').annotate(Sum('amount'))
+    new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'month').annotate(Sum('amount'))
     account_by_pk = {x.pk: x for x in Account.objects.filter(user=user)}
     account_by_pk[None] = Account(name=' default', pk=0)
     category_by_pk = {x.pk: x for x in Category.objects.filter(user=user)}
@@ -301,46 +300,43 @@ def create_summary(request, start_time, end_time, user):
         r['account'] = account_by_pk[r['account_id']]
         r['category'] = category_by_pk[r['category_id']]
         r['sum'] = r['amount__sum']
+        r['month'] = datetime.strptime(r['month'], '%Y-%m-%d')
         del r['account_id']
         del r['category_id']
         del r['amount__sum']
-    years = nest_dict(new_way, ['year', 'account', 'category', 'month'])
+    accounts = nest_dict(new_way, ['account', 'category', 'month'])
 
     # Set the sum of months key
-    for year, accounts in years.items():
-        for account, categories in accounts.items():
-            for category, months in categories.items():
-                months['sum'] = sum([x['sum'] for x in months.values()])
+    for account, categories in accounts.items():
+        for category, months in categories.items():
+            months['sum'] = sum([x['sum'] for x in months.values()])
 
     max_value = None
-    for year, accounts in years.items():
-        for account, categories in accounts.items():
-            s = max([abs(months['sum']) for _, months in categories.items()])
-            max_value = max(max_value, s)
+    for account, categories in accounts.items():
+        s = max([abs(months['sum']) for _, months in categories.items()])
+        max_value = max(max_value, s)
 
-    for year, accounts in years.items():
-        for account, categories in accounts.items():
-            for category, months in categories.items():
-                months['severity'] = 0
-                if max_value:
-                    months['severity'] = abs(months['sum']) / max_value
-                sums = [v['sum'] for k, v in months.items() if type(k) != unicode]
-                sums += [Decimal(0.0)] * (number_of_months - len(sums))
-                assert len(sums) == number_of_months
-                months['std_deviation'] = std_deviation(sums)
+    for account, categories in accounts.items():
+        for category, months in categories.items():
+            months['severity'] = 0
+            if max_value:
+                months['severity'] = abs(months['sum']) / max_value
+            sums = [v['sum'] for k, v in months.items() if type(k) != unicode]
+            sums += [Decimal(0.0)] * (number_of_months - len(sums))
+            assert len(sums) == number_of_months
+            months['std_deviation'] = std_deviation(sums)
 
     total = Decimal(0)
-    for year, accounts in years.items():
-        for account, categories in accounts.items():
-            account.total = sum([x['sum'] for x in categories.values()])
-            total += account.total
-            if account.total < 0:
-                account.lossgain = 'loss'
-            else:
-                account.lossgain = 'gain'
-            accounts[account] = sorted(categories.items())
+    for account, categories in accounts.items():
+        account.total = sum([x['sum'] for x in categories.values()])
+        total += account.total
+        if account.total < 0:
+            account.lossgain = 'loss'
+        else:
+            account.lossgain = 'gain'
+        accounts[account] = sorted(categories.items())
 
-    return years, transactions, total
+    return accounts, transactions, total
 
 
 @login_required
@@ -386,7 +382,7 @@ def view_summary(request, period='month', year=None, month=None):
     last_period_start_time = get_start_of_period(reference - timedelta(days=15), request.user)
     last_period_end_time = get_end_of_period(last_period_start_time, request.user)
 
-    years, transactions, total = create_summary(request, start_time, end_time, request.user)
+    summary, transactions, total = create_summary(request, start_time, end_time, request.user)
 
     projected_transactions = []
     last_month = False
@@ -416,7 +412,7 @@ def view_summary(request, period='month', year=None, month=None):
     resp = render_to_response('money/view_period.html',
                               RequestContext(request, {
                                   'lossgain': 'loss' if total < 0 else 'gain',
-                                  'years': years,
+                                  'summary': summary,
                                   'total': total,
                                   'year': year,
                                   'month': month,
@@ -886,7 +882,7 @@ def find_outliers(request):
     end_time = transactions.order_by('-time')[0].time
     if end_time > datetime.now():
         end_time = datetime.now()
-    years, _, _ = create_summary(request, start_time, end_time, request.user)
+    accounts, _, _ = create_summary(request, start_time, end_time, request.user)
 
 
 
