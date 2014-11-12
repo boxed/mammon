@@ -3,27 +3,39 @@
 
 {% block content %}
 
-    {% trans "Type the category you want and hit enter to apply it." %}
+    <p>{% trans "Type the category name you want in the input field next to the description and hit enter to apply." %}</p>
 
-    <table>
-        <thead>
-        <tr>
-            <th>{% trans "Description" %}</th>
-            <th>{% trans "Count" %}</th>
-            <th>{% trans "Category" %}</th>
-        </tr>
-        </thead>
+    <a href="/" class="button">I'm done, the rest should be handled on a case by case basis</a>
 
-        <tbody>
-        {% for description, count in foo %}
+    <h3>{% blocktrans %}{{ percent_done }}% of all transactions are categorized{% endblocktrans %}</h3>
+
+    <p></p>
+
+    {% if foo %}
+
+        <table>
+            <thead>
             <tr>
-                <td class="description">{{ description }}</td>
-                <td>{{ count }}</td>
-                <td><input type="text"/></td>
+                <th>{% trans "Description" %}</th>
+                <th>{% trans "Count" %}</th>
+                <th>{% trans "Category" %}</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+
+            <tbody>
+            {% for description, count in foo %}
+                <tr>
+                    <td class="description">{{ description }}</td>
+                    <td>{{ count }}</td>
+                    <td><input type="text"/></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        {% blocktrans %}There are only transactions with unique descriptions left{% endblocktrans %}
+    {% endif %}
 
     <script type="text/javascript">
         $(document).ready(function() {

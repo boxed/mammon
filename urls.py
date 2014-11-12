@@ -10,7 +10,8 @@ urlpatterns = patterns(
     (r'^update_matching/$', 'mammon.money.views.update_matching'),
 
     (r'^getting_started/$', 'mammon.money.views.getting_started'),
-    
+    (r'^find_outliers/$', 'mammon.money.views.find_outliers'),
+
     (r'^transactions/edit/$', 'mammon.money.views.edit_transactions'),
     (r'^transactions/$', 'mammon.money.views.view_transactions'),
     (r'^transactions/export/$', 'mammon.money.views.export_transactions'),

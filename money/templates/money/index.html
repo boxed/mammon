@@ -4,8 +4,22 @@
 {% block body_id %}{% if transactions %}id_classification_page{% endif %}{% endblock %}
 
 {% block content %}
-    {% if transactions %}
-        {% trans "Uncategorized transactions" %}: {{ unmatched_count }}<br />
+    {% if not categories %}
+
+        <p>
+            {% blocktrans %}Now let's take care of the most common transactions. This is a list of the transactions where the description field occurs more than once.{% endblocktrans %}
+        </p>
+
+        <a href="/getting_started/" class="button">Let's do it!</a>
+
+
+    {% elif transactions %}
+        <p>
+            {% blocktrans %}You can now look at your <a href="/history/">overview</a>. To really get results in the <a href="/summary/month/">month</a> and <a href="/summary/year/">year</a> views, it's best to classify everything. Here goes:{% endblocktrans %}
+        </p>
+
+
+        {% trans "Uncategorized transactions" %}: <span id="id_unmatched_count">{{ unmatched_count }}</span><br />
     
         {% include "money/transaction_list.html" with hide_commands="True" hide_classification="True" %}
 
@@ -35,13 +49,17 @@
                 {% trans "Latest transaction" %}: {{ last_transaction.time|relative_date }} 
             </div>
         {% else %}
-            {% blocktrans %}No transactions added. Go to <a href="/add/">Add Transactions</a> to add some data.{% endblocktrans %}
+            {% blocktrans %}Welcome to Mammon! Let's get started. First you'll need to import your transaction history from your bank and set the latest date you receive your salary. In Sweden that's the 25:th. This date is used to cut the months into reasonable parts.{% endblocktrans %}
+
+            {% blocktrans %}Go to <a href="/settings/">Settings</a> to change the financial month start date.{% endblocktrans %}
+            {% blocktrans %}Go to <a href="/add/">Add Transactions</a> to add some data.{% endblocktrans %}
         {% endif %}
     {% endif %}
 
     <script type="text/javascript">
         function only_this() {
             var category = $('#id_category').val();
+            var account = $('#id_account').val();
             if (!category) {
                 window.setTimeout(function (){
                     $('#id_category').focus();
@@ -50,20 +68,26 @@
             }
 
             var id = $('.row_marker').attr('transaction_id');
-            // TODO: add $('#id_category').val() to autocomplete list
-            // TODO: add $('#id_account').val() to autocomplete list
+            if (_.indexOf(category_terms, category) == -1) {
+                category_terms.push(category);
+            }
+            if (_.indexOf(account_terms, account) == -1) {
+                account_terms.push(account);
+            }
+            init_autocomplete();
             $.ajax({
                 url: '/transactions/'+id+'/edit/properties/',
                 type: 'POST',
                 data: {
                     category: category,
-                    account: $('#id_account').val()
+                    account: account
                 },
                 success: function() {
-                    transaction_marker_up();
+                    transaction_marker_down();
                     $('[transaction_id='+id+']').remove();
                     $('#id_category').val('');
                     $('#id_account').val('');
+                    $('#id_unmatched_count').html(parseInt($('#id_unmatched_count').html()) - 1);
                     window.setTimeout(function() {
                         // Hack to get around that somehow inlinecomplete seems to be screwing with focus
                         $('#id_category').focus();
@@ -127,10 +151,15 @@
             });
         }
         {% if transactions %}
+        var category_terms = [{% for category in categories %}"{{ category|escapejs }}",{% endfor %}];
+        var account_terms = [{% for account in accounts %}"{{ account|escapejs }}",{% endfor %}];
+        function init_autocomplete() {
+            $("#id_category").inlineComplete({terms: category_terms});
+            $("#id_account").inlineComplete({terms: account_terms});
+        }
         $(document).ready(function() {
             $('#id_category').focus();
-            $("#id_category").inlineComplete({terms: [{% for category in categories %}"{{ category|escapejs }}",{% endfor %}]});
-            $("#id_account").inlineComplete({terms: [{% for account in accounts %}"{{ account|escapejs }}",{% endfor %}]});
+            init_autocomplete();
 
             function update_row_markers() {
                 var pos = $('.row_marker').offset();
@@ -144,7 +173,7 @@
                 });
             }
 
-            $($('#transaction_list').find('tr')[$('#transaction_list').find('tr').length-1]).addClass('row_marker');
+            $($('#transaction_list').find('tbody').find('tr')[0]).addClass('row_marker');
             $('.row_marker').intoViewport();
             update_row_markers();
             $('#id_row_marker_left').show();

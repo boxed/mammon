@@ -4,150 +4,166 @@
 {% block extra_head %}
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.pack.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.time.min.js"></script>
-<style type="text/css">
-.tickLabel
-{
-    white-space:nowrap;
-}
-</style>
+    <style type="text/css">
+    .tickLabel
+    {
+        white-space:nowrap;
+    }
+    </style>
 {% endblock %}
 
 {% block js_post_load %}{% endblock %}
 
 {% block content %}
+    {% if gini > 0.3 %}
+        <p>
+            {% blocktrans %}I see that it's still hard to make sense out of all this. I'd like to suggest separating out big one-time expenditures into an account (that's just a Mammon term for a type of grouping) called "Exceptions". This way you can start to see what the normal situation is and find out your economic base line.{% endblocktrans %}
+        </p>
+        <p>
+            {% blocktrans %}I like to think about the economic baseline as "if I buy this expensive thing, how many months of not having any one-off expenditures does that equal?". This makes it really easy to do the "money = time" equation in your head.{% endblocktrans %}
 
-{% trans "Sum" %}: {{ total_sum }}
+        </p>
+        <a href="/find_outliers/" class="button">{% blocktrans %}Sounds good, let's get started{% endblocktrans %}</a>
 
-<div id="legend"></div>
+        <p>
+        </p>
 
-<div align="center">
-    <div id="placeholder" style="width:600px; height:500px"></div>
-</div>
 
-<form action="">
-    <label for="months">{% trans "Number of months to show" %}:</label>
-    <input id="months" name="months" value="{{ months }}" />
-    <input type="submit" value="{% trans "Change" %}" class="button"/>
-</form>
+    {% endif %}
 
-<p></p>
 
-<script id="source" language="javascript" type="text/javascript">
+    {% trans "Sum" %}: {{ total_sum }}
 
-var somePlot;
-var dataset;
+    <div id="legend"></div>
 
-function togglePlot(seriesName)
-{
-    var someData = somePlot.getData();
-    for (var i = 0; i != someData.length; i++) {
-        if (someData[i].label == seriesName) {
-            someData[i].bars.show = !someData[i].bars.show;
-            if (!someData[i].bars.show) {
-                someData[i].tmp = someData[i].data;
-                someData[i].data = [];
+    <div align="center">
+        <div id="placeholder" style="width:600px; height:500px"></div>
+    </div>
+
+    <form action="">
+        <label for="months">{% trans "Number of months to show" %}:</label>
+        <input id="months" name="months" value="{{ months }}" />
+        <input type="submit" value="{% trans "Change" %}" class="button"/>
+    </form>
+
+    <p></p>
+
+    <script id="source" language="javascript" type="text/javascript">
+
+    var somePlot;
+    var dataset;
+
+    function togglePlot(seriesName)
+    {
+        var someData = somePlot.getData();
+        for (var i = 0; i != someData.length; i++) {
+            if (someData[i].label == seriesName) {
+                someData[i].bars.show = !someData[i].bars.show;
+                if (!someData[i].bars.show) {
+                    someData[i].tmp = someData[i].data;
+                    someData[i].data = [];
+                }
+                else {
+                    someData[i].data = someData[i].tmp;
+                }
+            }
+        }
+        somePlot.setData(someData);
+        somePlot.setupGrid();
+        somePlot.draw();
+    }
+
+    function create_timestamp(year, month, day)
+    {
+        var f = new Date();
+        f.setFullYear(year, month, day);
+        return f.getTime();
+    }
+    jQuery(function () {
+        dataset = [
+            {% for key, value in result %}
+                {
+                    label: '{% ifequal key None %}{% trans "Default" %}{% else %}{{ key }}{% endifequal %}',
+                    data:
+                    [
+                        {% for point in value %}
+                            [
+                                create_timestamp({{ point.date.year }}, {{ point.date.month }}, {{ point.date.day }}),
+                                {{ point.amount }},
+                                '/accounts/{% if key %}{{ key.id }}{% else %}default{% endif %}/?year={{ point.date.year }}&month={{ point.date.month }}'
+                            ],
+                        {% endfor %}
+                    ]
+                },
+            {% endfor %}
+        ];
+
+        somePlot = $.plot($("#placeholder"), dataset, {
+            grid: { hoverable: true, clickable: true, backgroundColor: "white", borderWidth: 0, markings: [{color: 'white'}]},
+            bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
+            xaxis: {
+                mode: "time",
+                tickColor: 'white'
+            },
+            yaxis: {
+                tickColor: 'white'
+            },
+            selection: { mode: "xy" },
+            legend: {
+                container: $('#legend'),
+                labelFormatter: function(label, series) {
+                    return '<a href="#" onClick="togglePlot(\''+label+'\'); return false;">'+label+'</a>';
+                }
+            }
+        });
+
+        function showTooltip(x, y, contents) {
+            $('<div id="tooltip">' + contents + '</div>').css( {
+                position: 'absolute',
+                display: 'none',
+                top: y + 5,
+                left: x + 5,
+                border: '1px solid #fdd',
+                padding: '2px',
+                'background-color': '#fee',
+                opacity: 0.80
+            }).appendTo("body").fadeIn(200);
+        }
+
+        var previousPoint = null;
+        $("#placeholder").bind("plothover", function (event, pos, item) {
+            var d = new Date();
+            d.setTime(parseInt(pos.x.toFixed()));
+            $("#x").text((d.getYear()+1900)+'-'+(d.getMonth()+1));
+            $("#y").text(pos.y.toFixed(2));
+
+            if (item) {
+                if (previousPoint != item.datapoint) {
+                    previousPoint = item.datapoint;
+
+                    $("#tooltip").remove();
+                    var x = item.datapoint[0].toFixed(2),
+                        y = item.datapoint[1].toFixed(2);
+                    d.setTime(x);
+
+                    showTooltip(item.pageX, item.pageY, y + ' (' + item.series.label + " " + (d.getYear()+1900)+'-'+(d.getMonth()+1)+')');
+                }
             }
             else {
-                someData[i].data = someData[i].tmp;
-            }
-        }
-    }
-    somePlot.setData(someData);
-    somePlot.setupGrid();
-    somePlot.draw();
-}
-
-function create_timestamp(year, month, day)
-{
-    var f = new Date();
-    f.setFullYear(year, month, day);
-    return f.getTime();
-}
-jQuery(function () {
-    dataset = [
-        {% for key, value in result %}
-            {
-                label: '{% ifequal key None %}{% trans "Default" %}{% else %}{{ key }}{% endifequal %}',
-                data:
-                [
-                    {% for point in value %}
-                        [
-                            create_timestamp({{ point.date.year }}, {{ point.date.month }}, {{ point.date.day }}),
-                            {{ point.amount }},
-                            '/accounts/{% if key %}{{ key.id }}{% else %}default{% endif %}/?year={{ point.date.year }}&month={{ point.date.month }}'
-                        ],
-                    {% endfor %}
-                ]
-            },
-        {% endfor %}
-    ];
-
-    somePlot = $.plot($("#placeholder"), dataset, {
-        grid: { hoverable: true, clickable: true, backgroundColor: "white", borderWidth: 0, markings: [{color: 'white'}]},
-        bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
-        xaxis: {
-            mode: "time",
-            tickColor: 'white'
-        },
-        yaxis: {
-            tickColor: 'white'
-        },
-        selection: { mode: "xy" },
-        legend: {
-            container: $('#legend'),
-            labelFormatter: function(label, series) {
-                return '<a href="#" onClick="togglePlot(\''+label+'\'); return false;">'+label+'</a>';
-            }
-        }
-    });
-
-    function showTooltip(x, y, contents) {
-        $('<div id="tooltip">' + contents + '</div>').css( {
-            position: 'absolute',
-            display: 'none',
-            top: y + 5,
-            left: x + 5,
-            border: '1px solid #fdd',
-            padding: '2px',
-            'background-color': '#fee',
-            opacity: 0.80
-        }).appendTo("body").fadeIn(200);
-    }
-
-    var previousPoint = null;
-    $("#placeholder").bind("plothover", function (event, pos, item) {
-        var d = new Date();
-        d.setTime(parseInt(pos.x.toFixed()));
-        $("#x").text((d.getYear()+1900)+'-'+(d.getMonth()+1));
-        $("#y").text(pos.y.toFixed(2));
-
-        if (item) {
-            if (previousPoint != item.datapoint) {
-                previousPoint = item.datapoint;
-
                 $("#tooltip").remove();
-                var x = item.datapoint[0].toFixed(2),
-                    y = item.datapoint[1].toFixed(2);
-                d.setTime(x);
-
-                showTooltip(item.pageX, item.pageY, y + ' (' + item.series.label + " " + (d.getYear()+1900)+'-'+(d.getMonth()+1)+')');
+                previousPoint = null;
             }
-        }
-        else {
-            $("#tooltip").remove();
-            previousPoint = null;
-        }
-    });
+        });
 
-    $("#placeholder").bind("plotclick", function (event, pos, item) {
-        if (item) {
-            $("#clickdata").text("You clicked point " + item.datapoint[2] + " in " + item.series.label + ".");
-            plot.highlight(item.series, item.datapoint);
-        }
+        $("#placeholder").bind("plotclick", function (event, pos, item) {
+            if (item) {
+                $("#clickdata").text("You clicked point " + item.datapoint[2] + " in " + item.series.label + ".");
+                plot.highlight(item.series, item.datapoint);
+            }
+        });
     });
-});
-</script>
+    </script>
 
-<div id="clickdata"></div>
+    <div id="clickdata"></div>
 
 {% endblock %}

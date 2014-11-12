@@ -57,7 +57,7 @@
 					<td>
 						<div class="inline_editable" edit_url="/accounts/{{ account.id }}/edit/name/">{{ account }}</div>
 					</td>
-					<td><span id="{{ account.id }}" class="inline-button"><i class="fa fa-minus-circle"> {% trans "Delete" %}</span></td>
+					<td><span id="{{ account.id }}" class="inline-button" title="{% trans "Delete" %}"><i class="fa fa-trash"> </span></td>
 				</tr>
 			{% endfor %}
 			<tr>

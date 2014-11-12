@@ -1,10 +1,11 @@
 # coding=utf-8
 from __future__ import unicode_literals
+from __future__ import division
+import HTMLParser
 from collections import Counter
 from copy import copy
 from decimal import Decimal
 from math import sqrt
-from datetime import time
 from dateutil.relativedelta import relativedelta
 from django.utils.http import http_date
 from django.utils.translation import ugettext_lazy
@@ -71,18 +72,15 @@ def index(request):
         last_transaction = Transaction.objects.filter(user=request.user).order_by('-time')[0]
     except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
-    return render_to_response('money/index.html',
-                              RequestContext(request, {
-                                  'matched_count': Transaction.objects.filter(user=request.user,
-                                                                              category__isnull=False).count(),
-                                  'unmatched_count': Transaction.objects.filter(user=request.user,
-                                                                                category__isnull=True).count(),
-                                  'transactions': transaction_filter(request,
-                                                                     Transaction.objects.filter(user=request.user,
-                                                                                                category__isnull=True)),
-                                  'last_transaction': last_transaction,
-                                  'categories': Category.objects.filter(user=request.user),
-                              }))
+    return render_to_response(
+        'money/index.html',
+        RequestContext(request, {
+            'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
+            'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
+            'transactions': transaction_filter(request, Transaction.objects.filter(user=request.user,category__isnull=True)).order_by('-time'),
+            'last_transaction': last_transaction,
+            'categories': Category.objects.filter(user=request.user),
+        }))
 
 
 @login_required
@@ -511,10 +509,20 @@ def view_history(request):
     for key in result:
         sums[key] = sum([x.amount for x in result[key]])
 
+    def gini(list_of_values):
+        sorted_list = sorted(list_of_values)
+        height, area = 0, 0
+        for value in sorted_list:
+            height += value
+            area += height - value / 2.
+        fair_area = height * len(list_of_values) / 2
+        return (fair_area - area) / fair_area
+
     c = {'result': sorted(result.items()),
          'statement': statement,
          'months': months.value,
          'sums': sums,
+         'gini': gini([float(x.amount) for x in result[None]]),
          'total_sum': sum(sums.values())}
 
     return render_to_response('money/history.html', RequestContext(request, c))
@@ -851,7 +859,7 @@ def all_like_this(request, transaction_id):
 def getting_started(request):
     if request.method == 'POST':
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
-        description = request.POST['description']
+        description = HTMLParser.HTMLParser().unescape(request.POST['description'])
         category.add_rule(description)
         transactions_for_user(request.user).filter(description=description).update(category=category)
         category.save()
@@ -863,6 +871,31 @@ def getting_started(request):
     c = {
         'foo': foo,
         'categories': Category.objects.filter(user=request.user),
+        'percent_done': '%.1f' % (transactions_for_user(request.user).filter(category__isnull=False).count() / transactions_for_user(request.user).count() * 100.0)
     }
 
     return render_to_response('money/getting_started.html', RequestContext(request, c))
+
+
+@login_required
+def find_outliers(request):
+
+    # 1. Grab the summary view of the entire period of the user
+    transactions = transactions_for_user(request.user)
+    start_time = transactions.order_by('time')[0].time
+    end_time = transactions.order_by('-time')[0].time
+    if end_time > datetime.now():
+        end_time = datetime.now()
+    years, _, _ = create_summary(request, start_time, end_time, request.user)
+
+
+
+    # 2. From that, get the category with the highest stddev
+    # 3. Graph the size of the months for that category. At this point outliers should stand out visually.
+    # 4. Allow to expand the month group and act on the transactions.
+
+    c = {
+
+    }
+
+    return render_to_response('money/find_outliers.html', RequestContext(request, c))
