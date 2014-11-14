@@ -24,6 +24,13 @@ from mammon.money import *
 from mammon.money.models import *
 
 
+def next_month(d):
+    if d.month == 12:
+        return datetime(d.year + 1, 1, d.day)
+    else:
+        return datetime(d.year, d.month + 1, d.day)
+
+
 def std_deviation(l):
     sum1 = Decimal(0.0)
     sum2 = Decimal(0.0)
@@ -44,6 +51,14 @@ def get_page_size(request):
     if 'page_size' in request.REQUEST:
         return int(request.REQUEST['page_size'])
     return 20
+
+
+class DataPoint:
+    def __init__(self, date, amount):
+        self.date, self.amount = datetime_from_string(date) if type(date) in (str, unicode) else date, amount
+
+    def __repr__(self):
+        return '(%s, %s)' % (self.date, self.amount)
 
 
 def transaction_filter(request, transactions):
@@ -77,7 +92,7 @@ def index(request):
         RequestContext(request, {
             'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
             'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
-            'transactions': transaction_filter(request, Transaction.objects.filter(user=request.user,category__isnull=True)).order_by('-time'),
+            'transactions': transaction_filter(request, Transaction.objects.filter(user=request.user, category__isnull=True)).order_by('-time'),
             'last_transaction': last_transaction,
             'categories': Category.objects.filter(user=request.user),
         }))
@@ -168,8 +183,6 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
         'page': page,
         'base_url': '%s/%d/' % (url_base, group.id),
         'form': form,
-        'transactions': paginator.page(page).object_list,
-        'unmatched_transactions': Transaction.objects.filter(user=request.user, category__isnull=True),
         'categories': Category.objects.filter(user=request.user),
         'group': group,
         'group_name': group_name,
@@ -339,6 +352,23 @@ def create_summary(request, start_time, end_time, user):
     return accounts, transactions, total
 
 
+def adjust_start_end_times(request, start_time, end_time):
+    if transactions_for_user(request.user):
+        first_time = transactions_for_user(request.user).exclude(virtual=False).order_by('time')[0].time
+        last_time = transactions_for_user(request.user).exclude(virtual=False).order_by('-time')[0].time
+
+        # Adjust so that start_time starts on a month we have complete data for
+        if first_time > start_time:
+            start_time = get_start_of_period(first_time, request.user)
+        while first_time > start_time:
+            start_time = next_month(start_time)
+
+        # Adjust so that end_time ends on a month we have complete data for
+        if end_time > last_time:
+            end_time = get_end_of_period(last_time - timedelta(days=62), request.user)
+    return start_time, end_time
+
+
 @login_required
 def view_summary(request, period='month', year=None, month=None):
     reference = datetime.now()
@@ -357,25 +387,7 @@ def view_summary(request, period='month', year=None, month=None):
             start_time = get_start_of_period(datetime(int(year), 1, 1), request.user)
             end_time = datetime(start_time.year + 1, start_time.month, start_time.day)
 
-            if transactions_for_user(request.user):
-                first_time = transactions_for_user(request.user).order_by('time')[0].time
-                last_time = transactions_for_user(request.user).order_by('-time')[0].time
-
-                def next_month(d):
-                    if d.month == 12:
-                        return datetime(d.year + 1, 1, d.day)
-                    else:
-                        return datetime(d.year, d.month + 1, d.day)
-
-                # Adjust so that start_time starts on a month we have complete data for
-                if first_time > start_time:
-                    start_time = get_start_of_period(first_time, request.user)
-                while first_time > start_time:
-                    start_time = next_month(start_time)
-
-                # Adjust so that end_time ends on a month we have complete data for
-                if end_time > last_time:
-                    end_time = get_end_of_period(last_time - timedelta(days=62), request.user)
+            start_time, end_time = adjust_start_end_times(request, start_time, end_time)
     else:
         raise Exception('Invalid period')
 
@@ -482,13 +494,6 @@ def view_history(request):
               and time < %s
         group by account_id, bracket""" % (when_statements, request.user.id, end_period)
     cursor.execute(statement)
-
-    class DataPoint:
-        def __init__(self, date, amount):
-            self.date, self.amount = datetime_from_string(date), amount
-
-        def __repr__(self):
-            return '(%s, %s)' % (self.date, self.amount)
 
     result = {}
     for row in cursor.fetchall():
@@ -875,6 +880,7 @@ def getting_started(request):
 
 @login_required
 def find_outliers(request):
+    skip_count = int(request.GET.get('skip', 0))
 
     # 1. Grab the summary view of the entire period of the user
     transactions = transactions_for_user(request.user)
@@ -882,16 +888,28 @@ def find_outliers(request):
     end_time = transactions.order_by('-time')[0].time
     if end_time > datetime.now():
         end_time = datetime.now()
+    start_time, end_time = adjust_start_end_times(request, start_time, end_time)
     accounts, _, _ = create_summary(request, start_time, end_time, request.user)
 
-
-
     # 2. From that, get the category with the highest stddev
+    categories = dict(accounts[Account(name=' default', pk=0)])
+    highest_deviation_category, highest_deviation_data = sorted(categories.items(), key=lambda x: x[1]['std_deviation'], reverse=True)[skip_count]
+
     # 3. Graph the size of the months for that category. At this point outliers should stand out visually.
+    sum_by_month = {k: v['sum'] for k, v in highest_deviation_data.items() if type(k) is not unicode}
+
     # 4. Allow to expand the month group and act on the transactions.
+    filter_category = highest_deviation_category if highest_deviation_category.pk else None
 
     c = {
-
+        'category': highest_deviation_category,
+        'categories': Category.objects.filter(user=request.user),
+        'transactions_by_month': sorted([
+            (month, sorted(transactions_for_user(request.user).filter(account=None, category=filter_category, time__gt=get_start_of_period(month, request.user), time__lte=get_start_of_period(month + timedelta(days=31), request.user)), reverse=True, key=lambda x: abs(x.amount)))
+            for month in highest_deviation_data.keys() if type(month) == datetime
+        ]),
+        'graph': [DataPoint(k, v) for k, v in sum_by_month.items()],
+        'skip_count': skip_count + 1,
     }
 
     return render_to_response('money/find_outliers.html', RequestContext(request, c))

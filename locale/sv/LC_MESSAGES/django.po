@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 18:31+0200\n"
+"POT-Creation-Date: 2014-11-14 08:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: money/models.py:18 money/models.py:77 money/models.py:107
+#: money/models.py:18 money/models.py:79 money/models.py:109
 msgid "User"
 msgstr "Användare"
 
-#: money/models.py:19 money/models.py:79
+#: money/models.py:19 money/models.py:81
 msgid "Name"
 msgstr "Namn"
 
@@ -28,18 +28,18 @@ msgstr "Namn"
 msgid "Hide"
 msgstr "Dölj"
 
-#: money/models.py:78 money/templates/money/all_like_this.html:6
-#: money/templates/money/index.html:20
-#: money/templates/money/transaction_list.html:13 money/views.py:197
-#: money/views.py:202
+#: money/models.py:80 money/templates/money/all_like_this.html:6
+#: money/templates/money/index.html:34
+#: money/templates/money/transaction_list.html:13 money/views.py:211
+#: money/views.py:216
 msgid "Account"
 msgstr "Konto"
 
-#: money/models.py:80
+#: money/models.py:82
 msgid "Matching rules"
 msgstr "Matchningsregler"
 
-#: money/models.py:81 money/templates/money/view_period.html:26
+#: money/models.py:83 money/templates/money/view_period.html:35
 msgid "Period"
 msgstr "Period"
 
@@ -58,53 +58,54 @@ msgstr "Det finns ingen sida på denna adress."
 
 #: money/templates/500.html:8
 msgid "An error has occurred and has been sent to the administrators."
-msgstr "Ett fel har inträffat. Ett meddelande har skickats till administratörerna."
+msgstr ""
+"Ett fel har inträffat. Ett meddelande har skickats till administratörerna."
 
-#: money/templates/base.html:25
+#: money/templates/base.html:26
 msgid "Admin"
 msgstr "Admin"
 
-#: money/templates/base.html:26
+#: money/templates/base.html:27
 msgid "Update matching"
 msgstr "Uppdatera matchningar"
 
-#: money/templates/base.html:32
+#: money/templates/base.html:33
 msgid "Add transactions"
 msgstr "Lägg till transaktioner"
 
-#: money/templates/base.html:38
+#: money/templates/base.html:39
 msgid "Home"
 msgstr "Start"
 
-#: money/templates/base.html:39
+#: money/templates/base.html:40
 msgid "Year view"
 msgstr "Årsvy"
 
-#: money/templates/base.html:40
+#: money/templates/base.html:41
 msgid "Month view"
 msgstr "Månadsvy"
 
-#: money/templates/base.html:41
+#: money/templates/base.html:42
 msgid "Overview"
 msgstr "Översikt"
 
-#: money/templates/base.html:42 money/templates/money/view_category.html:45
+#: money/templates/base.html:43
 msgid "Transactions"
 msgstr "Transaktioner"
 
-#: money/templates/base.html:43
+#: money/templates/base.html:44
 msgid "Categories"
 msgstr "Kategorier"
 
-#: money/templates/base.html:44 money/templates/money/settings.html:51
+#: money/templates/base.html:45 money/templates/money/settings.html:51
 msgid "Accounts"
 msgstr "Konton"
 
-#: money/templates/base.html:45
+#: money/templates/base.html:46
 msgid "Settings"
 msgstr "Inställningar"
 
-#: money/templates/base.html:46
+#: money/templates/base.html:47
 msgid "Log out"
 msgstr "Logga ut"
 
@@ -149,10 +150,11 @@ msgid "Import transactions"
 msgstr "Importera transactioner"
 
 #: money/templates/money/all_like_this.html:4
-#: money/templates/money/index.html:18
+#: money/templates/money/getting_started.html:21
+#: money/templates/money/index.html:32
 #: money/templates/money/transaction_list.html:11
-#: money/templates/money/view_period.html:42 money/views.py:196
-#: money/views.py:201
+#: money/templates/money/view_period.html:51 money/views.py:210
+#: money/views.py:215
 msgid "Category"
 msgstr "Kategori"
 
@@ -204,72 +206,171 @@ msgstr "Transaktionsbeskrivning"
 msgid "Delete range"
 msgstr "Radera spann"
 
-#: money/templates/money/history.html:19
+#: money/templates/money/find_outliers.html:21
+#, python-format
+msgid ""
+"This is category <a href=\"/transactions/?category=%(category.pk)s\">"
+"%(category)s</a>. It has the highest variation month over month. Click on "
+"the bars that you think look worst to see a list of transactions for that "
+"month. Then select which transactions should go into Exceptions (and split "
+"transactions that have abnormal size, placing one part in Exceptions)."
+msgstr ""
+"Det här är kategori <a href=\"/transactions/?category=%(category.pk)s\"> "
+"%(category)s</a>. Den har störst variation månad till månad. Klicka på "
+"staplarna som du tycker ser värst ut för att se transaktionerna för denna "
+"månad. Väljs sen vilka transaktioner ska flyttas till Undantag (och dela upp "
+"transaktioner med ovanlig storlek och placera en del i Undantag)."
+
+#: money/templates/money/find_outliers.html:23
+msgid "I'm done with this category, show me the next worst"
+msgstr "Jag är klar med den här kategorin, visa mig nästa."
+
+#: money/templates/money/getting_started.html:6
+msgid ""
+"Type the category name you want in the input field next to the description "
+"and hit enter to apply."
+msgstr "Skriv in det kategori-namn du vill ha i fältet bredvid beskrivningen och tryck enter för att applicera."
+
+#: money/templates/money/getting_started.html:10
+#, python-format
+msgid "%(percent_done)s%% of all transactions are categorized"
+msgstr "%(percent_done)s%% av alla transaktioner är kategoriserade"
+
+#: money/templates/money/getting_started.html:19
+#: money/templates/money/transaction_list.html:8 money/views.py:205
+msgid "Description"
+msgstr "Beskrivning"
+
+#: money/templates/money/getting_started.html:20
+msgid "Count"
+msgstr "Antal"
+
+#: money/templates/money/getting_started.html:37
+msgid "There are only transactions with unique descriptions left"
+msgstr "Det finns bara transaktioner med unika beskrivningar kvar"
+
+#: money/templates/money/history.html:20
+msgid ""
+"I see that it's still hard to make sense out of all this. I'd like to "
+"suggest separating out big one-time expenditures into an account (that's "
+"just a Mammon term for a type of grouping) called \"Exceptions\". This way "
+"you can start to see what the normal situation is and find out your economic "
+"base line."
+msgstr "Jag ser att det fortfarande är svårt att förstå något av detta. Som nästa steg vill jag föreslå "
+"att separera ut stora engångsutgifter till ett separat konto (det är bara det ord mammon använder för en sorts gruppering) "
+"som heter \"Undantag\". På detta sätt kan du börja se din normala situation och hitta ditt ekonomiska grundtillstånd."
+
+#: money/templates/money/history.html:23
+msgid ""
+"I like to think about the economic baseline as \"if I buy this expensive "
+"thing, how many months of not having any one-off expenditures does that "
+"equal?\". This makes it really easy to do the \"money = time\" equation in "
+"your head."
+msgstr "Jag tänker på det ekonomiska grundtillståndet som \"om jag köper den här "
+"dyra grejen, hur många månader när jag inte har någon stor engångsutgift motsvarar det?\". "
+"Detta gör det väldigt enkelt att göra ekvationen \"pengar = tid\" i huvudet."
+
+#: money/templates/money/history.html:26
+msgid "Sounds good, let's get started"
+msgstr "Låter bra, fortsätt"
+
+#: money/templates/money/history.html:35
 #: money/templates/money/transaction_list.html:54
-#: money/templates/money/view_period.html:43
+#: money/templates/money/view_period.html:52
 msgid "Sum"
 msgstr "Summa"
 
-#: money/templates/money/history.html:28
+#: money/templates/money/history.html:44
 msgid "Number of months to show"
 msgstr "Antalet månader att visa"
 
-#: money/templates/money/history.html:30
+#: money/templates/money/history.html:46
 msgid "Change"
 msgstr "Ändra"
 
-#: money/templates/money/history.html:70
+#: money/templates/money/history.html:86
 msgid "Default"
 msgstr "Standard"
 
-#: money/templates/money/index.html:8
-#: money/templates/money/view_category.html:19
+#: money/templates/money/index.html:10
+msgid ""
+"Now let's take care of the most common transactions. This is a list of the "
+"transactions where the description field occurs more than once."
+msgstr "Först tar vi itu med dom vanligaste transaktionerna. Det här är en lista av de "
+"transaktioner där beskrivningsfältet finns mer än en gång."
+
+#: money/templates/money/index.html:18
+msgid ""
+"You can now look at your <a href=\"/history/\">overview</a>. To really get "
+"results in the <a href=\"/summary/month/\">month</a> and <a href=\"/summary/"
+"year/\">year</a> views, it's best to classify everything. Here goes:"
+msgstr ""
+"Du kan nu titta på din <a href=\"/history/\">översikt</a>. För att verkligen få "
+"resultat i <a href=\"/summary/month/\">månad</a>- och <a href=\"/summary/"
+"year/\">år</a>-vyerna så är det bäst att klassificera allt. Här är resten:"
+
+#: money/templates/money/index.html:22
 msgid "Uncategorized transactions"
 msgstr "Okategoriserade transaktioner"
 
-#: money/templates/money/index.html:15
+#: money/templates/money/index.html:29
 msgid "Next"
 msgstr "Nästa"
 
-#: money/templates/money/index.html:16
+#: money/templates/money/index.html:30
 msgid "Previous"
 msgstr "Föregående"
 
-#: money/templates/money/index.html:24
+#: money/templates/money/index.html:38
 msgid "Only this"
 msgstr "Bara denna"
 
-#: money/templates/money/index.html:25
+#: money/templates/money/index.html:39
 msgid "All like this"
 msgstr "Alla liknande"
 
-#: money/templates/money/index.html:26 money/templates/money/settings.html:18
+#: money/templates/money/index.html:40 money/templates/money/settings.html:18
 #: money/templates/money/settings.html:60
 #: money/templates/money/transaction_list.html:45
 #: money/templates/money/view_category.html:11
 msgid "Delete"
 msgstr "Radera"
 
-#: money/templates/money/index.html:27
+#: money/templates/money/index.html:41
 #: money/templates/money/transaction_list.html:44
 msgid "Split"
 msgstr "Dela upp"
 
-#: money/templates/money/index.html:32
+#: money/templates/money/index.html:46
 msgid "All transactions have been classified"
 msgstr "Alla transaktioner är kategoriserade"
 
-#: money/templates/money/index.html:35
+#: money/templates/money/index.html:49
 msgid "Latest transaction"
 msgstr "Senaste transaktionen"
 
-#: money/templates/money/index.html:38
+#: money/templates/money/index.html:52
 msgid ""
-"No transactions added. Go to <a href=\"/add/\">Add Transactions</a> to add "
-"some data."
+"Welcome to Mammon! Let's get started. First you'll need to import your "
+"transaction history from your bank and set the latest date you receive your "
+"salary. In Sweden that's the 25:th. This date is used to cut the months into "
+"reasonable parts."
 msgstr ""
-"Inga tillagda transaktioner. Gå till <a href=\"/add/\">Lägg till "
-"transaktioner</a>."
+"Välkommen till Mammon! För att börja måste du först importera transaktionshistoriken från "
+"din bank och ställa in det senaste datumet du brukar få din lön. I Sverige brukar detta vara den 25:e "
+"så det är det förinställda valet. Detta datum används för att skära upp månaderna korrekt."
+
+#: money/templates/money/index.html:54
+msgid ""
+"Go to <a href=\"/settings/\">Settings</a> to change the financial month "
+"start date."
+msgstr ""
+"Gå till <a href=\"/settings/\">Inställningar</a> för att ändra start datumet för den finansiella månaden."
+
+#: money/templates/money/index.html:55
+msgid "Go to <a href=\"/add/\">Add Transactions</a> to add some data."
+msgstr ""
+"Gå till <a href=\"/add/\">Lägg till transaktioner</a> för att importera data."
 
 #: money/templates/money/invalid_transaction_log_format.html:5
 msgid "Invalid transaction log format"
@@ -289,7 +390,8 @@ msgid "Change password"
 msgstr "Byt lösenord"
 
 #: money/templates/money/settings.html:41
-#: money/templates/money/view_category.html:34
+#: money/templates/money/view_category.html:24
+#: registration/templates/registration/set_new_password.html:12
 msgid "Save"
 msgstr "Spara"
 
@@ -318,17 +420,13 @@ msgstr "Distribuera delarna över följande månader"
 msgid "Date"
 msgstr "Datum"
 
-#: money/templates/money/transaction_list.html:8 money/views.py:191
-msgid "Description"
-msgstr "Beskrivning"
-
 #: money/templates/money/transaction_list.html:9
 msgid "Amount"
 msgstr "Belopp"
 
 #: money/templates/money/transaction_list.html:58
 msgid "No transactions"
-msgstr "Inga transactioner"
+msgstr "Inga transaktioner"
 
 #: money/templates/money/view_accounts.html:12
 msgid ""
@@ -347,45 +445,40 @@ msgstr ""
 "transaktioner</a> och gå sen till <a href=\"/\">Start-sidan</a> för att "
 "skapa kategorier."
 
-#: money/templates/money/view_category.html:20
-msgid "Show..."
-msgstr "Visa..."
-
-#: money/templates/money/view_period.html:20
+#: money/templates/money/view_period.html:29
 msgid "Previous period"
 msgstr "Föregående period"
 
-#: money/templates/money/view_period.html:21
+#: money/templates/money/view_period.html:30
 msgid "Next period"
 msgstr "Nästa period"
 
-#: money/templates/money/view_period.html:31
+#: money/templates/money/view_period.html:40
 msgid "Go to"
 msgstr "Gå till"
 
-#: money/templates/money/view_period.html:46
+#: money/templates/money/view_period.html:55
 msgid "Monthly average"
 msgstr "Medel för månaden"
 
-#: money/templates/money/view_period.html:47
+#: money/templates/money/view_period.html:56
 msgid "Standard deviation"
 msgstr "Standardavvikelse"
 
-#: money/templates/money/view_period.html:82
-#: money/templates/money/view_period.html:97
+#: money/templates/money/view_period.html:91
+#: money/templates/money/view_period.html:106
 msgid "Total"
 msgstr "Summa"
 
-#: money/templates/money/view_period.html:110
+#: money/templates/money/view_period.html:119
 msgid "Projected"
 msgstr "Förväntat"
 
-#: money/templates/money/view_period.html:110
-#: money/templates/money/view_period.html:120
+#: money/templates/money/view_period.html:119
 msgid "Details"
 msgstr "Detaljerat"
 
-#: money/templates/money/view_period.html:130
+#: money/templates/money/view_period.html:129
 msgid "No transactions for this period"
 msgstr "Inga transaktioner i denna period"
 
@@ -411,69 +504,187 @@ msgstr "Användaravta"
 msgid "__ user agreement __"
 msgstr ""
 
-#: money/views.py:121
+#: money/views.py:137
 msgid "Update existing transactions"
 msgstr "Uppdatera existerande transaktioner"
 
-#: money/views.py:176
+#: money/views.py:190
 #, python-format
 msgid "Delete this %s"
 msgstr "Radera detta %s"
 
-#: money/views.py:177
+#: money/views.py:191
 #, python-format
 msgid "Are you sure you want to delete this %s?"
 msgstr "Är du säker på att du vill radera detta %s?"
 
-#: money/views.py:192
+#: money/views.py:206
 msgid "Start time"
 msgstr "Starttid"
 
-#: money/views.py:193
+#: money/views.py:207
 msgid "End time"
 msgstr "Sluttid"
 
-#: money/views.py:194
-#| msgid "Create account"
+#: money/views.py:208
 msgid "Greater than"
 msgstr "Större än"
 
-#: money/views.py:195
+#: money/views.py:209
 msgid "Less than"
 msgstr "Mindre än"
 
-#: money/views.py:200
+#: money/views.py:214
 msgid "Append description"
 msgstr "Lägg till beskrivning"
 
-#: money/views.py:672
+#: money/views.py:714
 msgid "From date"
 msgstr "Från datum"
 
-#: money/views.py:673
+#: money/views.py:715
 msgid "To date"
 msgstr "Till datum"
 
-#: money/views.py:680
+#: money/views.py:722
 msgid "Transactions deleted!"
 msgstr "Transaktioner raderade!"
 
-#: money/views.py:700
+#: money/views.py:742
 msgid "Language"
 msgstr "Språk"
 
-#: money/views.py:701
+#: money/views.py:743
 msgid "Financial months begins on day"
 msgstr "Finansiell månad börjar på datum"
 
-#: money/views.py:709
+#: money/views.py:751
 msgid "Period must be a number"
 msgstr "Perioden måste vara ett nummer"
 
-#: money/views.py:738
+#: money/views.py:780
 msgid "Sorry, I couldn't figure out the format of that input"
 msgstr "Jag kunde inte lista ut formatet av det du gav mig"
 
-#: views.py:31
+#: registration/models.py:8 registration/views.py:14
+msgid "Password"
+msgstr "Lösenord"
+
+#: registration/models.py:9
+msgid "Creation time"
+msgstr "Datum skapad"
+
+#: registration/models.py:10
+msgid "Created from"
+msgstr "Skapat från"
+
+#: registration/templates/registration/register.html:4
+#: registration/templates/registration/register.html:5
+msgid "Register"
+msgstr "Registrera"
+
+#: registration/templates/registration/register.html:11
+#: registration/templates/registration/request_new_password.html:13
+msgid "Send"
+msgstr "Skicka"
+
+#: registration/templates/registration/request_email_sent.html:4
+#: registration/templates/registration/request_email_sent.html:5
+msgid "E-mail sent"
+msgstr "E-mejl skickat"
+
+#: registration/templates/registration/request_email_sent.html:9
+msgid ""
+"Instructions on how to change your password has been sent to the specified "
+"email."
+msgstr "Instruktioner hur du ändrar ditt lösenord har skickats till mejladdressen du specificerat."
+
+#: registration/templates/registration/request_new_password.html:4
+#: registration/templates/registration/request_new_password.html:5
+msgid "Forgot your password?"
+msgstr "Glömt lösenordet?"
+
+#: registration/templates/registration/request_new_password.html:8
+msgid "Request new password"
+msgstr "Begär nytt lösenord"
+
+#: registration/templates/registration/request_new_password.html:11
+msgid ""
+"Please supply your e-mail address and we will send an e-mail with further "
+"instructions to you."
+msgstr "Skriv in din mejladdress så skickar vi ett mejl med instruktioner."
+
+#: registration/templates/registration/retrieve.html:2
+msgid ""
+"You have clicked the \"forgot my password\"-button on Mammon, follow the "
+"link below to register a new password. If you don't want to change your "
+"password or if you received this without pressing the \"forgot my password\"-"
+"button, then you may safely ignore this email."
+msgstr ""
+"Du har klickat \"Glömt ditt lösenord?\"-knappen på Mammon. Klicka på "
+"länken nedan för att registrera ett nytt lösenord. Om du inte vill ändra "
+"lösenord eller om du fått detta mejl utan att du klickat på \"Glömt ditt "
+"lösenord?'\"-knappen så kan du bara kasta detta mejl."
+
+#: registration/templates/registration/retrieve.html:4
+#, python-format
+msgid ""
+"Change your password at <a href=\"http://mammon.kodare.net/registration/"
+"set_new_password/?code=%(password)s&amp;email=%(email)s\">http://mammon."
+"kodare.net/registration/set_new_password/?code=%(password)s&amp;email="
+"%(email)s</a>"
+msgstr ""
+"Gå till <a href=\"http://mammon.kodare.net/registration/set_new_password/?code=%"
+"(password)s&amp;email=%(email)s\">http://mammon.kodare.net/registration/"
+"set_new_password/?code=%(password)s&amp;email=%(email)s</a> för att ändra "
+"ditt lösenord."
+
+#: registration/templates/registration/set_new_password.html:4
+#: registration/templates/registration/set_new_password.html:5
+msgid "Set new password"
+msgstr "Sätt nytt lösenord"
+
+#: registration/templates/registration/set_new_password.html:8
+msgid "Select a new password:"
+msgstr "Välj ett nytt lösenord:"
+
+#: registration/templates/registration/user_agreement.html:4
+#: registration/templates/registration/user_agreement.html:5
+msgid "User agreement"
+msgstr "Användaravtal"
+
+#: registration/views.py:13
+msgid "E-mail address"
+msgstr "Mejladdress"
+
+#: registration/views.py:15 registration/views.py:97
+msgid "Confirm password"
+msgstr "Bekräfta lösenord"
+
+#: registration/views.py:24
+msgid "%s is not a valid email address"
+msgstr "%s är inte en giltig mejladdress"
+
+#: registration/views.py:27 registration/views.py:111
+msgid "Passwords did not match."
+msgstr "Lösenorden matchar inte."
+
+#: registration/views.py:51
+msgid "Email"
+msgstr "Mejl"
+
+#: registration/views.py:59
+msgid "There is no user with this email"
+msgstr "Det finns ingen användare med den mejladdressen"
+
+#: registration/views.py:71
+msgid "New password request for Mammon"
+msgstr "Nytt lösenord begärt för Mammon"
+
+#: registration/views.py:96
+msgid "New password"
+msgstr "Nytt lösenord"
+
+#: registration/views.py:108 views.py:31
 msgid "Username or password incorrect"
 msgstr "Felaktigt användarnamn eller lösenord"

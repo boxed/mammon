@@ -22,6 +22,7 @@
     position: fixed;
     width: 100%;
     color: white;
+    z-index: 100;
 }
 
 #header a {

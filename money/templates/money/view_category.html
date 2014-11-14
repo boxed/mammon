@@ -13,17 +13,7 @@
             });
         }
     </script>
-    
 
-    <p>
-	    {% trans "Uncategorized transactions" %}: {{ unmatched_transactions|length }}
-        <span class="button" onClick="$('#log').toggle();">{% trans "Show..." %}</span>
-    </p>
-
-    <div id="log" style="display:none;">
-	    {% curia_include "money/transaction_list.html" transactions=unmatched_transactions %}
-    </div>
-    
     <p>
         <span class="button" onClick="delete_group({{ group.id }})"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {{ delete_message }}</span>
     </p>
@@ -41,7 +31,4 @@
             highlight();
         });
     </script>
-    
-    <h3>{% trans "Transactions" %}</h3>
-    {% include "money/transaction_list.html" %}
 {% endblock %}

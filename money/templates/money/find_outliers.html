@@ -1,7 +1,150 @@
 {% extends "base.html" %}
+{% load i18n %}
+
+{% block extra_head %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.time.min.js"></script>
+    <style type="text/css">
+    .tickLabel
+    {
+        white-space:nowrap;
+    }
+    </style>
+{% endblock %}
+
+{% block js_post_load %}{% endblock %}
 
 {% block content %}
 
+    <div id="legend"></div>
 
+    <p>{% blocktrans %}This is category <a href="/transactions/?category={{ category.pk }}">{{ category }}</a>. It has the highest variation month over month. Click on the bars that you think look worst to see a list of transactions for that month. Then select which transactions should go into Exceptions (and split transactions that have abnormal size, placing one part in Exceptions).{% endblocktrans %}</p>
+
+    <a href="?skip={{ skip_count }}" class="button">{% blocktrans %}I'm done with this category, show me the next worst{% endblocktrans %}</a>
+
+    <div align="center">
+        <div id="placeholder" style="width:600px; height:500px"></div>
+    </div>
+
+    {% for month, transactions in transactions_by_month %}
+        <div id="{{ month.year }}-{{ month.month }}">
+            <h1>{{ month.year }}-{{ month.month }}</h1>
+
+            {% include "money/transaction_list.html" %}
+        </div>
+    {% endfor %}
+
+    <script id="source" language="javascript" type="text/javascript">
+
+        var somePlot;
+        var dataset;
+
+        function togglePlot(seriesName)
+        {
+            var someData = somePlot.getData();
+            for (var i = 0; i != someData.length; i++) {
+                if (someData[i].label == seriesName) {
+                    someData[i].bars.show = !someData[i].bars.show;
+                    if (!someData[i].bars.show) {
+                        someData[i].tmp = someData[i].data;
+                        someData[i].data = [];
+                    }
+                    else {
+                        someData[i].data = someData[i].tmp;
+                    }
+                }
+            }
+            somePlot.setData(someData);
+            somePlot.setupGrid();
+            somePlot.draw();
+        }
+
+        function create_timestamp(year, month, day)
+        {
+            var f = new Date();
+            f.setFullYear(year, month, day);
+            return f.getTime();
+        }
+        jQuery(function () {
+            dataset = [
+                {
+                    title: '',
+                    data:
+                    [
+                        {% for point in graph %}
+                            [
+                                create_timestamp({{ point.date.year }}, {{ point.date.month }} - 1, {{ point.date.day }}),
+                                {{ point.amount }},
+                                '{{ point.date.year }}-{{ point.date.month }}'
+                            ],
+                        {% endfor %}
+                    ]
+                },
+            ];
+
+            somePlot = $.plot($("#placeholder"), dataset, {
+                grid: { hoverable: true, clickable: true, backgroundColor: "white", borderWidth: 0, markings: [{color: 'white'}]},
+                bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
+                xaxis: {
+                    mode: "time",
+                    tickColor: 'white'
+                },
+                yaxis: {
+                    tickColor: 'white'
+                },
+                selection: { mode: "xy" },
+                legend: {
+                    container: $('#legend'),
+                    labelFormatter: function(label, series) {
+                        return '<a href="#" onClick="togglePlot(\''+label+'\'); return false;">'+label+'</a>';
+                    }
+                }
+            });
+
+            function showTooltip(x, y, contents) {
+                $('<div id="tooltip">' + contents + '</div>').css( {
+                    position: 'absolute',
+                    display: 'none',
+                    top: y + 5,
+                    left: x + 5,
+                    border: '1px solid #fdd',
+                    padding: '2px',
+                    'background-color': '#fee',
+                    opacity: 0.80
+                }).appendTo("body").fadeIn(200);
+            }
+
+            var previousPoint = null;
+            $("#placeholder").bind("plothover", function (event, pos, item) {
+                var d = new Date();
+                d.setTime(parseInt(pos.x.toFixed()));
+                $("#x").text((d.getYear()+1900)+'-'+(d.getMonth()+1));
+                $("#y").text(pos.y.toFixed(2));
+
+                if (item) {
+                    if (previousPoint != item.datapoint) {
+                        previousPoint = item.datapoint;
+
+                        $("#tooltip").remove();
+                        var x = item.datapoint[0].toFixed(2),
+                            y = item.datapoint[1].toFixed(2);
+                        d.setTime(x);
+
+                        showTooltip(item.pageX, item.pageY, y + ' (' + item.series.label + " " + (d.getYear()+1900)+'-'+(d.getMonth()+1)+')');
+                    }
+                }
+                else {
+                    $("#tooltip").remove();
+                    previousPoint = null;
+                }
+            });
+
+            $("#placeholder").bind("plotclick", function (event, pos, item) {
+                if (item) {
+                    $('#' + dataset[0].data[item.dataIndex][2]).intoViewport();
+                }
+            });
+        });
+        </script>
 
 {% endblock %}

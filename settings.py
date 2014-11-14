@@ -96,6 +96,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.doc.XViewMiddleware',
     'mammon.middleware.MammonMiddleware',
+    'mammon.middleware.ProfileMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

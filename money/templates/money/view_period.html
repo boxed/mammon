@@ -124,16 +124,6 @@
         </div>
     {% endif %}
 
-    {% if period == 'month' %}
-        <p>
-            <a class="link-button" onClick="$('#log').toggle();">{% trans "Details" %} <i class="fa fa-chevron-circle-down"></i></a>
-        </p>
-
-        <div id="log" style="display:none;">
-{#            {% include "money/transaction_list.html" %}#}
-        </div>
-    {% endif %}
-
 	{% else %}
 		<p>
 			{% trans "No transactions for this period" %}

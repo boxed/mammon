@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from time import strptime
 from curia import first_of_next_month, first_of_previous_month
 from curia.authentication.models import Detail
+from mammon.middleware import get_current_request
 
 
 def get_start_of_period(reference, user):
@@ -20,7 +21,10 @@ def get_end_of_period(reference, user):
 
 
 def get_period_setting(user):
-    return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_period_days', defaults={'value': '25'})[0]
+    request = get_current_request()
+    if not hasattr(request, 'period_setting'):
+        request.period_setting = Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_period_days', defaults={'value': '25'})[0]
+    return request.period_setting
 
 
 def get_history_months_setting(user):
