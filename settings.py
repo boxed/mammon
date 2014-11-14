@@ -96,7 +96,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.doc.XViewMiddleware',
     'mammon.middleware.MammonMiddleware',
-    'mammon.middleware.ProfileMiddleware',
+    # 'mammon.middleware.ProfileMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -109,11 +109,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 ROOT_URLCONF = 'mammon.urls'
 
-TEMPLATE_DIRS = (
+TEMPLATE_DIRS = tuple()
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-)
+# )
 
 INSTALLED_APPS = (
     'django.contrib.auth',

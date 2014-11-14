@@ -1,8 +1,6 @@
 import sys
 import os
 import re
-import hotshot
-import hotshot.stats
 import tempfile
 import StringIO
 
@@ -50,6 +48,9 @@ class ProfileMiddleware(object):
     WARNING: It uses hotshot profiler which is not thread safe.
     """
     def process_request(self, request):
+        import hotshot
+        import hotshot.stats
+
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
             self.tmpfile = tempfile.mktemp()
             self.prof = hotshot.Profile(self.tmpfile)
@@ -59,6 +60,9 @@ class ProfileMiddleware(object):
             return self.prof.runcall(callback, request, *callback_args, **callback_kwargs)
 
     def process_response(self, request, response):
+        import hotshot
+        import hotshot.stats
+
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
             self.prof.close()
 

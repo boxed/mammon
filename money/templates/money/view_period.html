@@ -98,8 +98,8 @@
 			</tr>
 	    {% endfor %}
 
-		{% if account_summaries|length != 1 %}
-			{% if account_summaries|length != 0 %}
+		{% if summary|length != 1 %}
+			{% if summary|length != 0 %}
 				<tr><td colspan="5">&nbsp;</td></tr>
 			{% endif %}
     		<tr>
@@ -115,9 +115,15 @@
    	</table>
 
     {% if projected_transactions %}
-    	<p>
-        	{% trans "Projected" %}: {{ projected_sum }} <a onClick="$('#projection_log').toggle();">{% trans "Details" %} <i class="fa fa-chevron-circle-down"></i></a>
-		</p>
+        <p></p>
+
+    	<div>
+        	{% trans "Projected" %}: {{ projected_sum }}
+        </div>
+
+        <div>
+            <a onClick="$('#projection_log').toggle();">{% trans "Details" %} <i class="fa fa-chevron-circle-down"></i></a>
+		</div>
 
         <div id="projection_log" style="display:none;">
             {% curia_include "money/transaction_list.html" transactions=projected_transactions %}
