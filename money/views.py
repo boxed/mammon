@@ -523,7 +523,7 @@ def view_history(request):
          'statement': statement,
          'months': months.value,
          'sums': sums,
-         'gini': gini([float(x.amount) for x in result[None]]),
+         'gini': gini([float(x.amount) for x in result[None]][:-1]),
          'total_sum': sum(sums.values())}
 
     return render_to_response('money/history.html', RequestContext(request, c))
