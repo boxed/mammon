@@ -128,7 +128,7 @@ for (var i = 0; i != split_values.length; i++) {
 }
 function update_rest()
 {
-    var total = parseFloat($('#id_split_form').attr('amount'));
+    var total = parseFloat($('#id_split_form').data('amount'));
     var rest = total;
     if (rest < 0) {
         rest = -rest;
@@ -155,7 +155,7 @@ function update_rest()
 
 function parts_changed()
 {
-    var total = parseFloat($('#id_split_form').attr('amount'));
+    var total = parseFloat($('#id_split_form').data('amount'));
     if ($('#equal_parts').attr('checked')) {
         var parts = parseInt($('#parts').val());
         $('#part_list').html(total / parts);
@@ -167,9 +167,6 @@ function parts_changed()
         for (i = 0; i < parseInt($('#parts').val())-1 && i < maxSplits; i++) {
             var value = 0;
             value = split_values[i];
-            if (total < 0) {
-                foo += '- '
-            }
             foo += '<input type="text" class="part" onKeyUp="update_rest()" name="part_'+i+'" value="'+value+'" /><br />';
         }
         $('#part_list').html(foo);

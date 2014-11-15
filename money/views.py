@@ -712,8 +712,8 @@ def split_transaction(request, transaction_id):
         total_sum_after = transactions_for_user(request.user).aggregate(Sum('amount'))['amount__sum']
 
         assert total_sum_after == total_sum_before
-    
-        return HttpResponseRedirect('/')
+
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
     return render_to_response('money/split_transaction.html', RequestContext(request, {'transaction': transaction}))
 
