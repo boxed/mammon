@@ -98,6 +98,28 @@ function split_transaction(id) {
     });
 }
 
+function unsplit_transaction(id) {
+    var buttons = {};
+    buttons[gettext("Cancel")] = function() {
+        $(this).dialog("close");
+    };
+    buttons[gettext("Unsplit")] = function() {
+        $.ajax({
+            url: '/transactions/'+id+'/unsplit/',
+            type: 'POST',
+            success: function(t) {
+                window.location = window.location;
+            }
+        });
+    };
+    $('<div>'+gettext('Are you sure you want to unsplit this transaction?')+'</div>').dialog({
+        buttons: buttons,
+        modal: true,
+        height: 200,
+        width: 300
+    });
+}
+
 // imposed a max limit so we don't get some crazy amounts of splits that will make the browser slow/hang
 var maxSplits = 100;
 var split_values = new Array(maxSplits);

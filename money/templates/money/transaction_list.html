@@ -7,6 +7,7 @@
 	            <th>{% trans "Date" %}</th>
 	            <th>{% trans "Description" %}</th>
                 <th class="amount">{% trans "Amount" %}</th>
+                <th class="unsplit"></th>
                 {% if not hide_classification %}
                     <th>{% trans "Category" %}</th>
                     {% ifnotequal accounts|length 0 %}
@@ -20,8 +21,9 @@
                 <td class="time"><span class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/date/" id="{{ transaction.id }}">{{ transaction.time|date:"Y-m-d" }}</span></td>
                 <td class="description"><span class="inline_editable" edit_url="/transactions/{{ transaction.id }}/edit/description/" id="{{ transaction.id }}">{{ transaction.description }}</span></td>
                 <td class="amount">{{ transaction.amount|floatformat:2 }}</td>
+                <td class="unsplit" onclick="unsplit_transaction({{ transaction.id }})">{% if transaction.virtual %}<i class="fa fa-share-alt" title="{% trans "From a split transaction. Click to unsplit." %}"></i>{% endif %}</td>
                 {% if not hide_classification %}
-                    <td>
+                    <td class="category">
                         <select class="inline_editable_select" name="transaction_category_{{ transaction.id }}" edit_url="/transactions/{{ transaction.id }}/edit/category/">
                             <option value=""></option>
                             {% for category in categories %}
@@ -30,7 +32,7 @@
                         </select>
                     </td>
                     {% ifnotequal accounts|length 0 %}
-                        <td>
+                        <td class="account">
                             <select class="inline_editable_select" name="transaction_account_{{ transaction.id }}" edit_url="/transactions/{{ transaction.id }}/edit/account/">
                                 <option value=""></option>
                                 {% for account in accounts %}

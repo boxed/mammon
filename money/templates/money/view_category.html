@@ -8,15 +8,17 @@
             $('<div>{{ confirm_delete_message }}</div>').dialog({
                 buttons: {
                     '{{ _("Cancel") }}': function() { $(this).dialog("close"); },
-                    '{{ _("Delete") }}': function() {window.location = '{{ base_url }}/delete/?next='+window.location;}
+                    '{{ _("Delete") }}': function() {window.location = '{{ base_url }}delete/?next='+window.location;}
                 }
             });
         }
     </script>
 
-    <p>
-        <span class="button" onClick="delete_group({{ group.id }})"><img src="{{ MEDIA_URL }}commands/delete.png" alt=""/> {{ delete_message }}</span>
-    </p>
+    <div>
+        <span class="button" onClick="delete_group({{ group.id }})"><i class="fa fa-trash"></i> {{ delete_message }}</span>
+    </div>
+
+    <p></p>
 
     <form method="post">
         <table class="form">

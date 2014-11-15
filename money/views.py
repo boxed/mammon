@@ -150,7 +150,7 @@ def view_account(request, account_id, page='1'):
     class EditForm(ModelForm):
         class Meta:
             model = Account
-            fields = ('name',)
+            fields = ('name', 'hide')
 
     return view_grouping(request, Account, account_id, EditForm, 'account', '/accounts', page)
 
@@ -354,8 +354,8 @@ def create_summary(request, start_time, end_time, user):
 
 def adjust_start_end_times(request, start_time, end_time):
     if transactions_for_user(request.user):
-        first_time = transactions_for_user(request.user).exclude(virtual=False).order_by('time')[0].time
-        last_time = transactions_for_user(request.user).exclude(virtual=False).order_by('-time')[0].time
+        first_time = transactions_for_user(request.user).exclude(virtual=True).order_by('time')[0].time
+        last_time = transactions_for_user(request.user).exclude(virtual=True).order_by('-time')[0].time
 
         # Adjust so that start_time starts on a month we have complete data for
         if first_time > start_time:
@@ -469,7 +469,11 @@ def view_history(request):
     year = reference.year
     month = reference.month
 
+    start_period = get_start_of_period(reference, request.user)
     end_period = get_end_of_period(reference, request.user)
+
+    start_period, end_period = adjust_start_end_times(request, start_period, end_period)
+
     end_period = "'%(year)d-%(month)d-%(day)d'" % {'year': end_period.year if end_period.month != 1 else end_period.year - 1, 'month': end_period.month - 1, 'day': end_period.day}
 
     for i in range(int(months.value) + 1):
@@ -501,6 +505,8 @@ def view_history(request):
             account = Account.objects.get(pk=row[0])
         except Account.DoesNotExist:
             account = None
+        if account and account.hide:
+            continue
         if account not in result:
             result[account] = []
         if row[1]:
@@ -677,6 +683,8 @@ def split_transaction(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
 
     if request.POST:
+        total_sum_before = transactions_for_user(request.user).aggregate(Sum('amount'))['amount__sum']
+
         num_parts = int(request.POST['parts'])
         if 'equal_parts' in request.POST:
             parts = [transaction.amount / Decimal(num_parts) for _ in range(num_parts - 1)]
@@ -700,9 +708,34 @@ def split_transaction(request, transaction_id):
         # Final part
         transaction.amount -= sum(parts)
         transaction.save()
+
+        total_sum_after = transactions_for_user(request.user).aggregate(Sum('amount'))['amount__sum']
+
+        assert total_sum_after == total_sum_before
+    
         return HttpResponseRedirect('/')
 
     return render_to_response('money/split_transaction.html', RequestContext(request, {'transaction': transaction}))
+
+
+@login_required
+def unsplit_transaction(request, transaction_id):
+    assert request.method == 'POST'
+
+    total_sum_before = transactions_for_user(request.user).aggregate(Sum('amount'))['amount__sum']
+
+    transaction = transactions_for_user(request.user).get(pk=transaction_id)
+    transactions = transactions_for_user(request.user).filter(original_md5=transaction.original_md5)
+    original_transaction = transactions.get(virtual=False)
+    original_transaction.amount = sum([x.amount for x in transactions])
+    transactions.filter(virtual=True).delete()  # delete all but the original
+    original_transaction.save()
+
+    total_sum_after = transactions_for_user(request.user).aggregate(Sum('amount'))['amount__sum']
+
+    assert total_sum_after == total_sum_before
+
+    return HttpResponse('OK')
 
 
 @login_required

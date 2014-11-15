@@ -15,7 +15,7 @@
 {% block js_post_load %}{% endblock %}
 
 {% block content %}
-    {% if gini > 0.55 %}
+    {% if gini > 0.3 %}
         <p>
             {% blocktrans %}I see that it's still hard to make sense out of all this. I'd like to suggest separating out big one-time expenditures into an account (that's just a Mammon term for a type of grouping) called "Exceptions". This way you can start to see what the normal situation is and find out your economic base line.{% endblocktrans %}
         </p>
@@ -32,7 +32,7 @@
     {% endif %}
 
 
-    {% trans "Sum" %}: {{ total_sum }}
+    {% trans "Sum" %}: {{ total_sum }} <span style="display: none;" id="#gini">{{ gini }}</span>
 
     <div id="legend"></div>
 

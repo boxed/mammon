@@ -24,12 +24,14 @@
 		});
 	</script>
 	
-    <p>
+    <div>
     
     <a href="/summary/{{ period }}/{{ previous_year }}/{% if period == "month" %}{{ previous_month }}/{% endif %}" class="link-button"><i class="fa fa-chevron-circle-left"></i> {% trans "Previous period" %}</a>
     {% if next_period %}<a href="/summary/{{ period }}/{{ next_year }}/{% if period == "month" %}{{ next_month }}/{% endif %}" class="link-button">{% trans "Next period" %} <i class="fa fa-chevron-circle-right"></i></a>{% endif %}
     
-    </p>
+    </div>
+
+    <p></p>
 
     <form action=".">
         <label for="year">{% trans "Period" %}:</label>
