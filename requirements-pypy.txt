@@ -1,0 +1,3 @@
+MySQL-python
+pillow
+python-dateutil

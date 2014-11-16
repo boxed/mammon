@@ -353,7 +353,7 @@ def create_summary(request, start_time, end_time, user):
 
 
 def adjust_start_end_times(request, start_time, end_time):
-    if transactions_for_user(request.user):
+    try:
         first_time = transactions_for_user(request.user).exclude(virtual=True).order_by('time')[0].time
         last_time = transactions_for_user(request.user).exclude(virtual=True).order_by('-time')[0].time
 
@@ -366,6 +366,8 @@ def adjust_start_end_times(request, start_time, end_time):
         # Adjust so that end_time ends on a month we have complete data for
         if end_time > last_time:
             end_time = get_end_of_period(last_time - timedelta(days=62), request.user)
+    except IndexError:
+        pass
     return start_time, end_time
 
 

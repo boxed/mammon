@@ -1,7 +1,6 @@
-import sys
-import os
+import cProfile
+import pstats
 import re
-import tempfile
 import StringIO
 
 from django.conf import settings
@@ -44,45 +43,30 @@ class ProfileMiddleware(object):
     and you'll see the profiling results in your browser.
     It's set up to only be available in django's debug mode, is available for superuser otherwise,
     but you really shouldn't add this middleware to any production configuration.
-
-    WARNING: It uses hotshot profiler which is not thread safe.
     """
     def process_request(self, request):
-        import hotshot
-        import hotshot.stats
-
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
-            self.tmpfile = tempfile.mktemp()
-            self.prof = hotshot.Profile(self.tmpfile)
+            self.prof = cProfile.Profile()
+            self.prof.enable()
 
     def process_view(self, request, callback, callback_args, callback_kwargs):
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
             return self.prof.runcall(callback, request, *callback_args, **callback_kwargs)
 
     def process_response(self, request, response):
-        import hotshot
-        import hotshot.stats
-
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
-            self.prof.close()
+            self.prof.disable()
 
-            out = StringIO.StringIO()
-            old_stdout = sys.stdout
-            sys.stdout = out
+            s = StringIO.StringIO()
+            ps = pstats.Stats(self.prof, stream=s).sort_stats('cumulative')
+            ps.print_stats()
 
-            stats = hotshot.stats.load(self.tmpfile)
-            stats.sort_stats('cumulative')
-            stats.print_stats()
+            stats_str = s.getvalue()
 
-            sys.stdout = old_stdout
-            stats_str = out.getvalue()
-
-            lines = stats_str.split("\n")[:40]
+            lines = stats_str.split("\n")[:100]
             lines = ['<span%s>%s</span>' % (' style="font-weight: bold"' if 'mammon' in x else '', x) for x in lines]
 
             response.content = '<style>body {font-family: monospace; white-space: pre;}</style>'
             response.content += "\n".join(lines)
-
-            os.unlink(self.tmpfile)
 
         return response
