@@ -336,7 +336,6 @@ def create_summary(request, start_time, end_time, user):
                 months['severity'] = abs(months['sum']) / max_value
             sums = [v['sum'] for k, v in months.items() if type(k) != unicode]
             sums += [Decimal(0.0)] * (number_of_months - len(sums))
-            assert len(sums) == number_of_months
             months['std_deviation'] = std_deviation(sums)
 
     total = Decimal(0)

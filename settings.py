@@ -28,6 +28,7 @@ LANGUAGE_CODE = 'sv'
 ALLOWED_HOSTS = [
     '.kodare.net',
     '127.0.0.1',
+    'localhost',
 ]
 
 LOCALE_PATHS = (
@@ -94,7 +95,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.doc.XViewMiddleware',
+    'django.contrib.admindocs.middleware.XViewMiddleware',
     'mammon.middleware.MammonMiddleware',
     'mammon.middleware.ProfileMiddleware',
 )

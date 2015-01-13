@@ -1,5 +1,4 @@
 import cProfile
-import pstats
 import re
 import StringIO
 
@@ -54,9 +53,10 @@ class ProfileMiddleware(object):
             return self.prof.runcall(callback, request, *callback_args, **callback_kwargs)
 
     def process_response(self, request, response):
-        if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
+        if (settings.DEBUG or (hasattr(request, 'user') and request.user.is_superuser)) and 'prof' in request.GET:
             self.prof.disable()
 
+            import pstats
             s = StringIO.StringIO()
             ps = pstats.Stats(self.prof, stream=s).sort_stats('cumulative')
             ps.print_stats()

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
@@ -34,7 +36,7 @@ class Format(models.Model):
     parse_format = models.CharField(blank=False, max_length=100)
 
     def __unicode__(self):
-        return u'%s: %s, %s' % (self.user, self.raw_format, self.parse_format)
+        return '%s: %s, %s' % (self.user, self.raw_format, self.parse_format)
 
     def parse_row(self, row):
         descriptions = []
@@ -53,7 +55,7 @@ class Format(models.Model):
         assert amount is not None
         assert date is not None
         assert len(descriptions) > 0
-        return amount, date, u' '.join(descriptions)
+        return amount, date, ' '.join(descriptions)
 
     def compatible_with(self, classification):
         if classification == self.raw_format:
