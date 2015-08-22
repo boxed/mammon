@@ -71,7 +71,10 @@ def transaction_filter(request, transactions):
     if 'q' in request.REQUEST and request.REQUEST['q']:
         transactions = transactions.filter(description__icontains=request.REQUEST['q'])
     if 'category' in request.REQUEST and request.REQUEST['category']:
-        transactions = transactions.filter(category__pk=request.REQUEST['category'])
+        if request.REQUEST['category'] == '0':
+            transactions = transactions.filter(category__isnull=True)
+        else:
+            transactions = transactions.filter(category__pk=request.REQUEST['category'])
     if 'account' in request.REQUEST and request.REQUEST['account']:
         transactions = transactions.filter(account__pk=request.REQUEST['account'])
     if 'greater_than' in request.REQUEST and request.REQUEST['greater_than']:
@@ -84,7 +87,7 @@ def transaction_filter(request, transactions):
 @login_required
 def index(request):
     try:
-        last_transaction = Transaction.objects.filter(user=request.user).order_by('-time')[0]
+        last_transaction = Transaction.objects.filter(user=request.user, virtual=False).order_by('-time')[0]
     except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
     return render_to_response(
@@ -530,7 +533,7 @@ def view_history(request):
          'statement': statement,
          'months': months.value,
          'sums': sums,
-         'gini': gini([float(x.amount) for x in result[None]][:-1]) if gini else 0,
+         'gini': gini([float(x.amount) for x in result[None]][:-1]) if result else 0,
          'total_sum': sum(sums.values())}
 
     return render_to_response('money/history.html', RequestContext(request, c))

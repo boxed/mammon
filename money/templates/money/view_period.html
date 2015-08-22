@@ -70,13 +70,9 @@
 	            {% if d.sum %}
 	                <tr class="category_id_{{ category.id }} category_period_{{ category.period }}_month">
 	                    <td>
-                            {% if category.id %}
-                                <a href="/transactions/?category={{ category.id }}&start_time={{ start_time|date:"Y-m-d" }}&end_time={{ end_time|date:"Y-m-d" }}{% if account.id %}&account={{ account.id }}{% endif %}">
-                                    {{ category }}
-                                </a>
-                            {% else %}
+                            <a href="/transactions/?category={{ category.id }}&start_time={{ start_time|date:"Y-m-d" }}&end_time={{ end_time|date:"Y-m-d" }}{% if account.id %}&account={{ account.id }}{% endif %}">
                                 {{ category }}
-                            {% endif %}
+                            </a>
                         </td>
 	                    <td class="amount">{{ d.sum|floatformat:2 }}</td>
 	                    <td>

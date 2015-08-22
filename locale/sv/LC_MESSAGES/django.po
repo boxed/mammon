@@ -147,7 +147,7 @@ msgstr ""
 
 #: money/templates/money/add.html:30 money/templates/money/import.html:17
 msgid "Import transactions"
-msgstr "Importera transactioner"
+msgstr "Importera transaktioner"
 
 #: money/templates/money/all_like_this.html:4
 #: money/templates/money/getting_started.html:21
