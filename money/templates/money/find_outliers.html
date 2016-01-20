@@ -30,7 +30,7 @@
         <div id="{{ month.year }}-{{ month.month }}">
             <h1>{{ month.year }}-{{ month.month }}</h1>
 
-            {% include "money/transaction_list.html" %}
+            {% include "tri_table/list.html" %}
         </div>
     {% endfor %}
 
@@ -79,10 +79,11 @@
                             ],
                         {% endfor %}
                     ]
-                },
+                }
             ];
 
-            somePlot = $.plot($("#placeholder"), dataset, {
+            var placeholder = $("#placeholder");
+            somePlot = $.plot(placeholder, dataset, {
                 grid: { hoverable: true, clickable: true, backgroundColor: "white", borderWidth: 0, markings: [{color: 'white'}]},
                 bars: { show: true, align: "center", barWidth: 1000*60*60*24*25, fill: true },
                 xaxis: {
@@ -95,7 +96,7 @@
                 selection: { mode: "xy" },
                 legend: {
                     container: $('#legend'),
-                    labelFormatter: function(label, series) {
+                    labelFormatter: function(label) {
                         return '<a href="#" onClick="togglePlot(\''+label+'\'); return false;">'+label+'</a>';
                     }
                 }
@@ -115,7 +116,7 @@
             }
 
             var previousPoint = null;
-            $("#placeholder").bind("plothover", function (event, pos, item) {
+            placeholder.bind("plothover", function (event, pos, item) {
                 var d = new Date();
                 d.setTime(parseInt(pos.x.toFixed()));
                 $("#x").text((d.getYear()+1900)+'-'+(d.getMonth()+1));
@@ -139,7 +140,7 @@
                 }
             });
 
-            $("#placeholder").bind("plotclick", function (event, pos, item) {
+            placeholder.bind("plotclick", function (event, pos, item) {
                 if (item) {
                     $('#' + dataset[0].data[item.dataIndex][2]).intoViewport();
                 }

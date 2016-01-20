@@ -124,3 +124,6 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ('time', 'description')
+
+    def get_absolute_url(self):
+        return '/transactions/%s/' % self.pk

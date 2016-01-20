@@ -1,3 +1,4 @@
-mysqldb-python
-pillow
+MySQL-python
 python-dateutil
+tri.table
+pillow

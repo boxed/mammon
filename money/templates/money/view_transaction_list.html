@@ -2,34 +2,5 @@
 {% load i18n %}{% load auth %}
 
 {% block content %}
-    <form>
-        <table class="form">
-            <tr>
-                <td colspan="2"><h2>{{ _("Filter") }}</h2></td>
-            </tr>
-            {{ filter_form.as_table }}
-            <tr>
-                <td colspan="2" style="text-align: right">
-                    <button class="button">{{ _("Filter") }}</button>
-                </td>
-            </tr>
-        </table>
-    </form>
-
-    {% include "money/transaction_list.html" %}
-
-    <form method="post">
-        <table class="form" style="padding-top: 20px;">
-            <tr>
-                <td colspan="2"><h2>{{ _("Bulk edit") }}</h2></td>
-            </tr>
-            {{ bulk_edit_form.as_table }}
-            <tr>
-                <td colspan="2" style="text-align: right">
-                    <button class="button">{{ _("Bulk edit") }}</button>
-                    <!-- <button class="button warning" name="delete">{{ _("Bulk delete") }}</button> -->
-                </td>
-            </tr>
-        </table>
-    </form>
+    {% include "tri_table/list.html" %}
 {% endblock %}

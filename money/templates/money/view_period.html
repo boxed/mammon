@@ -70,7 +70,7 @@
 	            {% if d.sum %}
 	                <tr class="category_id_{{ category.id }} category_period_{{ category.period }}_month">
 	                    <td>
-                            <a href="/transactions/?category={{ category.id }}&start_time={{ start_time|date:"Y-m-d" }}&end_time={{ end_time|date:"Y-m-d" }}{% if account.id %}&account={{ account.id }}{% endif %}">
+                            <a href="/transactions/?query=category%3D{{ category }}%20and%20date>%3D{{ start_time|date:"Y-m-d" }}%20and%20date<%3D{{ end_time|date:"Y-m-d" }}{% if account.id %}%20and%20account%3D{{ account }}{% endif %}">
                                 {{ category }}
                             </a>
                         </td>
@@ -124,7 +124,7 @@
 		</div>
 
         <div id="projection_log" style="display:none;">
-            {% curia_include "money/transaction_list.html" transactions=projected_transactions %}
+            {% include "tri_table/list.html" with table=projected_table%}
         </div>
     {% endif %}
 

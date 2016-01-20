@@ -36,8 +36,8 @@ LOCALE_PATHS = (
 )
 
 LANGUAGES = (
-    ('sv', 'Svenska'),
-    ('en', 'English'),
+    ('sv.UTF-8', 'Svenska'),
+    ('en.UTF-8', 'English'),
 )
 
 SITE_ID = 1
@@ -127,6 +127,9 @@ INSTALLED_APPS = (
     'mammon.registration',
     'mammon.money',
     'curia.base',
+    'tri.form',
+    'tri.query',
+    'tri.table',
 )
 
 REGISTRATION_NEXT = '/settings/'

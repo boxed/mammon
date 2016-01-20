@@ -30,7 +30,7 @@ function delete_transaction(id, confirm) {
             type: 'POST',
             success: function(t) {
                 transaction_marker_up();
-                $('[transaction_id='+id+']').remove();
+                $('[data_pk='+id+']').remove();
             }
         });
     }
@@ -53,20 +53,26 @@ function delete_transaction(id, confirm) {
 
 function transaction_marker_up() {
     var rows = $('#transaction_list').find('tr');
+    //noinspection JSJQueryEfficiency
     var pos = rows.index($('.row_marker'));
     if (pos > 0 && !$(rows[pos-1]).hasClass('header')) {
+        //noinspection JSJQueryEfficiency
         $('.row_marker').removeClass('row_marker');
         $(rows[pos-1]).addClass('row_marker');
+        //noinspection JSJQueryEfficiency
         $('.row_marker').intoViewport();
     }
 }
 
 function transaction_marker_down() {
     var rows = $('#transaction_list').find('tr');
+    //noinspection JSJQueryEfficiency
     var pos = rows.index($('.row_marker'));
     if (pos+1 < rows.length) {
+        //noinspection JSJQueryEfficiency
         $('.row_marker').removeClass('row_marker');
         $(rows[pos+1]).addClass('row_marker');
+        //noinspection JSJQueryEfficiency
         $('.row_marker').intoViewport();
     }
 }
@@ -314,4 +320,8 @@ $(document).ready(function(){
         }
         return true;
     });
+
+    $('#transaction_list').find('th .fa-check-square-o').on('click', function(){
+        $('#transaction_list').find('input[type=checkbox]').click();
+    })
 });

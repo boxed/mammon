@@ -85,7 +85,7 @@ a {
     color: rgb(119, 5, 183);
 }
 
-.inline-button {
+.inline-button, #transaction_list .fa-lg {
     font-size: 12px;
     cursor: pointer;
 }
@@ -311,11 +311,15 @@ textarea
     background-color: white;
 }
 
-.content {
+.content, #tri_query_form {
     width: 650px;
     text-align: left;
     margin-left: auto;
     margin-right: auto;
+}
+
+.tri_query_help h3 {
+    text-align: left;
 }
 
 td.choice {
@@ -423,3 +427,68 @@ p {
     margin-right: auto;
     text-align: left;
 }
+
+/* tri.table styles */
+.cj {
+  text-align: center; }
+
+.rj {
+  text-align: right; }
+
+.paginator {
+  font-size: 12px;
+  vertical-align: middle;
+  margin-top: 14px;
+  margin-bottom: 14px; }
+  .paginator .paginate-link,
+  .paginator .paginate-current,
+  .paginator .paginate-next,
+  .paginator .paginate-previous,
+  .paginator .paginate-first,
+  .paginator .paginate-last {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    display: inline-block;
+    height: 33px;
+    width: 33px;
+    line-height: 33px;
+    border-left: 1px solid #f7f7f7;
+    cursor: pointer; }
+    .paginator .paginate-link:hover,
+    .paginator .paginate-current:hover,
+    .paginator .paginate-next:hover,
+    .paginator .paginate-previous:hover,
+    .paginator .paginate-first:hover,
+    .paginator .paginate-last:hover {
+      background-color: #d7d7d7; }
+  .paginator .paginate-current {
+    cursor: default; }
+  .paginator .paginator span:hover {
+    text-decoration: none; }
+  .paginator .paginate-current {
+    color: black;
+    background-color: #d7d7d7; }
+  .paginator .paginate-hits,
+  .paginator .paginate-pages {
+    color: #888;
+    font-weight: normal;
+    padding: 11px; }
+  .paginator .paginate-pages:hover {
+    cursor: pointer;
+    background-color: #d7d7d7; }
+
+.compact {
+  clear: both; }
+  .compact input[type="text"] {
+    width: 132px; }
+  .compact .key-value {
+    margin-right: 10px;
+    display: inline-block;
+    padding: 0;
+    vertical-align: top; }
+  .compact .submit {
+    display: inline-block;
+    vertical-align: bottom; }
+
+/*end tri.table styles */

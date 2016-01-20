@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}{% load auth %}
 
-{% block body_id %}{% if transactions %}id_classification_page{% endif %}{% endblock %}
+{% block body_id %}{% if table.data.exists %}id_classification_page{% endif %}{% endblock %}
 
 {% block content %}
     {% if not categories %}
@@ -13,7 +13,7 @@
         <a href="/getting_started/" class="button">Let's do it!</a>
 
 
-    {% elif transactions %}
+    {% elif table.data.exists %}
         <p>
             {% blocktrans %}You can now look at your <a href="/history/">overview</a>. To really get results in the <a href="/summary/month/">month</a> and <a href="/summary/year/">year</a> views, it's best to classify everything. Here goes:{% endblocktrans %}
         </p>
@@ -21,7 +21,7 @@
 
         {% trans "Uncategorized transactions" %}: <span id="id_unmatched_count">{{ unmatched_count }}</span><br />
     
-        {% include "money/transaction_list.html" with hide_commands="True" hide_classification="True" %}
+        {% include "tri_table/list.html" %}
 
         <div id="id_classification_bar_bottom_space"></div>
 
@@ -29,9 +29,9 @@
             <button id="id_next" class="button" onclick="transaction_marker_up()">{% trans "Next" %} <span class="hotkey">{{ ctrl_label }}K</span></button>
             <button id="id_prev" class="button" onclick="transaction_marker_down()">{% trans "Previous" %} <span class="hotkey">{{ ctrl_label }}J</span></button>
 
-            <label for="id_category">{% trans "Category" %}:</label> <input id="id_category" type="text"/>
+            <label for="id_select_category">{% trans "Category" %}:</label> <input id="id_select_category" type="text"/>
             {% ifnotequal accounts|length 0 %}
-                <label for="id_account">{% trans "Account" %}:</label> <input id="id_account" type="text"/>
+                <label for="id_select_account">{% trans "Account" %}:</label> <input id="id_select_account" type="text"/>
             {% endifnotequal %}
             <br />
 
@@ -58,16 +58,16 @@
 
     <script type="text/javascript">
         function only_this() {
-            var category = $('#id_category').val();
-            var account = $('#id_account').val();
+            var category = $('#id_select_category').val();
+            var account = $('#id_select_account').val();
             if (!category) {
                 window.setTimeout(function (){
-                    $('#id_category').focus();
+                    $('#id_select_category').focus();
                 }, 100);
                 return;
             }
 
-            var id = $('.row_marker').attr('transaction_id');
+            var id = $('.row_marker').data('pk');
             if (_.indexOf(category_terms, category) == -1) {
                 category_terms.push(category);
             }
@@ -84,13 +84,13 @@
                 },
                 success: function() {
                     transaction_marker_down();
-                    $('[transaction_id='+id+']').remove();
-                    $('#id_category').val('');
-                    $('#id_account').val('');
+                    $('[data-pk='+id+']').remove();
+                    $('#id_select_category').val('');
+                    $('#id_select_account').val('');
                     $('#id_unmatched_count').html(parseInt($('#id_unmatched_count').html()) - 1);
                     window.setTimeout(function() {
                         // Hack to get around that somehow inlinecomplete seems to be screwing with focus
-                        $('#id_category').focus();
+                        $('#id_select_category').focus();
                     }, 100);
                 }
             });
@@ -98,26 +98,25 @@
         function after_dialog_closed() {
             $('.ui-dialog').remove();
             $('#id_all_like_this_dialog').remove();
-            $('#id_category').val('');
-            $('#id_account').val('');
-            $('#id_category').focus();
+            $('#id_select_account').val('');
+            $('#id_select_category').val('').focus();
         }
         function all_like_this() {
-            var category = $('#id_category').val();
+            var category = $('#id_select_category').val();
             if (!category) {
                 window.setTimeout(function (){
-                    $('#id_category').focus();
+                    $('#id_select_category').focus();
                 }, 100);
                 return;
             }
 
-            var id = $('.row_marker').attr('transaction_id');
+            var id = $('.row_marker').data('pk');
             $.ajax({
                 url:'/transactions/'+id+'/all_like_this/',
                 type: 'GET',
                 data: {
                     category: category,
-                    account: $('#id_account').val()
+                    account: $('#id_select_account').val()
                 },
                 success: function(text) {
                     var buttons = {};
@@ -129,8 +128,8 @@
                             data: {
                                 start_index: $('.start_sub_mark').attr('index'),
                                 end_index: $('.end_sub_mark').attr('index'),
-                                category: $('#id_category').val(),
-                                account: $('#id_account').val()
+                                category: $('#id_select_category').val(),
+                                account: $('#id_select_account').val()
                             },
                             success: function() {
                                 document.location.reload();
@@ -150,16 +149,16 @@
                 }
             });
         }
-        {% if transactions %}
+        {% if table.data.exists %}
         var category_terms = [{% for category in categories %}"{{ category|escapejs }}",{% endfor %}];
         var account_terms = [{% for account in accounts %}"{{ account|escapejs }}",{% endfor %}];
         function init_autocomplete() {
-            $("#id_category").inlineComplete({terms: category_terms});
-            $("#id_account").inlineComplete({terms: account_terms});
+            $("#id_select_category").inlineComplete({terms: category_terms});
+            $("#id_select_account").inlineComplete({terms: account_terms});
         }
         $(document).ready(function() {
-            $('#id_category').focus();
             init_autocomplete();
+            $('#id_select_category').focus();
 
             function update_row_markers() {
                 var pos = $('.row_marker').offset();
@@ -179,7 +178,7 @@
             $('#id_row_marker_left').show();
             
             $('button').click(function() {
-                $('#id_category').focus();
+                $('#id_select_category').focus();
             });
 
             $(document).keydown(function(e) {
@@ -214,7 +213,7 @@
             });
 
             $('input').keydown(function(e){
-                var transaction_id = $('.row_marker').attr('transaction_id');
+                var transaction_id = $('.row_marker').data('pk');
                 switch (e.keyCode) {
                     case 13: // (enter key)
                         if (e.ctrlKey) {

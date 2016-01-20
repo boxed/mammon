@@ -1,0 +1,6 @@
+<select class="inline_editable_select" name="transaction_{{ cmd }}_{{ row.pk }}" edit_url="/transactions/{{ row.pk }}/edit/{{ cmd }}/">
+    <option value=""></option>
+    {% for x in choices %}
+        <option value="{{ x.pk }}" {% ifequal x current_choice %}selected="selected"{% endifequal %}>{{ x }}</option>
+    {% endfor %}
+</select>

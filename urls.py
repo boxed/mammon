@@ -16,7 +16,6 @@ urlpatterns = patterns(
     (r'^transactions/$', 'mammon.money.views.view_transactions'),
     (r'^transactions/export/$', 'mammon.money.views.export_transactions'),
     (r'^transactions/import/$', 'mammon.money.views.import_transactions'),
-    (r'^transactions/page/(?P<page>\d+)/$', 'mammon.money.views.view_transactions'),
     (r'^transactions/(?P<transaction_id>\d+)/split/$', 'mammon.money.views.split_transaction'),
     (r'^transactions/(?P<transaction_id>\d+)/unsplit/$', 'mammon.money.views.unsplit_transaction'),
     (r'^transactions/(?P<transaction_id>\d+)/all_like_this/$', 'mammon.money.views.all_like_this'),

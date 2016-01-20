@@ -1,9 +1,9 @@
 {% load i18n %}{% load auth %}
 <div id="id_all_like_this_dialog">
     <p style="font-size: 16px;">
-        {% trans "Category" %}: <span id="id_category">{{ category }}</span><br />
+        {% trans "Category" %}: <span id="id_select_category">{{ category }}</span><br />
         {% if account %}
-            {% trans "Account" %}: <span id="id_account">{{ account }}</span>
+            {% trans "Account" %}: <span id="id_select_account">{{ account }}</span>
         {% endif %}
     </p>
 

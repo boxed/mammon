@@ -15,13 +15,104 @@ from django.contrib.auth.views import login_required
 from django.template.context import RequestContext
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
 from curia.authentication.models import MetaUser
+from tri.query import Variable
 from mammon.money import *
 from mammon.money.models import *
+from tri.declarative import setdefaults, evaluate
+from tri.table import render_table_to_response, Table
+from tri.table import Column as ColumnBase
+
+
+class Column(ColumnBase):
+    @staticmethod
+    def inline_edit(base=ColumnBase, **kwargs):
+        setdefaults(kwargs, dict(
+            cell__format=lambda table, column, row, value: mark_safe('<span class="inline_editable" edit_url="%sedit/%s/" id="%s">%s</span>' % (row.get_absolute_url(), column.name, row.pk, value))
+        ))
+        return base(**kwargs)
+
+    @staticmethod
+    def inline_edit_select(**kwargs):
+        def inline_edit_select_cell_format(table, column, row, value):
+            options = '<option value=""></option>' + '\n'.join(['<option value="%s"%s>%s</option>' % (choice.pk, ' selected="selected"' if choice == value else '', choice) for choice in evaluate(kwargs['choices'], table=table, column=column, row=row, value=value)])
+
+            return mark_safe('<select class="inline_editable_select" edit_url="%sedit/%s/" id="%s">%s</select>' % (row.get_absolute_url(), column.name, row.pk, options))
+        setdefaults(kwargs, dict(
+            cell__format=inline_edit_select_cell_format
+        ))
+        return ColumnBase.choice_queryset(**kwargs)
+
+
+# TODO: i18n
+class TransactionTable(Table):
+    select = Column.select()
+    date = Column.inline_edit(
+        base=ColumnBase.date,
+        attr='time',
+        query__show=True,
+        query__gui__show=True,
+        cell__value=lambda row, **_: row.time.date(),
+        cell__attrs={'class': 'time'},
+    )
+    description = Column.inline_edit(
+        query__show=True,
+        query__freetext=True,
+        cell__attrs={'class': 'description'},
+    )
+    amount = Column.number(
+        query__show=True,
+        query__class=Variable.float,
+        cell__attrs={'class': 'rj amount'},
+    )
+    category = Column.inline_edit_select(
+        model=Category,
+        choices=lambda table, **_: Category.objects.filter(user=table.request.user),
+        query__show=True,
+        query__gui__show=True,
+        bulk__show=True,
+        cell__attrs={'class': 'category'},
+    )
+    account = Column.inline_edit_select(
+        model=Account,
+        choices=lambda table, **_: Account.objects.filter(user=table.request.user),
+        show=lambda table, **_: Account.objects.filter(user=table.request.user).exists(),
+        query__show=True,
+        query__gui__show=True,
+        bulk__show=True,
+        cell__attrs={'class': 'account'},
+    )
+
+    split = Column.icon(
+        icon='share-alt',
+        cell__attrs={
+            'onclick': lambda row, **_: 'split_transaction(%s)' % row.pk,
+            'title': ugettext_lazy('Split'),
+        },
+    )
+    unsplit = Column.icon(
+        icon='share-alt',
+        cell__value=lambda row, **_: row.virtual,
+        cell__attrs={
+            'onclick': lambda row, **_: 'unsplit_transaction(%s)' % row.pk,
+            'class': 'unsplit',
+            'title': ugettext_lazy('From a split transaction. Click to unsplit.')
+        },
+    )
+    delete = Column.icon(
+        icon='trash',
+        cell__attrs={
+            'onclick': lambda row, **_: 'delete_transaction(%s)' % row.pk,
+            'title': ugettext_lazy('Delete'),
+        },
+    )
+
+    class Meta:
+        attrs = {'id': 'transaction_list'}
 
 
 def next_month(d):
@@ -61,27 +152,10 @@ class DataPoint:
         return '(%s, %s)' % (self.date, self.amount)
 
 
-def transaction_filter(request, transactions):
-    # limit the transactions for display
-    transactions = transactions.filter(user=request.user)
-    if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST and request.REQUEST['start_time'] and \
-            request.REQUEST['end_time']:
-        transactions = transactions.filter(time__gt=datetime_from_string(request.GET['start_time']),
-                                           time__lt=datetime_from_string(request.REQUEST['end_time']))
-    if 'q' in request.REQUEST and request.REQUEST['q']:
-        transactions = transactions.filter(description__icontains=request.REQUEST['q'])
-    if 'category' in request.REQUEST and request.REQUEST['category']:
-        if request.REQUEST['category'] == '0':
-            transactions = transactions.filter(category__isnull=True)
-        else:
-            transactions = transactions.filter(category__pk=request.REQUEST['category'])
-    if 'account' in request.REQUEST and request.REQUEST['account']:
-        transactions = transactions.filter(account__pk=request.REQUEST['account'])
-    if 'greater_than' in request.REQUEST and request.REQUEST['greater_than']:
-        transactions = transactions.filter(amount__gt=request.REQUEST['greater_than'])
-    if 'less_than' in request.REQUEST and request.REQUEST['less_than']:
-        transactions = transactions.filter(amount__lt=request.REQUEST['less_than'])
-    return transactions.order_by('-time')
+def transaction_filter(request):
+    table = TransactionTable(data=Transaction.objects.filter(user=request.user))
+    table.prepare(request)
+    return table.data.order_by('-time')
 
 
 @login_required
@@ -90,15 +164,12 @@ def index(request):
         last_transaction = Transaction.objects.filter(user=request.user, virtual=False).order_by('-time')[0]
     except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
-    return render_to_response(
-        'money/index.html',
-        RequestContext(request, {
-            'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
-            'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
-            'transactions': transaction_filter(request, Transaction.objects.filter(user=request.user, category__isnull=True)).order_by('-time'),
-            'last_transaction': last_transaction,
-            'categories': Category.objects.filter(user=request.user),
-        }))
+    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user).filter(category=None)), template_name='money/index.html', context={
+        'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
+        'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
+        'last_transaction': last_transaction,
+        'categories': Category.objects.filter(user=request.user),
+    })
 
 
 @login_required
@@ -164,7 +235,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
     if group.user != request.user:
         raise AccessDeniedException('cannot edit others categories')
 
-    transactions = transaction_filter(request, Transaction.objects.filter(**{group_name: group}))
+    transactions = transaction_filter(request).filter(**{group_name: group})
 
     if request.POST:
         post = copy(request.POST)
@@ -196,71 +267,14 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
 
 
 @login_required
-def view_transactions(request, page='1'):
-    transactions = transaction_filter(request, Transaction.objects.filter(user=request.user))
-    paginator = Paginator(transactions, get_page_size(request))
-    categories = Category.objects.filter(user=request.user)
-    accounts = Account.objects.filter(user=request.user)
-
-    data = dict([(key, value) for key, value in request.REQUEST.items() if value])
-
-    class FilterForm(forms.Form):
-        q = forms.CharField(label=ugettext_lazy('Description'), required=False)
-        start_time = forms.DateTimeField(required=False, label=ugettext_lazy('Start time'))
-        end_time = forms.DateTimeField(required=False, label=ugettext_lazy('End time'))
-        greater_than = forms.FloatField(required=False, label=ugettext_lazy('Greater than'))
-        less_than = forms.FloatField(required=False, label=ugettext_lazy('Less than'))
-        category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False, label=ugettext_lazy('Category'))
-        account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False, label=ugettext_lazy('Account'))
-
-    class BulkEditForm(forms.Form):
-        bulk_description = forms.CharField(label=ugettext_lazy('Append description'), required=False)
-        bulk_category = forms.ChoiceField(choices=[('', '')] + [(category.pk, category.name) for category in categories], required=False, label=ugettext_lazy('Category'))
-        bulk_account = forms.ChoiceField(choices=[('', '')] + [(account.pk, account.name) for account in accounts], required=False, label=ugettext_lazy('Account'))
-
-    for name, field in FilterForm.base_fields.items():
-        BulkEditForm.base_fields[name] = forms.CharField(required=False, widget=forms.HiddenInput)
-
-    filter_form = FilterForm(data)
-    bulk_edit_form = BulkEditForm(data)
-
-    if request.POST:
-        update = {}
-        if bulk_edit_form.is_valid():
-            if bulk_edit_form.cleaned_data['bulk_description']:
-                for transaction in transactions:
-                    transaction.description += ' ' + bulk_edit_form.cleaned_data['bulk_description']
-                    transaction.save()
-            if bulk_edit_form.cleaned_data['bulk_category']:
-                update['category'] = Category.objects.get(user=request.user,
-                                                          pk=bulk_edit_form.cleaned_data['bulk_category'])
-            if bulk_edit_form.cleaned_data['bulk_account']:
-                update['account'] = Account.objects.get(user=request.user,
-                                                        pk=bulk_edit_form.cleaned_data['bulk_account'])
-            transactions.update(**update)
-            return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-    try:
-        transactions = paginator.page(page).object_list
-    except EmptyPage:
-        page = 1
-        transactions = paginator.page(page).object_list
-
-    return render_to_response('money/view_transaction_list.html', RequestContext(request, {
-        'filter_form': filter_form,
-        'bulk_edit_form': bulk_edit_form,
-        'paginator': paginator,
-        'page': page,
-        'base_url': '/transactions/',
-        'transactions': transactions,
-        'categories': categories,
-        'sum': transactions.aggregate(Sum('amount'))['amount__sum'] if transactions else 0,
-    }))
+def view_transactions(request):
+    # TODO: bulk edit on description field should be append, not set
+    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user)), template_name='money/view_transaction_list.html')
 
 
 @login_required
 def export_transactions(request):
-    transactions = transaction_filter(request, Transaction.objects.filter(user=request.user)).order_by('time')
+    transactions = transaction_filter(request)
 
     def export():
         for transaction in transactions:
@@ -291,12 +305,12 @@ def transactions_for_user(user):
     return Transaction.objects.filter(user=user).select_related('account', 'category')
 
 
-def transactions_for_period(request, start_time, end_time, user):
-    return transaction_filter(request, Transaction.objects.filter(user=user, time__gt=start_time, time__lt=end_time)).select_related('account', 'category')
+def transactions_for_period(request, start_time, end_time):
+    return transaction_filter(request).filter(time__gt=start_time, time__lt=end_time).select_related('account', 'category')
 
 
 def create_summary(request, start_time, end_time, user):
-    transactions = transactions_for_period(request, start_time, end_time, user)
+    transactions = transactions_for_period(request, start_time, end_time)
     period_setting = get_period_setting(request.user)
 
     number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month
@@ -309,7 +323,7 @@ def create_summary(request, start_time, end_time, user):
     account_by_pk[None] = Account(name=' default', pk=0)
     category_by_pk = {x.pk: x for x in Category.objects.filter(user=user)}
     category_by_pk[None] = Category(name=' other', pk=0)
-    q = str(new_way.query)
+
     # TODO: replace nulls for account and category
     new_way = list(new_way)
     for r in new_way:
@@ -405,8 +419,7 @@ def view_summary(request, period='month', year=None, month=None):
     # calculate projections for the current unfinished month only
     if period == 'month' and year == datetime.now().year and month == datetime.now().month:
         last_month = True
-        last_period_transactions = transactions_for_period(request, last_period_start_time, last_period_end_time,
-                                                           request.user)
+        last_period_transactions = transactions_for_period(request, last_period_start_time, last_period_end_time)
         transaction_descriptions = set([x.description for x in transactions])
         for last_period_transaction in last_period_transactions:
             if last_period_transaction.category and last_period_transaction.category.period == 1 and last_period_transaction.description not in transaction_descriptions:
