@@ -32,7 +32,8 @@ class Column(ColumnBase):
     @staticmethod
     def inline_edit(base=ColumnBase, **kwargs):
         setdefaults(kwargs, dict(
-            cell__format=lambda table, column, row, value: mark_safe('<span class="inline_editable" edit_url="%sedit/%s/" id="%s">%s</span>' % (row.get_absolute_url(), column.name, row.pk, value))
+            cell__format=lambda table, column, row, value: mark_safe('<span class="inline_editable" edit_url="%sedit/%s/" id="%s">%s</span>' % (row.get_absolute_url(), column.name, row.pk, value)),
+            query__show=True,
         ))
         return base(**kwargs)
 
@@ -43,7 +44,8 @@ class Column(ColumnBase):
 
             return mark_safe('<select class="inline_editable_select" edit_url="%sedit/%s/" id="%s">%s</select>' % (row.get_absolute_url(), column.name, row.pk, options))
         setdefaults(kwargs, dict(
-            cell__format=inline_edit_select_cell_format
+            cell__format=inline_edit_select_cell_format,
+            query__show=True,
         ))
         return ColumnBase.choice_queryset(**kwargs)
 
@@ -54,25 +56,21 @@ class TransactionTable(Table):
     date = Column.inline_edit(
         base=ColumnBase.date,
         attr='time',
-        query__show=True,
         query__gui__show=True,
         cell__value=lambda row, **_: row.time.date(),
         cell__attrs={'class': 'time'},
     )
     description = Column.inline_edit(
-        query__show=True,
         query__freetext=True,
         cell__attrs={'class': 'description'},
     )
     amount = Column.number(
-        query__show=True,
         query__class=Variable.float,
         cell__attrs={'class': 'rj amount'},
     )
     category = Column.inline_edit_select(
         model=Category,
         choices=lambda table, **_: Category.objects.filter(user=table.request.user),
-        query__show=True,
         query__gui__show=True,
         bulk__show=True,
         cell__attrs={'class': 'category'},
@@ -81,7 +79,6 @@ class TransactionTable(Table):
         model=Account,
         choices=lambda table, **_: Account.objects.filter(user=table.request.user),
         show=lambda table, **_: Account.objects.filter(user=table.request.user).exists(),
-        query__show=True,
         query__gui__show=True,
         bulk__show=True,
         cell__attrs={'class': 'account'},
@@ -112,7 +109,7 @@ class TransactionTable(Table):
     )
 
     class Meta:
-        attrs = {'id': 'transaction_list'}
+        attrs__id = 'transaction_list'
 
 
 def next_month(d):
