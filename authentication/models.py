@@ -50,13 +50,6 @@ class MetaUser(models.Model):
     last_notification_email_time = models.DateTimeField(blank=True, null=True, verbose_name=_('Notification e-mail time'))
     notification_style = models.CharField(verbose_name=_('Notification Style'), choices=NotificationStyle_Choices, max_length=10, default='D')
 
-    def presentation(self):
-        try:
-            from curia.documents.models import Document
-            return Document.objects.get(owner_user=self.user, is_presentation=True).get_latest_version()
-        except IndexError:
-            return None
-
     def __unicode__(self):
         return unicode(self.user)
 
