@@ -1,0 +1,72 @@
+{% extends base %}{% load i18n %}{% load auth %}
+
+{% block title %} {% blocktrans with the_user.first_name as escaped %}Change details of {{ escaped }}{% endblocktrans %} {% endblock %}
+{% block header %} {% blocktrans with the_user.first_name as escaped %}Change details of {{ escaped }}{% endblocktrans %} {% endblock %}
+
+{% block extra_head %}
+    <style type="text/css">
+    	.form-cell
+    	{
+    		display: table-cell;
+    		vertical-align:  top;
+    		padding-right:  10px;
+    	}
+    	.form-cell label
+    	{
+    		width: auto;
+    		padding-right: 0px;
+    	}
+    </style>
+{% endblock %}
+
+{% block content %}
+
+{% if errors %}
+	{% for error in errors %}
+		{{ error }}
+	{% endfor %}
+	{{ errors }}
+{% endif %}
+
+<script type="text/javascript">
+	var new_id = 1;
+	function add_detail()
+	{
+		var new_div = document.createElement('div');
+		new_div.innerHTML = '{% filter javascript_string_escape  %}{% include "authentication/detail.html" %}{% endfilter %}';
+		new_div.id = 'row_'+new_id;
+
+		document.getElementById('insert_point').appendChild(new_div);
+		new_id++;
+	}
+
+	function delete_detail(id)
+	{
+		document.getElementById('insert_point').removeChild(document.getElementById('row_'+id))
+	}
+</script>
+
+<form method="post" enctype="multipart/form-data">
+	{% ifequal viewer the_user %}
+		{{ _("To change your name, age or login-data, go to:") }} <a href="/users/{{ the_user.id }}/settings/">{{ _("Settings") }}</a>
+	{% endifequal %}
+	<fieldset class="module aligned">
+	<table>
+		{% include "form.html" %}
+	</table>
+
+	<!--<h3>{{ _("Quick facts") }}</h3>
+	{% for detail in details %}
+		{% include "authentication/detail.html" %}
+	{% endfor %}
+
+	<div id="insert_point"></div>
+
+	<a href="#" onClick="add_detail();return false;" class="small_button"><img src="{{ MEDIA_URL }}commands/add.png" alt="" />{{ _("Add detail") }}</a>
+
+	</fieldset>-->
+	<input type="submit" value="{{ _("Save") }}" />
+</form>
+
+{% endblock %}
+

@@ -1,5 +1,4 @@
 {% load auth %}
-{% include "curia.css" %}
 
 #utils-menu li {
     display: inline;
@@ -121,7 +120,7 @@ input, textarea {
 }
 
 #body {
-    padding-top: 100px;
+    padding-top: 120px;
     text-align: center;
     padding-bottom: 10px;
 }
@@ -277,8 +276,6 @@ textarea
 {
     text-align: center;
     clear: both;
-    padding-bottom: 3px;
-    padding-top: 4px;
     background-color: #f7f7f7;
 }
 

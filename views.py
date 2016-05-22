@@ -1,11 +1,17 @@
-from curia.authentication.models import MetaUser
+import django
+from mammon.authentication.models import MetaUser
 from curia.shortcuts import render_to_response
 from django.contrib.auth import authenticate
-from curia.authentication.views import LoginForm
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 # noinspection PyUnresolvedReferences
 from django.utils.translation import ugettext as _
+import django.forms
+
+
+class LoginForm(django.forms.Form):
+    username = django.forms.CharField(max_length=1024, label=_('Email'))
+    password = django.forms.CharField(max_length=1024, widget=django.forms.PasswordInput, label=_('Password'))
 
 
 def echo_headers(request):
@@ -17,7 +23,7 @@ def echo_headers(request):
 
 
 def login(request, template='authentication/login.html'):
-    next_url = request.REQUEST.get('next', '/')
+    next_url = request.GET.get('next', request.POST.get('next', '/'))
 
     if request.POST:
         form = LoginForm(request.POST)

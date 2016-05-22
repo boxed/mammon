@@ -53,7 +53,7 @@
 
                 {% if user.is_authenticated %}
                 {% else %}
-                    {% curia_include "authentication/login_box.html" %}
+                    {% include "authentication/login_box.html" %}
                 {% endif %}
                 {% block content %}
                 {% endblock %}

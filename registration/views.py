@@ -51,9 +51,9 @@ def request_new_password(request):
         email = django.forms.CharField(max_length=150, required=True, label=ugettext('Email'))
 
     if request.POST:
-        form = RequestForm(request.REQUEST)
+        form = RequestForm(request.GET)
         try:
-            user = User.objects.get(email=request.REQUEST['email'])
+            user = User.objects.get(email=request.GET['email'])
         except User.DoesNotExist:
             user = None
             form.errors['email'] = (ugettext('There is no user with this email'),)
@@ -97,11 +97,11 @@ def set_new_password(request):
         confirm_password = django.forms.CharField(max_length=30, required=True, widget=django.forms.PasswordInput, label=ugettext('Confirm password'))
 
     if request.POST:
-        form = NewPasswordForm(request.REQUEST)
+        form = NewPasswordForm(request.GET)
 
         try:
-            user = User.objects.get(email=request.REQUEST['email'])
-            forgot = ForgotPassword.objects.get(user=user, password=request.REQUEST['code'])
+            user = User.objects.get(email=request.GET['email'])
+            forgot = ForgotPassword.objects.get(user=user, password=request.GET['code'])
         except (User.DoesNotExist, ForgotPassword.DoesNotExist):
             user = None
             forgot = None

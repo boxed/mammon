@@ -1,9 +1,21 @@
 from collections import defaultdict
 from datetime import timedelta, datetime
 from time import strptime
-from curia import first_of_next_month, first_of_previous_month
-from curia.authentication.models import Detail
 from mammon.middleware import get_current_request
+
+
+def first_of_next_month(reference_date):
+    if reference_date.month == 12:
+        return datetime(reference_date.year + 1, 1, 1)
+    else:
+        return datetime(reference_date.year, reference_date.month + 1, 1)
+
+
+def first_of_previous_month(reference_date):
+    if reference_date.month == 1:
+        return datetime(reference_date.year - 1, 12, 1)
+    else:
+        return datetime(reference_date.year, reference_date.month - 1, 1)
 
 
 def get_start_of_period(reference, user):
@@ -21,6 +33,7 @@ def get_end_of_period(reference, user):
 
 
 def get_period_setting(user):
+    from mammon.authentication.models import Detail
     request = get_current_request()
     if not hasattr(request, 'period_setting'):
         request.period_setting = Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_period_days', defaults={'value': '25'})[0]
@@ -28,6 +41,7 @@ def get_period_setting(user):
 
 
 def get_history_months_setting(user):
+    from mammon.authentication.models import Detail
     return Detail.objects.get_or_create(owner_user=user, owner_group__isnull=True, name='mammon_history_months', defaults={'value': '12'})[0]
 
 

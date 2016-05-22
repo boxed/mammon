@@ -1,0 +1,55 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block title %}{{ community }}{% endblock %}
+
+{% block body_id %}id_login{% endblock %}
+<head>
+	<link rel="stylesheet" type="text/css" href="/community.css" />
+	<!--<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}tabs/tabs.css" />-->
+	<script type="text/javascript" src="{{ MEDIA_URL }}js/prototype.js"></script>
+	<script type="text/javascript" src="/jsi18n/"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}js/core.js"></script>
+	{% block extra_head %}{% endblock %}
+	<style>
+		body {
+			text-align: left;
+		}
+	</style>
+	<title>{{ community }} - {% block header %}{% endblock %}</title>
+</head>
+<body>
+	<div id="main">
+		{% block body %}
+			<div id="header">
+				<div id="header-util-links">
+					<ul id="utils-menu" class="menu">
+					</ul>
+				</div>
+				<div id="header-right">
+				</div>
+				<h1 id="header-title">{{ community }}</h1>
+				<ul id="global-menu" class="menu">
+					{% for item in menu %}
+						{{ item|safe }}
+					{% endfor %}
+				</ul>
+			</div>
+			<div id="body">
+				{% if submenu %}
+					<div id="id_submenu">
+						<h3>Submenu</h3>
+						<ul class="menu">
+							{{ current_menu_location|safe }}
+							{% for item in submenu %}
+								{{ item|safe }}
+							{% endfor %}
+						</ul>
+					</div>
+				{% endif %}
+
+<div id="id_content_login_login">
+	{% include "authentication/login_box.html" %}
+</div>
+{% endblock %}
+

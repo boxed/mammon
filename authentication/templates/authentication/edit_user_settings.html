@@ -1,0 +1,19 @@
+{% extends base %}{% load i18n %}{% load auth %}
+
+{% block title %} {% blocktrans with the_user.first_name as escaped %}Change settings of {{ escaped }}{% endblocktrans %} {% endblock %}
+{% block header %} {% blocktrans with the_user.first_name as escaped %}Change settings of {{ escaped }}{% endblocktrans %} {% endblock %}
+
+{% block content %}
+<a href="{{ the_user.get_absolute_url }}settings/password/" class="button">{{ _("Change password") }}</a>
+<a href="{{ the_user.get_absolute_url }}edit/" class="button">{{ _("Edit details") }}</a>
+{% if error %}
+	<p>{{ error }}</p>
+{% endif %}
+<form method="post" enctype="multipart/form-data" autocomplete="off">
+	<table>
+		{% include "form.html" %}<br />
+	</table>
+	<input type="submit" value="{{ _("Save") }}" />
+</form>
+{% endblock %}
+

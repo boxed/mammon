@@ -48,18 +48,18 @@ urlpatterns = patterns(
     (r'^history/$', 'mammon.money.views.view_history'),
 
     (r'^settings/$', 'mammon.money.views.settings'),
-    (r'^settings/password/$', 'curia.authentication.views.edit_user_password'),
+    (r'^settings/password/$', 'mammon.authentication.views.edit_user_password'),
 
     (r'^login/', 'mammon.views.login'),
     (r'^logout/', 'mammon.views.logout'),
     (r'^registration/', include('mammon.registration.urls')),
 
-    (r'^iphone-mammon.css$', 'curia.base.views.stylesheet', {'template': 'iphone-mammon.css'}),
-    (r'^mammon.css$', 'curia.base.views.stylesheet', {'template': 'mammon.css'}),
-    (r'^inline_edit.js$', 'curia.base.views.stylesheet', {'template': 'inline_edit.js', 'mimetype': 'text/javascript'}),
-    (r'^input_overlay.js$', 'curia.base.views.stylesheet', {'template': 'input_overlay.js', 'mimetype': 'text/javascript'}),
-    (r'^dialogs.js$', 'curia.base.views.stylesheet', {'template': 'dialogs.js', 'mimetype': 'text/javascript'}),
-    (r'^input_overlay.css$', 'curia.base.views.stylesheet', {'template': 'input_overlay.css'}),
+    (r'^iphone-mammon.css$', 'mammon.money.views.stylesheet', {'template': 'iphone-mammon.css'}),
+    (r'^mammon.css$', 'mammon.money.views.stylesheet', {'template': 'mammon.css'}),
+    (r'^inline_edit.js$', 'mammon.money.views.stylesheet', {'template': 'inline_edit.js', 'mimetype': 'text/javascript'}),
+    (r'^input_overlay.js$', 'mammon.money.views.stylesheet', {'template': 'input_overlay.js', 'mimetype': 'text/javascript'}),
+    (r'^dialogs.js$', 'mammon.money.views.stylesheet', {'template': 'dialogs.js', 'mimetype': 'text/javascript'}),
+    (r'^input_overlay.css$', 'mammon.money.views.stylesheet', {'template': 'input_overlay.css'}),
     
     (r'^echo_headers/', 'mammon.views.echo_headers'),
     (r'^bin2/gfskod', 'mammon.views.echo_headers'),

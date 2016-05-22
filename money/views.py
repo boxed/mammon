@@ -19,7 +19,7 @@ from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
-from curia.authentication.models import MetaUser
+from mammon.authentication.models import MetaUser
 from tri.query import Variable
 from mammon.money import *
 from mammon.money.models import *
@@ -136,8 +136,8 @@ class AccessDeniedException(Exception):
 
 
 def get_page_size(request):
-    if 'page_size' in request.REQUEST:
-        return int(request.REQUEST['page_size'])
+    if 'page_size' in request.GET:
+        return int(request.GET['page_size'])
     return 20
 
 
@@ -315,13 +315,12 @@ def create_summary(request, start_time, end_time, user):
     extra_select = {
         'month': 'CONCAT(IF(DAY(time) <= %s, YEAR(time), YEAR(DATE_ADD(time, INTERVAL 1 MONTH))), "-", IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH))), "-", "1")' % (int(period_setting.value), int(period_setting.value)),
     }
-    new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'month').annotate(Sum('amount'))
+    new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'month').annotate(Sum('amount')).order_by()
     account_by_pk = {x.pk: x for x in Account.objects.filter(user=user)}
     account_by_pk[None] = Account(name=' default', pk=0)
     category_by_pk = {x.pk: x for x in Category.objects.filter(user=user)}
     category_by_pk[None] = Category(name=' other', pk=0)
 
-    # TODO: replace nulls for account and category
     new_way = list(new_way)
     for r in new_way:
         r['account'] = account_by_pk[r['account_id']]
@@ -395,9 +394,9 @@ def view_summary(request, period='month', year=None, month=None):
         start_time = get_start_of_period(reference, request.user)
         end_time = get_end_of_period(start_time, request.user)
     elif period == 'year':
-        if 'start_time' in request.REQUEST and 'end_time' in request.REQUEST:  # allow start/end time to be overwritten by URL
-            start_time = datetime_from_string(request.REQUEST['start_time'])
-            end_time = datetime_from_string(request.REQUEST['end_time'])
+        if 'start_time' in request.GET and 'end_time' in request.GET:  # allow start/end time to be overwritten by URL
+            start_time = datetime_from_string(request.GET['start_time'])
+            end_time = datetime_from_string(request.GET['end_time'])
         else:
             start_time = get_start_of_period(datetime(int(year), 1, 1), request.user)
             end_time = datetime(start_time.year + 1, start_time.month, start_time.day)
@@ -475,8 +474,8 @@ def view_history(request):
     cursor = connection.cursor()
     reference = datetime.now()
     months = get_history_months_setting(request.user)
-    if 'months' in request.REQUEST:
-        months.value = request.REQUEST['months']
+    if 'months' in request.GET:
+        months.value = request.GET['months']
         months.save()
 
     when_statements = ''
@@ -552,7 +551,7 @@ def view_history(request):
 @login_required
 def delete_transaction(request, transaction_id):
     Transaction.objects.get(pk=transaction_id, user=request.user).delete()
-    return HttpResponseRedirect(request.REQUEST['next'] if 'next' in request.REQUEST else '/')
+    return HttpResponseRedirect(request.GET['next'] if 'next' in request.GET else '/')
 
 
 @login_required
@@ -687,7 +686,7 @@ def add_category(request):
 
 @login_required
 def update_matching(request):
-    reset = 'reset' in request.REQUEST
+    reset = 'reset' in request.GET
     update_matches_for_user(request.user, reset)
     return HttpResponseRedirect('/')
 
@@ -886,8 +885,8 @@ def all_like_this(request, transaction_id):
         c = RequestContext(request, {
             'transaction': transaction,
             'description_spans': mark_safe(result),
-            'category': request.REQUEST['category'],
-            'account': request.REQUEST.get('account')
+            'category': request.GET['category'],
+            'account': request.GET.get('account')
         })
         return render_to_response('money/all_like_this.html', c)
     elif request.method == 'POST':
@@ -960,3 +959,25 @@ def find_outliers(request):
     }
 
     return render_to_response('money/find_outliers.html', RequestContext(request, c))
+
+
+def stylesheet(request, template, mimetype='text/css'):
+    user_agent = request.META['HTTP_USER_AGENT'].lower()
+    if 'ie' in user_agent:
+        browser = 'ie'
+    elif 'webkit' in user_agent:
+        browser = 'webkit'
+    elif 'mozilla' in user_agent:
+        browser = 'mozilla'
+    elif 'opera' in user_agent:
+        browser = 'opera'
+    else:
+        browser = 'unknown'
+
+    from django.template import loader
+    from django.http import HttpResponse
+    from django.template import RequestContext
+
+    return HttpResponse(loader.render_to_string(template, context_instance=RequestContext(request),
+                                                dictionary={'browser': browser, 'user_agent': user_agent}),
+                        content_type=mimetype)

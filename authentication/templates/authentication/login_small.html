@@ -1,0 +1,47 @@
+{% extends base %}
+{% load i18n %}{% load auth %}
+
+{% block title %}{{ community }}{{ community }}{% endblock %}
+{% block header %}{{ community }}.name }}{% endblock %}
+
+{% block body_id %}id_navigation{% endblock %}
+
+{% block body %}
+	<div id="id_username_overlay">{{ form.username.label }}</div>
+	<div id="id_password_overlay">{{ form.password.label }}</div>
+	<form method="post">
+		<input type="hidden" name="next" value="/navigation/" />
+		<table style="text-align:right;">
+			<tr><td colspan="3">{% blocktrans %}You have been logged out.{% endblocktrans %}</td></tr>
+			{% include "form.html" %}
+			<tr>
+				<td></td>
+				<td>
+					<input type="submit" value="{{ _("Log in") }}" />
+				</td>
+			</tr>
+		</table>
+	</form>
+	</div>
+	<script type="text/javascript">
+		function hide_overlay(name)
+		{
+			document.getElementById('id_'+name+'_overlay').style.display = 'none';
+		}
+		function show_overlay(name)
+		{
+			document.getElementById('id_'+name+'_overlay').style.display = 'inline';
+		}
+		function setup_overlay(name)
+		{
+			document.getElementById('id_'+name).onfocus = function() {hide_overlay(name);}
+			document.getElementById('id_'+name).onblur = function() {show_overlay(name);}
+			document.getElementById('id_'+name+'_overlay').onclick = function() {hide_overlay(name); document.getElementById('id_'+name).focus();}
+		}
+		
+		setup_overlay('username');
+		setup_overlay('password');
+	</script>
+
+
+{% endblock %}
