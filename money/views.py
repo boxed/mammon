@@ -752,26 +752,6 @@ def unsplit_transaction(request, transaction_id):
 
 
 @login_required
-def delete_range(request):
-    from django import forms
-    from curia.widgets import DateWidget
-
-    class RangeForm(forms.Form):
-        start_time = forms.DateField(label=ugettext_lazy('From date'), widget=DateWidget)
-        end_time = forms.DateField(label=ugettext_lazy('To date'), widget=DateWidget)
-
-    message = None
-
-    if request.POST:
-        Transaction.objects.filter(user=request.user, time__gt=datetime_from_string(request.POST['start_time']),
-                                   time__lt=datetime_from_string(request.POST['end_time'])).delete()
-        message = ugettext_lazy('Transactions deleted!')
-    form = RangeForm(initial={})
-
-    return render_to_response('money/delete_range.html', RequestContext(request, {'form': form, 'message': message}))
-
-
-@login_required
 def settings(request):
     from django import forms
 

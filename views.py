@@ -1,12 +1,12 @@
 import django
-from mammon.authentication.models import MetaUser
-from curia.shortcuts import render_to_response
+from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 # noinspection PyUnresolvedReferences
 from django.utils.translation import ugettext as _
 import django.forms
+from mammon.authentication.models import MetaUser
 
 
 class LoginForm(django.forms.Form):
@@ -55,7 +55,7 @@ def login(request, template='authentication/login.html'):
     else:
         form = LoginForm(initial={})
 
-    return render_to_response(request, template, {'login_form': form, 'next': next_url})
+    return render_to_response(template, {'login_form': form, 'next': next_url})
 
 
 def logout(request):

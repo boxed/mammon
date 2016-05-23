@@ -1,0 +1,4 @@
+{% load i18n %}{% load auth %}
+{% blocktrans %}You have clicked the "forgot my password"-button on Mammon, follow the link below to register a new password. If you don't want to change your password or if you received this without pressing the "forgot my password"-button, then you may safely ignore this email.{% endblocktrans %}
+<br /><br />
+{% blocktrans %}Change your password at http://mammon.kodare.net/registration/set_new_password/?code={{ password }}&email={{ email }}{% endblocktrans %}

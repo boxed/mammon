@@ -202,10 +202,6 @@ msgstr "Transaktionsstorlek"
 msgid "Transaction Description"
 msgstr "Transaktionsbeskrivning"
 
-#: money/templates/money/delete_range.html:18
-msgid "Delete range"
-msgstr "Radera spann"
-
 #: money/templates/money/find_outliers.html:21
 #, python-format
 msgid ""

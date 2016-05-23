@@ -26,8 +26,7 @@ urlpatterns = patterns(
     (r'^transactions/(?P<transaction_id>\d+)/edit/properties/$', 'mammon.money.views.edit_transaction_properties'),
     (r'^transactions/(?P<transaction_id>\d+)/delete/$', 'mammon.money.views.delete_transaction'),
     (r'^transactions/delete_zeroes/$', 'mammon.money.views.delete_empty_transactions'),
-    (r'^transactions/delete_range/$', 'mammon.money.views.delete_range'),
-    
+
     (r'^categories/$', 'mammon.money.views.view_categories'),
     (r'^categories/(?P<category_id>\d+)/$', 'mammon.money.views.view_category'),
     (r'^categories/(?P<category_id>\d+)/page/(?P<page>\d+)/$', 'mammon.money.views.view_category'),
@@ -73,6 +72,5 @@ urlpatterns = patterns(
     # Uncomment this for admin:
     (r'^admin/', include(admin.site.urls)),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www-python/kodare/django/contrib/admin/media'}),
-    (r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT + 'curia/site-media'}),
     (r'^site-media2/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT + 'mammon/site-media'}),
 )

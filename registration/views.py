@@ -4,7 +4,6 @@ from django.core.validators import EmailValidator
 from django.shortcuts import *
 import django.forms
 from django.utils.translation import ugettext
-from curia.shortcuts import *
 from mammon.registration.models import *
 
 
@@ -43,7 +42,7 @@ def register(request):
     else:
         form = RegisterForm(initial={})
 
-    return render_to_response(request, 'registration/register.html', {'form': form})
+    return render_to_response('registration/register.html', {'form': form})
 
 
 def request_new_password(request):
@@ -63,18 +62,19 @@ def request_new_password(request):
 
             password = User.objects.make_random_password(6)
             email = form.cleaned_data['email']
-            t = loader.get_template('registration/retrieve.html')
             c = {
                 'password': password,
                 'email': email,
             }
             subject = ugettext('New password request for Mammon')
-            html_message = t.render(Context(c))
 
-            from curia.html2text import html2text
-            text_message = html2text(html_message)
             from django.contrib.sites.models import Site
-            send_mail(subject, text_message, from_email='retrieve@' + Site.objects.get_current().domain, recipient_list=[email])
+            send_mail(
+                subject,
+                message=loader.get_template('registration/retrieve.txt').render(Context(c)),
+                html_message=loader.get_template('registration/retrieve.html').render(Context(c)),
+                from_email='retrieve@' + Site.objects.get_current().domain,
+                recipient_list=[email])
 
             try:
                 forgot = ForgotPassword.objects.get(user=user)
@@ -83,12 +83,12 @@ def request_new_password(request):
                 pass
             ForgotPassword.objects.create(user=user, password=password, created_from='')
 
-            return render_to_response(request, 'registration/request_email_sent.html')
+            return render_to_response('registration/request_email_sent.html')
 
     else:
         form = RequestForm(initial={})
 
-    return render_to_response(request, 'registration/request_new_password.html', {'form': form, 'disable_login_box': True})
+    return render_to_response('registration/request_new_password.html', {'form': form, 'disable_login_box': True})
 
 
 def set_new_password(request):
@@ -118,4 +118,4 @@ def set_new_password(request):
     else:
         form = NewPasswordForm(initial={})
 
-    return render_to_response(request, 'registration/set_new_password.html', {'form': form})
+    return render_to_response('registration/set_new_password.html', {'form': form})
