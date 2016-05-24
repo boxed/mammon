@@ -489,3 +489,7 @@ p {
     vertical-align: bottom; }
 
 /*end tri.table styles */
+
+#tri_query_toggle_simple_mode {
+    padding-right: 10px;
+}

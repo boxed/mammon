@@ -8,7 +8,7 @@ class AccessDeniedException(exceptions.Exception):
     command = None
     args = None
 
-    def __init__(self, user, obj, command, comment = ''):
+    def __init__(self, user, obj, command, comment=''):
         self.user = user
         self.obj = obj
         self.command = command

@@ -12,12 +12,12 @@ def general(request):
     accounts = Account.objects.filter(user=request.user) if request.user.is_authenticated() else []
     is_mac = 'Mac' in request.META.get('HTTP_USER_AGENT', '')
     return {
-        'base':'base.html', 
-        'community':'Mammon', 
+        'base': 'base.html',
+        'community': 'Mammon',
         'user_agent': agent,
         'settings': settings,
         'accounts': accounts,
-        'command_button': '⌘' if  is_mac else 'Ctrl',
+        'command_button': '⌘' if is_mac else 'Ctrl',
         'ctrl_label': mark_safe('&#x2303;') if is_mac else 'Ctrl+',
         'enter_label': mark_safe('&#x21A9;') if is_mac else 'Enter',
-        }
+    }

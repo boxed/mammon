@@ -870,8 +870,8 @@ def all_like_this(request, transaction_id):
         })
         return render_to_response('money/all_like_this.html', c)
     elif request.method == 'POST':
-        start_index = request.POST['start_index']
-        end_index = request.POST['end_index']
+        start_index = int(request.POST['start_index'])
+        end_index = int(request.POST['end_index'])
         assert start_index < end_index
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
         category.add_rule(transaction.description[int(start_index):int(end_index) + 1])

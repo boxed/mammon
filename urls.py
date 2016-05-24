@@ -1,7 +1,6 @@
 from django.conf.urls import patterns, include
 import settings
 from django.contrib import admin
-#admin.autodiscover()
 
 urlpatterns = patterns(
     '',
@@ -67,9 +66,7 @@ urlpatterns = patterns(
 
     (r'^jsi18n/$', 'django.views.i18n.javascript_catalog', {'packages': 'django.conf'}),
 
-#    (r'^test/', 'mammon.money.views.test'),
-
-    # Uncomment this for admin:
+    # admin:
     (r'^admin/', include(admin.site.urls)),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www-python/kodare/django/contrib/admin/media'}),
     (r'^site-media2/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.DOCUMENT_ROOT + 'mammon/site-media'}),

@@ -108,6 +108,25 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'mammon.context_processors.general',
 )
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.core.context_processors.debug',
+                'django.core.context_processors.i18n',
+                'django.core.context_processors.media',
+                'mammon.context_processors.general',
+            ],
+        },
+    },
+]
+
 ROOT_URLCONF = 'mammon.urls'
 
 TEMPLATE_DIRS = tuple()

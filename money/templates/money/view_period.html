@@ -70,13 +70,13 @@
 	            {% if d.sum %}
 	                <tr class="category_id_{{ category.id }} category_period_{{ category.period }}_month">
 	                    <td>
-                            <a href="/transactions/?query=category%3D{% if category.pk == 0 %}null{% else %}{{ category }}{% endif %}%20and%20date>%3D{{ start_time|date:"Y-m-d" }}%20and%20date<%3D{{ end_time|date:"Y-m-d" }}{% if account.id %}%20and%20account%3D{{ account }}{% endif %}">
+                            <a href="/transactions/?query=category%3D{% if category.pk == 0 %}null{% else %}%22{{ category }}%22{% endif %}%20and%20date>%3D{{ start_time|date:"Y-m-d" }}%20and%20date<{{ end_time|date:"Y-m-d" }}{% if account.id %}%20and%20account%3D{{ account }}{% endif %}">
                                 {{ category }}
                             </a>
                         </td>
 	                    <td class="amount">{{ d.sum|floatformat:2 }}</td>
 	                    <td>
-	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px;" class="{% if d.sum|is_negative %}loss{% else %}gain{% endif %}">&nbsp;</div>
+	                        <div style="width: {{ d.severity|multiply:200|add:2 }}px;" class="{% if d.sum < 0 %}loss{% else %}gain{% endif %}">&nbsp;</div>
 	                    </td>
 						{% if period == "year" %}
 							<td class="amount">{{ d.sum|divide:monthly_average_divisor|floatformat:2 }}</td>

@@ -61,5 +61,15 @@ def relative_date(value):
 
 
 @register.filter
+def multiply(value, arg):
+    return float(value) * float(arg)
+
+
+@register.filter
+def divide(value, arg):
+    return float(value) / float(arg)
+
+
+@register.filter
 def javascript_string_escape(value):
     return value.replace('\r', '\n').replace('\\', '\\\\').replace('\n', '\\\n').replace('\"', '\\"')
