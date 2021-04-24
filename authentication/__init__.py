@@ -1,8 +1,7 @@
 import datetime
-import exceptions
 
 
-class AccessDeniedException(exceptions.Exception):
+class AccessDeniedException(Exception):
     user = None
     obj = None
     command = None

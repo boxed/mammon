@@ -33,7 +33,7 @@
 
     <p></p>
 
-    <form action=".">
+    <form action=".">{% csrf_token %}
         <label for="year">{% trans "Period" %}:</label>
         <input id="year" name="year" value="{{ year }}" />
 		{% if period == "month" %}

@@ -1,9 +1,8 @@
-import django
-from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 # noinspection PyUnresolvedReferences
+from django.shortcuts import render
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 import django.forms
@@ -35,7 +34,7 @@ def login(request, template='authentication/login.html'):
             except User.DoesNotExist:
                 user = None
             if user is None:
-                form.errors['username'] = [_(u'Username or password incorrect')]
+                form.errors['username'] = [_('Username or password incorrect')]
             else:
                 if user is not None and user.is_active:
                     from django.contrib.auth import login
@@ -56,7 +55,7 @@ def login(request, template='authentication/login.html'):
     else:
         form = LoginForm(initial={})
 
-    return render_to_response(template, RequestContext(request, {'login_form': form, 'next': next_url}))
+    return render(request, template, {'login_form': form, 'next': next_url})
 
 
 def logout(request):

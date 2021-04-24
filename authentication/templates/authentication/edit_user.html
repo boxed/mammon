@@ -46,7 +46,7 @@
 	}
 </script>
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
 	{% ifequal viewer the_user %}
 		{{ _("To change your name, age or login-data, go to:") }} <a href="/users/{{ the_user.id }}/settings/">{{ _("Settings") }}</a>
 	{% endifequal %}

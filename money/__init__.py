@@ -146,7 +146,7 @@ def find_default_number(table, most_significant_format):
     for index, column in enumerate(most_significant_format):
         if column == '1':
             number_rows[index] = [standardize_number(x[1][index]) for x in table if x[0] == most_significant_format]
-    for index1, index2 in permutations(number_rows.keys(), 2):
+    for index1, index2 in permutations(list(number_rows.keys()), 2):
         a = number_rows[index1][0]
         b = number_rows[index2][0]
         result = number_rows[index2][1]
@@ -160,9 +160,9 @@ def find_default_number(table, most_significant_format):
 def original_line_hash(amount, a_datetime, description, user):
     assert isinstance(amount, float)
     assert isinstance(a_datetime, datetime)
-    assert isinstance(description, unicode)
+    assert isinstance(description, str)
     import hashlib
-    original = (u'%s\t%s\t%s\t%s' % (user.id, amount, a_datetime.strftime('%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
+    original = ('%s\t%s\t%s\t%s' % (user.id, amount, a_datetime.strftime('%Y-%m-%d'), description)).encode('ascii', 'xmlcharrefreplace')
     original_md5 = hashlib.md5(original).hexdigest()
     return original_md5
 
@@ -176,5 +176,5 @@ def nest_dict(list_of_dicts, keys, unroll_last_list=True):
     rest_keys = keys[1:]
     result = defaultdict(list)
     for r in list_of_dicts:
-        result[r[first_key]] += [{k: v for k, v in r.items() if k != first_key}]
-    return {k: nest_dict(v, rest_keys) for k, v in result.items()}
+        result[r[first_key]] += [{k: v for k, v in list(r.items()) if k != first_key}]
+    return {k: nest_dict(v, rest_keys) for k, v in list(result.items())}

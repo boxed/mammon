@@ -1,7 +1,7 @@
 # coding=utf-8
-from __future__ import unicode_literals
-from __future__ import division
-import HTMLParser
+
+
+import html.parser
 from collections import Counter
 from copy import copy
 from decimal import Decimal
@@ -9,23 +9,24 @@ from math import sqrt
 from dateutil.relativedelta import relativedelta
 from django.utils.http import http_date
 from django.utils.translation import ugettext_lazy
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import (
+    get_object_or_404,
+    render,
+)
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.views import login_required
-from django.template.context import RequestContext
-from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
 from mammon.authentication.models import MetaUser
-from tri.query import Variable
+from tri_query import Variable
 from mammon.money import *
 from mammon.money.models import *
-from tri.declarative import setdefaults, evaluate
-from tri.table import render_table_to_response, Table
-from tri.table import Column as ColumnBase
+from tri_declarative import setdefaults_path as setdefaults, evaluate
+from tri_table import render_table_to_response, Table
+from tri_table import Column as ColumnBase
 
 
 class Column(ColumnBase):
@@ -119,11 +120,11 @@ def next_month(d):
         return datetime(d.year, d.month + 1, d.day)
 
 
-def std_deviation(l):
+def std_deviation(values):
     sum1 = Decimal(0.0)
     sum2 = Decimal(0.0)
     n = Decimal(0.0)
-    for x in l:
+    for x in values:
         sum1 += x
         sum2 += x * x
         n += Decimal(1.0)
@@ -143,7 +144,7 @@ def get_page_size(request):
 
 class DataPoint:
     def __init__(self, date, amount):
-        self.date, self.amount = datetime_from_string(date) if type(date) in (str, unicode) else date, amount
+        self.date, self.amount = datetime_from_string(date) if type(date) in (str, str) else date, amount
 
     def __repr__(self):
         return '(%s, %s)' % (self.date, self.amount)
@@ -151,7 +152,7 @@ class DataPoint:
 
 def transaction_filter(request):
     table = TransactionTable(data=Transaction.objects.filter(user=request.user))
-    table.prepare(request)
+    table.prepare()
     return table.data.order_by('-time')
 
 
@@ -161,7 +162,7 @@ def index(request):
         last_transaction = Transaction.objects.filter(user=request.user, virtual=False).order_by('-time')[0]
     except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
-    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user).filter(category=None)), template_name='money/index.html', context={
+    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user).filter(category=None)), template='money/index.html', context={
         'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
         'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
         'last_transaction': last_transaction,
@@ -171,14 +172,12 @@ def index(request):
 
 @login_required
 def view_categories(request):
-    return render_to_response('money/view_categories.html',
-                              RequestContext(request, {'categories': Category.objects.filter(user=request.user)}))
+    return render(request, 'money/view_categories.html', {'categories': Category.objects.filter(user=request.user)})
 
 
 @login_required
 def view_accounts(request):
-    return render_to_response('money/view_accounts.html',
-                              RequestContext(request, {'accounts': Account.objects.filter(user=request.user)}))
+    return render(request, 'money/view_accounts.html', {'accounts': Account.objects.filter(user=request.user)})
 
 
 @login_required
@@ -236,7 +235,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
 
     if request.POST:
         post = copy(request.POST)
-        for key, value in post.items():
+        for key, value in list(post.items()):
             if value == 'None':
                 post[key] = None
         form = form_class(post, instance=group)
@@ -249,7 +248,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
         form = form_class(initial={}, instance=group)
 
     paginator = Paginator(transactions, get_page_size(request))
-    return render_to_response('money/view_category.html', RequestContext(request, {
+    return render(request, 'money/view_category.html', {
         'paginator': paginator,
         'page': page,
         'base_url': '%s/%d/' % (url_base, group.id),
@@ -260,13 +259,13 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
         'sum': transactions.aggregate(Sum('amount'))['amount__sum'],
         'delete_message': ugettext_lazy('Delete this %s' % group_name),
         'confirm_delete_message': ugettext_lazy('Are you sure you want to delete this %s?' % group_name),
-    }))
+    })
 
 
 @login_required
 def view_transactions(request):
     # TODO: bulk edit on description field should be append, not set
-    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user)), template_name='money/view_transaction_list.html')
+    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user)), template='money/view_transaction_list.html')
 
 
 @login_required
@@ -285,9 +284,9 @@ def export_transactions(request):
 @login_required
 def import_transactions(request):
     if not request.POST:
-        return render_to_response('money/import.html', RequestContext(request, {}))
+        return render(request, 'money/import.html', {})
     else:
-        data = force_unicode(request.POST['data'])
+        data = request.POST['data']
         rows = [row for row in data.replace('\r\n', '\n').split('\n') if row]
         for row in rows:
             date, description, amount, category, account = row.split('\t')
@@ -333,27 +332,27 @@ def create_summary(request, start_time, end_time, user):
     accounts = nest_dict(new_way, ['account', 'category', 'month'])
 
     # Set the sum of months key
-    for account, categories in accounts.items():
-        for category, months in categories.items():
-            months['sum'] = sum([x['sum'] for x in months.values()])
+    for account, categories in list(accounts.items()):
+        for category, months in list(categories.items()):
+            months['sum'] = sum([x['sum'] for x in list(months.values())])
 
     max_value = None
-    for account, categories in accounts.items():
-        s = max([abs(months['sum']) for _, months in categories.items()])
+    for account, categories in list(accounts.items()):
+        s = max([abs(months['sum']) for _, months in list(categories.items())])
         max_value = max(max_value, s)
 
-    for account, categories in accounts.items():
-        for category, months in categories.items():
+    for account, categories in list(accounts.items()):
+        for category, months in list(categories.items()):
             months['severity'] = 0
             if max_value:
                 months['severity'] = abs(months['sum']) / max_value
-            sums = [v['sum'] for k, v in months.items() if type(k) != unicode]
+            sums = [v['sum'] for k, v in list(months.items()) if type(k) != str]
             sums += [Decimal(0.0)] * (number_of_months - len(sums))
             months['std_deviation'] = std_deviation(sums)
 
     total = Decimal(0)
-    for account, categories in accounts.items():
-        account.total = sum([x['sum'] for x in categories.values()])
+    for account, categories in list(accounts.items()):
+        account.total = sum([x['sum'] for x in list(categories.values())])
         total += account.total
         if account.total < 0:
             account.lossgain = 'loss'
@@ -434,8 +433,7 @@ def view_summary(request, period='month', year=None, month=None):
     else:
         assert False
 
-    resp = render_to_response('money/view_period.html',
-                              RequestContext(request, {
+    resp = render(request, 'money/view_period.html', {
                                   'lossgain': 'loss' if total < 0 else 'gain',
                                   'summary': summary,
                                   'total': total,
@@ -460,7 +458,7 @@ def view_summary(request, period='month', year=None, month=None):
 
                                   'transactions': transactions,
                                   'categories': Category.objects.filter(user=request.user),
-                              }))
+                              })
     import time
     resp['Expires'] = http_date(time.time() + 1000)
     return resp
@@ -545,7 +543,7 @@ def view_history(request):
          'gini': gini([float(x.amount) for x in result[None]][:-1]) if result else 0,
          'total_sum': sum(sums.values())}
 
-    return render_to_response('money/history.html', RequestContext(request, c))
+    return render(request, 'money/history.html', c)
 
 
 @login_required
@@ -562,24 +560,20 @@ def delete_empty_transactions(request):
 
 @login_required
 def edit_transaction_description(request, transaction_id):
-    from django.utils.encoding import smart_unicode
-
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
-    transaction.description = smart_unicode(request.POST['new_content'])
+    transaction.description = request.POST['new_content']
     transaction.save()
     return HttpResponse(transaction.description)
 
 
 @login_required
 def edit_transaction_properties(request, transaction_id):
-    from django.utils.encoding import smart_unicode
-
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     if 'category' in request.POST and request.POST['category']:
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'], defaults={})[0]
         transaction.category = category
     if 'description' in request.POST and request.POST['description']:
-        transaction.description = smart_unicode(request.POST['description'])
+        transaction.description = request.POST['description']
     if 'account' in request.POST and request.POST['account']:
         transaction.account = Account.objects.get_or_create(user=request.user, name=request.POST['account'])[0]
     transaction.save()
@@ -616,20 +610,16 @@ def edit_transaction_account(request, transaction_id):
 
 @login_required
 def edit_transaction_date(request, transaction_id):
-    from django.utils.encoding import smart_unicode
-
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
-    transaction.time = datetime_from_string(smart_unicode(request.POST['new_content']))
+    transaction.time = datetime_from_string(request.POST['new_content'])
     transaction.save()
     return HttpResponse(transaction.time.strftime('%Y-%m-%d'))
 
 
 @login_required
 def edit_account_name(request, account_id):
-    from django.utils.encoding import smart_unicode
-
     account = Account.objects.get(pk=account_id, user=request.user)
-    account.name = smart_unicode(request.POST['new_content'])
+    account.name = request.POST['new_content']
     account.save()
     return HttpResponse(account.name)
 
@@ -728,7 +718,7 @@ def split_transaction(request, transaction_id):
 
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-    return render_to_response('money/split_transaction.html', RequestContext(request, {'transaction': transaction}))
+    return render(request, 'money/split_transaction.html', {'transaction': transaction})
 
 
 @login_required
@@ -787,24 +777,24 @@ def settings(request):
     else:
         form = SettingsForm(initial={'language': request.session['django_language'], 'period': period_setting.value})
 
-    return render_to_response('money/settings.html', RequestContext(request, {'form': form,
+    return render(request, 'money/settings.html', {'form': form,
                                                                               'accounts': Account.objects.filter(
-                                                                                  user=request.user)}))
+                                                                                  user=request.user)})
 
 
 @login_required
 def add_transactions(request):
     if not request.POST:
-        return render_to_response('money/add.html', RequestContext(request, {}))
+        return render(request, 'money/add.html', {})
     else:
         data = request.POST['data']
         table_raw = [list(classify_row(x.split('\t'))) for x in data.split('\n')]
         table = [(classification, r) for classification, r in table_raw if has_requisite_data(classification)]
 
         counter = Counter([classification for classification, r in table])
-        if not counter.items():
-            return HttpResponse(unicode(ugettext_lazy("Sorry, I couldn't figure out the format of that input")))
-        most_significant_format = max([(x, y) for y, x in counter.items()])[1]
+        if not list(counter.items()):
+            return HttpResponse(str(ugettext_lazy("Sorry, I couldn't figure out the format of that input")))
+        most_significant_format = max([(x, y) for y, x in list(counter.items())])[1]
 
         if 'date_choice' in request.POST:
             text_columns = [int(x) for x in request.POST.getlist('text_choices[]')]
@@ -838,14 +828,14 @@ def add_transactions(request):
         except Format.DoesNotExist:
             number_default = find_default_number(table, most_significant_format)
 
-            return render_to_response('money/ask_for_format.html', RequestContext(request, {
+            return render(request, 'money/ask_for_format.html', {
                 'format': most_significant_format,
                 'table': table,
                 'number_default': number_default,
                 'date_default': most_significant_format.find('d'),
                 'text_default': most_significant_format.find('t'),
                 'data': data,
-            }))
+            })
 
 
 @login_required
@@ -862,13 +852,13 @@ def all_like_this(request, transaction_id):
             if c != ' ':
                 result += '<span class="letter" index="%s">%s</span>' % (i, c)
         result += '</span>'
-        c = RequestContext(request, {
+        c = {
             'transaction': transaction,
             'description_spans': mark_safe(result),
             'category': request.GET['category'],
             'account': request.GET.get('account')
-        })
-        return render_to_response('money/all_like_this.html', c)
+        }
+        return render(request, 'money/all_like_this.html', c)
     elif request.method == 'POST':
         start_index = int(request.POST['start_index'])
         end_index = int(request.POST['end_index'])
@@ -886,7 +876,7 @@ def all_like_this(request, transaction_id):
 def getting_started(request):
     if request.method == 'POST':
         category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
-        description = HTMLParser.HTMLParser().unescape(request.POST['description'])
+        description = html.parser.HTMLParser().unescape(request.POST['description'])
         category.add_rule(description)
         transactions_for_user(request.user).filter(description=description).update(category=category)
         category.save()
@@ -895,13 +885,18 @@ def getting_started(request):
     transactions = transactions_for_user(request.user).filter(category__isnull=True)
     foo = [(x['description'], x['description__count']) for x in transactions.values('description').annotate(Count('description')).order_by('-description__count') if x['description__count'] > 1]
 
+    count = transactions_for_user(request.user).count()
+    if count:
+        percent_done = (transactions_for_user(request.user).filter(category__isnull=False).count() / count * 100.0)
+    else:
+        percent_done = 0
     c = {
         'foo': foo,
         'categories': Category.objects.filter(user=request.user),
-        'percent_done': '%.1f' % (transactions_for_user(request.user).filter(category__isnull=False).count() / transactions_for_user(request.user).count() * 100.0)
+        'percent_done': '%.1f' % percent_done
     }
 
-    return render_to_response('money/getting_started.html', RequestContext(request, c))
+    return render(request, 'money/getting_started.html', c)
 
 
 @login_required
@@ -919,10 +914,10 @@ def find_outliers(request):
 
     # 2. From that, get the category with the highest stddev
     categories = dict(accounts[Account(name=' default', pk=0)])
-    highest_deviation_category, highest_deviation_data = sorted(categories.items(), key=lambda x: x[1]['std_deviation'], reverse=True)[skip_count]
+    highest_deviation_category, highest_deviation_data = sorted(list(categories.items()), key=lambda x: x[1]['std_deviation'], reverse=True)[skip_count]
 
     # 3. Graph the size of the months for that category. At this point outliers should stand out visually.
-    sum_by_month = {k: v['sum'] for k, v in highest_deviation_data.items() if type(k) is not unicode}
+    sum_by_month = {k: v['sum'] for k, v in list(highest_deviation_data.items()) if type(k) is not str}
 
     # 4. Allow to expand the month group and act on the transactions.
     filter_category = highest_deviation_category if highest_deviation_category.pk else None
@@ -932,13 +927,13 @@ def find_outliers(request):
         'categories': Category.objects.filter(user=request.user),
         'transactions_by_month': sorted([
             (month, sorted(transactions_for_user(request.user).filter(account=None, category=filter_category, time__gt=get_start_of_period(month, request.user), time__lte=get_start_of_period(month + timedelta(days=31), request.user)), reverse=True, key=lambda x: abs(x.amount)))
-            for month in highest_deviation_data.keys() if type(month) == datetime
+            for month in list(highest_deviation_data.keys()) if type(month) == datetime
         ]),
-        'graph': [DataPoint(k, v) for k, v in sum_by_month.items()],
+        'graph': [DataPoint(k, v) for k, v in list(sum_by_month.items())],
         'skip_count': skip_count + 1,
     }
 
-    return render_to_response('money/find_outliers.html', RequestContext(request, c))
+    return render(request, 'money/find_outliers.html', c)
 
 
 def stylesheet(request, template, mimetype='text/css'):
@@ -956,8 +951,6 @@ def stylesheet(request, template, mimetype='text/css'):
 
     from django.template import loader
     from django.http import HttpResponse
-    from django.template import RequestContext
 
-    return HttpResponse(loader.render_to_string(template, context_instance=RequestContext(request),
-                                                dictionary={'browser': browser, 'user_agent': user_agent}),
+    return HttpResponse(loader.render_to_string(template, request=request, context={'browser': browser, 'user_agent': user_agent}),
                         content_type=mimetype)

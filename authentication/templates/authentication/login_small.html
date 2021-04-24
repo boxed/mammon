@@ -9,7 +9,7 @@
 {% block body %}
 	<div id="id_username_overlay">{{ form.username.label }}</div>
 	<div id="id_password_overlay">{{ form.password.label }}</div>
-	<form method="post">
+	<form method="post">{% csrf_token %}
 		<input type="hidden" name="next" value="/navigation/" />
 		<table style="text-align:right;">
 			<tr><td colspan="3">{% blocktrans %}You have been logged out.{% endblocktrans %}</td></tr>

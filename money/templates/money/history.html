@@ -40,7 +40,7 @@
         <div id="placeholder" style="width:600px; height:500px"></div>
     </div>
 
-    <form action="">
+    <form action="">{% csrf_token %}
         <label for="months">{% trans "Number of months to show" %}:</label>
         <input id="months" name="months" value="{{ months }}" />
         <input type="submit" value="{% trans "Change" %}" class="button"/>

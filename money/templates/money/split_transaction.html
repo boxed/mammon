@@ -1,5 +1,5 @@
 {% load i18n %}{% load auth %}
-<form method="post" id="id_split_form" data-amount="{{ transaction.amount }}" action="/transactions/{{ transaction.id }}/split/">
+<form method="post" id="id_split_form" data-amount="{{ transaction.amount }}" action="/transactions/{{ transaction.id }}/split/">{% csrf_token %}
     {% blocktrans %}Split "{{ transaction }}" into <input type="text" name="parts" value="" id="parts" onKeyUp="parts_changed()"/> parts{% endblocktrans %}
 
     <div>

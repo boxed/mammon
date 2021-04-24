@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from mammon.authentication.models import *
 from django.contrib.auth import authenticate
@@ -26,7 +26,7 @@ def login(request, template='authentication/login.html'):
                 user = None
 
             if user is None:
-                form.errors['username'] = [_(u'Username or password incorrect')]
+                form.errors['username'] = [_('Username or password incorrect')]
             else:
                 if user is not None and user.is_active:
                     from django.contrib.auth import login
@@ -48,7 +48,7 @@ def login(request, template='authentication/login.html'):
     else:
         form = LoginForm(initial={})
 
-    return render_to_response(template, {'login_form': form, 'next': next_url})
+    return render(request, template, {'login_form': form, 'next': next_url})
 
 
 def logout(request):
@@ -126,7 +126,7 @@ def edit_user_settings(request, user_id):
             'notification_style': meta.notification_style,
         })
 
-    return render_to_response('authentication/edit_user_settings.html', {'form': form, 'the_user': user})
+    return render(request, 'authentication/edit_user_settings.html', {'form': form, 'the_user': user})
 
 
 def edit_user_password(request, user_id=None):
@@ -160,4 +160,4 @@ def edit_user_password(request, user_id=None):
     else:
         form = EditForm(initial={})
 
-    return render_to_response('authentication/edit_user_password.html', {'form': form, 'the_user': user})
+    return render(request, 'authentication/edit_user_password.html', {'form': form, 'the_user': user})

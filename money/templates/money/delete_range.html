@@ -10,7 +10,7 @@
 
 {% if message %}<h3>{{ message }}</h3>{% endif %}
 
-    <form action="" method="post">
+    <form action="" method="post">{% csrf_token %}
         <table>
             {{ form }}
         </table>

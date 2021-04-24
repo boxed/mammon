@@ -1,4 +1,6 @@
-MySQL-python
-python-dateutil
-tri.table
+#MySQL-python
+python-dateutil~=2.8.1
+iommi
 pillow
+Django~=3.2
+whitenoise

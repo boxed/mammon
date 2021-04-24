@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -17,25 +17,25 @@ User.get_absolute_url = user_get_absolute_url
 
 
 class Account(models.Model):
-    user = models.ForeignKey(User, verbose_name=_('User'))
+    user = models.ForeignKey(User, verbose_name=_('User'), on_delete=models.CASCADE)
     name = models.CharField(blank=False, max_length=100, verbose_name=_('Name'))
     hide = models.BooleanField(default=False, verbose_name=_('Hide'))
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if other is None:
-            return cmp(self.name, other)
-        return cmp(self.name, other.name)
+            return self.name < ''
+        return self.name < other.name
 
 
 class Format(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     raw_format = models.CharField(blank=False, max_length=100, db_index=True)
     parse_format = models.CharField(blank=False, max_length=100)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s, %s' % (self.user, self.raw_format, self.parse_format)
 
     def parse_row(self, row):
@@ -78,8 +78,8 @@ class Category(models.Model):
         (12, 'yearly'),
     )
 
-    user = models.ForeignKey(User, verbose_name=_('User'))
-    account = models.ForeignKey(Account, null=True, blank=True, default=None, verbose_name=_('Account'))
+    user = models.ForeignKey(User, verbose_name=_('User'), on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, null=True, blank=True, default=None, verbose_name=_('Account'), on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name=_('Name'), blank=False)
     matching_rules = models.TextField(blank=True, verbose_name=_('Matching rules'))
     period = models.IntegerField(default=None, null=True, blank=True, choices=PERIODS, verbose_name=_('Period'))
@@ -87,8 +87,8 @@ class Category(models.Model):
     def add_rule(self, rule):
         self.matching_rules = '\n'.join([x for x in self.matching_rules.split('\n') if x] + [rule])
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
 
     def matches(self, transaction):
         for rule in self.matching_rules.splitlines():
@@ -97,7 +97,7 @@ class Category(models.Model):
                     return True
         return False
 
-    def __unicode__(self):
+    def __str__(self):
         if self.name.strip() != '':
             return self.name
         else:
@@ -108,16 +108,16 @@ class Category(models.Model):
 
 
 class Transaction(models.Model):
-    user = models.ForeignKey(User, verbose_name=_('User'))
-    account = models.ForeignKey(Account, null=True, blank=True, default=None)
+    user = models.ForeignKey(User, verbose_name=_('User'), on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, null=True, blank=True, default=None, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=19, decimal_places=2)
     time = models.DateTimeField()
     description = models.TextField()
-    category = models.ForeignKey(Category, blank=True, null=True)
+    category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.CASCADE)
     virtual = models.BooleanField(default=False)  # means that this isn't the original transaction, but a part of a split transaction
     original_md5 = models.CharField(max_length=32, db_index=True)
 
-    def __unicode__(self):
+    def __str__(self):
         from time import strftime
 
         return '%s %s %s %s' % (self.user, strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)

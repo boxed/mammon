@@ -46,7 +46,7 @@
 }
 </style>
 
-<form method="post" action="/login/">
+<form method="post" action="/login/">{% csrf_token %}
 	{{ errors }}
     <div id="login_box">
         <table>

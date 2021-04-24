@@ -1,9 +1,10 @@
 #!/usr/bin/python
-# -*- coding: UTF-8 -*-
 # Django settings for mammon project.
+from pathlib import Path
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+BASE_DIR = str(Path(__file__).resolve().parent.parent)
 
 SERVER_EMAIL = 'robot@kodare.net'
 
@@ -36,9 +37,11 @@ LOCALE_PATHS = (
 )
 
 LANGUAGES = (
-    ('sv.UTF-8', 'Svenska'),
-    ('en.UTF-8', 'English'),
+    ('sv', 'Svenska'),
+    ('en', 'English'),
 )
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 SITE_ID = 1
 
@@ -90,21 +93,27 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.app_directories.Loader',
 )
 
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
+MIDDLEWARE = [
+    'iommi.live_edit.Middleware',
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.admindocs.middleware.XViewMiddleware',
-    'mammon.middleware.MammonMiddleware',
-    'mammon.middleware.ProfileMiddleware',
-)
+    'mammon.middleware.mammon_middleware',
+    'iommi.sql_trace.Middleware',
+    'iommi.profiling.Middleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'iommi.middleware',
+]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
+    # 'django.contrib.auth.context_processors.auth',
+    # 'django.core.context_processors.debug',
+    # 'django.core.context_processors.i18n',
+    # 'django.core.context_processors.media',
     'mammon.context_processors.general',
 )
 
@@ -118,9 +127,9 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.contrib.auth.context_processors.auth',
-                'django.core.context_processors.debug',
-                'django.core.context_processors.i18n',
-                'django.core.context_processors.media',
+                # 'django.core.context_processors.debug',
+                # 'django.core.context_processors.i18n',
+                # 'django.core.context_processors.media',
                 'mammon.context_processors.general',
             ],
         },
@@ -140,17 +149,22 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.flatpages',
     'mammon.registration',
     'mammon.money',
     'mammon.authentication',
-    'tri.form',
-    'tri.query',
-    'tri.table',
+    'iommi',
 )
 
 REGISTRATION_NEXT = '/settings/'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
 
 try:
     from settings_local import *

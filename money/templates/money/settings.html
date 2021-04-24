@@ -35,7 +35,7 @@
     </p>
 
 	<div>
-	    <form method="post">
+	    <form method="post">{% csrf_token %}
 	        <table class="form" style="width: auto">
 	            {{ form }}
 	            <tr><td></td><td><input type="submit" value="{% trans "Save" %}" id="Save" class="button" /></td></tr>
@@ -61,7 +61,7 @@
 				</tr>
 			{% endfor %}
 			<tr>
-            	<form method="post" action="/accounts/add/">
+            	<form method="post" action="/accounts/add/">{% csrf_token %}
             		<td><input style="width: 95%" type="text" name="name" /></td>
             		<td><input type="submit" class="button" value="{% trans "Create account" %}"/></td>
             	</form>

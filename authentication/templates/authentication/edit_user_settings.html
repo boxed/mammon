@@ -9,7 +9,7 @@
 {% if error %}
 	<p>{{ error }}</p>
 {% endif %}
-<form method="post" enctype="multipart/form-data" autocomplete="off">
+<form method="post" enctype="multipart/form-data" autocomplete="off">{% csrf_token %}
 	<table>
 		{% include "form.html" %}<br />
 	</table>

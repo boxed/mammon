@@ -1,7 +1,13 @@
-from django.conf.urls import *
+from django.urls import path
 
-urlpatterns = patterns('mammon.registration.views',
-    (r'^set_new_password/$', 'set_new_password'),
-    (r'^request_new_password/$', 'request_new_password'),
-    (r'^$', 'register'),
+from registration.views import (
+    request_new_password,
+    set_new_password,
+    register,
 )
+
+urlpatterns = [
+    path(r'set_new_password/', set_new_password),
+    path(r'request_new_password/', request_new_password),
+    path(r'', register),
+]
