@@ -4,3 +4,4 @@ iommi
 pillow
 Django~=3.2
 whitenoise
+psycopg2-binary==2.8.6

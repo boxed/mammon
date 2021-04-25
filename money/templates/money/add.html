@@ -44,7 +44,7 @@
                 $('#id_spinner').show();
                 $.ajax({
                     url: '/add/',
-                    data: {data: $('#id_data').val()},
+                    data: {data: $('#id_data').val(), csrfmiddlewaretoken: '{{ csrf_token }}'},
                     success: function (data, textStatus, jqXHR) {
                         if (data == 'redirect_home') {
                             document.location = '/';

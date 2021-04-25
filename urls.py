@@ -35,5 +35,5 @@ urlpatterns = [
     # admin:
     # path(r'admin/', include(admin.site.urls)),
     # re_path(r'^media/(?P<path>.*)$', serve, {'document_root': '/var/www-python/kodare/django/contrib/admin/media'}),
-    # re_path(r'^site-media2/(?P<path>.*)$', serve, {'document_root': settings.DOCUMENT_ROOT + 'mammon/site-media'}),
+    re_path(r'^site-media2/(?P<path>.*)$', serve, {'document_root': settings.DOCUMENT_ROOT + 'mammon/site-media'}),
 ]

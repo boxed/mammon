@@ -95,6 +95,7 @@
                 url: '/add/',
                 data: {
                     data: '{{ data|escapejs }}',
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
                     date_choice: date_choice,
                     number_choices: number_choices,
                     text_choices: text_choices

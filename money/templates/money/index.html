@@ -80,6 +80,7 @@
                 type: 'POST',
                 data: {
                     category: category,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
                     account: account
                 },
                 success: function() {
@@ -116,6 +117,7 @@
                 type: 'GET',
                 data: {
                     category: category,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
                     account: $('#id_select_account').val()
                 },
                 success: function(text) {
@@ -126,6 +128,7 @@
                             url: '/transactions/'+id+'/all_like_this/',
                             type: 'POST',
                             data: {
+                                csrfmiddlewaretoken: '{{ csrf_token }}',
                                 start_index: $('.start_sub_mark').attr('index'),
                                 end_index: $('.end_sub_mark').attr('index'),
                                 category: $('#id_select_category').val(),

@@ -12,52 +12,40 @@
     <p></p>
 
     {% if foo %}
-
-        <table>
-            <thead>
-            <tr>
-                <th>{% trans "Description" %}</th>
-                <th>{% trans "Count" %}</th>
-                <th>{% trans "Category" %}</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            {% for description, count in foo %}
+        <form method="post">{% csrf_token %}
+            <table>
+                <thead>
                 <tr>
-                    <td class="description">{{ description }}</td>
-                    <td>{{ count }}</td>
-                    <td><input type="text"/></td>
+                    <th>{% trans "Description" %}</th>
+                    <th>{% trans "Count" %}</th>
+                    <th>{% trans "Category" %}</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
 
+                <tbody>
+                {% for description, count in foo %}
+                    <tr>
+                        <td class="description">{{ description }}</td>
+                        <td>{{ count }}</td>
+                        <td><input type="text" name="{{ description }}"/></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <button>{% trans "submit" %}</button>
+        </form>
     {% else %}
         {% blocktrans %}There are only transactions with unique descriptions left{% endblocktrans %}
     {% endif %}
 
     <script type="text/javascript">
         $(document).ready(function() {
-            $($('input')[0]).focus();
+            $($('input[type="text"]')[0]).focus();
             var inputs = $("input");
             inputs.inlineComplete({terms: [{% for category in categories %}"{{ category|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}]});
-            inputs.keydown(function (e) {
-                if (e.keyCode == 13) {
-                    // TODO:
-                    var category = $(e.target).val();
-                    var description = $(e.target).parent().parent().find('.description').html();
-                    $.ajax({
-                        url: '.',
-                        type: 'POST',
-                        data: {
-                            category: category,
-                            description: description
-                        },
-                        success: function() {
-                            window.history.go(0);
-                        }
-                    });
+            $('form input').keydown(function (e) {
+                if (e.keyCode === 13) {
+                    $('form button').click();
                 }
             });
         });

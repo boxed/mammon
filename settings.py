@@ -99,7 +99,8 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # TODO:!!! changing category for transaction doesn't work with CSRF. For example.
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'mammon.middleware.mammon_middleware',
     'iommi.sql_trace.Middleware',
@@ -155,14 +156,30 @@ INSTALLED_APPS = (
     'mammon.money',
     'mammon.authentication',
     'iommi',
+    'tri_table',
+    'tri_query',
+    'tri_form',
 )
 
 REGISTRATION_NEXT = '/settings/'
 
+
+dokku_db_conf = {}
+
+# new hotness
+if os.environ.get('DOKKU_POSTGRES_MAMMON_NAME'):
+    dokku_db_conf = {
+        'PORT': os.environ['DOKKU_POSTGRES_MAMMON_PORT_5432_TCP_PORT'],
+        'HOST': os.environ['DOKKU_POSTGRES_MAMMON_PORT_5432_TCP_ADDR'],
+        'USER': 'postgres',
+        'PASSWORD': os.environ['DOKKU_POSTGRES_MAMMON_ENV_POSTGRES_PASSWORD'],
+    }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mammon',
+        **dokku_db_conf
     }
 }
 

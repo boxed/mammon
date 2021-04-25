@@ -151,7 +151,7 @@ class DataPoint:
 
 
 def transaction_filter(request):
-    table = TransactionTable(data=Transaction.objects.filter(user=request.user))
+    table = TransactionTable(request=request, data=Transaction.objects.filter(user=request.user))
     table.prepare()
     return table.data.order_by('-time')
 
@@ -312,7 +312,7 @@ def create_summary(request, start_time, end_time, user):
     number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month
 
     extra_select = {
-        'month': 'CONCAT(IF(DAY(time) <= %s, YEAR(time), YEAR(DATE_ADD(time, INTERVAL 1 MONTH))), "-", IF(DAY(time) <= %s, MONTH(time), MONTH(DATE_ADD(time, INTERVAL 1 MONTH))), "-", "1")' % (int(period_setting.value), int(period_setting.value)),
+        'month': 'CONCAT(IF(extract(DAY from time) <= %s, extract(YEAR from time), extract(YEAR from (time + INTERVAL \'1 MONTH\'))), "-", IF(extract(DAY from time) <= %s, extract(MONTH from time), extract(MONTH from (time + INTERVAL \'1 MONTH\'))), "-", "1")' % (int(period_setting.value), int(period_setting.value)),
     }
     new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'month').annotate(Sum('amount')).order_by()
     account_by_pk = {x.pk: x for x in Account.objects.filter(user=user)}
@@ -875,15 +875,23 @@ def all_like_this(request, transaction_id):
 @login_required
 def getting_started(request):
     if request.method == 'POST':
-        category = Category.objects.get_or_create(user=request.user, name=request.POST['category'])[0]
-        description = html.parser.HTMLParser().unescape(request.POST['description'])
-        category.add_rule(description)
-        transactions_for_user(request.user).filter(description=description).update(category=category)
-        category.save()
-        return HttpResponse('OK')
+        data = request.POST.copy()
+        del data['csrfmiddlewaretoken']
+        for description, category_name in data.items():
+            if not category_name:
+                continue
+            category = Category.objects.get_or_create(user=request.user, name=category_name)[0]
+            category.add_rule(description)
+            transactions_for_user(request.user).filter(description=description).update(category=category)
+            category.save()
+        return HttpResponseRedirect('.')
 
     transactions = transactions_for_user(request.user).filter(category__isnull=True)
-    foo = [(x['description'], x['description__count']) for x in transactions.values('description').annotate(Count('description')).order_by('-description__count') if x['description__count'] > 1]
+    foo = [
+        (x['description'], x['description__count'])
+        for x in transactions.values('description').annotate(Count('description')).order_by('-description__count')
+        if x['description__count'] > 1
+    ]
 
     count = transactions_for_user(request.user).count()
     if count:
