@@ -4,8 +4,11 @@
 import html.parser
 from collections import Counter
 from copy import copy
+from datetime import date
 from decimal import Decimal
 from math import sqrt
+from time import strftime
+
 from dateutil.relativedelta import relativedelta
 from django.utils.http import http_date
 from django.utils.translation import ugettext_lazy
@@ -54,12 +57,16 @@ class Column(ColumnBase):
 # TODO: i18n
 class TransactionTable(Table):
     select = Column.select()
-    date = Column.inline_edit(
-        base=ColumnBase.date,
-        attr='time',
+    date = Column.date(
         query__gui__show=True,
-        cell__value=lambda row, **_: row.time.date(),
+        cell__value=lambda row, **_: row.date.date(),
         cell__attrs={'class': 'time'},
+    )
+    month = Column.inline_edit(
+        base=ColumnBase.date,
+        query__gui__show=True,
+        cell__attrs={'class': 'time'},
+        cell__format=lambda value, **_: value.strftime('%Y-%m'),
     )
     description = Column.inline_edit(
         query__freetext=True,
@@ -68,6 +75,7 @@ class TransactionTable(Table):
     amount = Column.number(
         query__class=Variable.float,
         cell__attrs={'class': 'rj amount'},
+        query__gui__show=True,
     )
     category = Column.inline_edit_select(
         model=Category,
@@ -153,13 +161,13 @@ class DataPoint:
 def transaction_filter(request):
     table = TransactionTable(request=request, data=Transaction.objects.filter(user=request.user))
     table.prepare()
-    return table.data.order_by('-time')
+    return table.data.order_by('-date')
 
 
 @login_required
 def index(request):
     try:
-        last_transaction = Transaction.objects.filter(user=request.user, virtual=False).order_by('-time')[0]
+        last_transaction = Transaction.objects.filter(user=request.user, virtual=False).order_by('-date')[0]
     except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
     return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user).filter(category=None)), template='money/index.html', context={
@@ -274,9 +282,13 @@ def export_transactions(request):
 
     def export():
         for transaction in transactions:
-            yield ('%s\t%s\t%s\t%s\t%s\n' % (
-                transaction.time.date().isoformat(), transaction.description, transaction.amount,
-                transaction.category or '', transaction.account or '')).encode('utf8')
+            yield ('%s\t%s\t%s\t%s\t%s\t%s\n' % (
+                transaction.date.date().isoformat(),
+                transaction.month.date().isoformat(),
+                transaction.description.replace('\t', '    '),
+                transaction.amount,
+                transaction.category or '', transaction.account or '')
+           ).encode('utf8')
 
     return HttpResponse(export(), content_type='text/csv; charset=utf-8')
 
@@ -289,11 +301,21 @@ def import_transactions(request):
         data = request.POST['data']
         rows = [row for row in data.replace('\r\n', '\n').split('\n') if row]
         for row in rows:
-            date, description, amount, category, account = row.split('\t')
+            date, month, description, amount, category, account = row.split('\t')
             category = Category.objects.get_or_create(user=request.user, name=category)[0] if category.strip() else None
             account = Account.objects.get_or_create(user=request.user, name=account)[0] if account.strip() else None
-            Transaction.objects.create(user=request.user, time=datetime.strptime(date, '%Y-%m-%d'),
-                                       description=description, amount=amount, category=category, account=account)
+            time = datetime.strptime(date, '%Y-%m-%d')
+            month = datetime.strptime(month, '%Y-%m-%d')
+
+            Transaction.objects.create(
+                user=request.user,
+                time=time,
+                month=month,
+                description=description,
+                amount=amount,
+                category=category,
+                account=account,
+            )
         return HttpResponse('Imported %s transactions' % len(rows))
 
 
@@ -302,19 +324,15 @@ def transactions_for_user(user):
 
 
 def transactions_for_period(request, start_time, end_time):
-    return transaction_filter(request).filter(time__gt=start_time, time__lt=end_time).select_related('account', 'category')
+    return transaction_filter(request).filter(date__gte=start_time, date__lt=end_time).select_related('account', 'category')
 
 
 def create_summary(request, start_time, end_time, user):
     transactions = transactions_for_period(request, start_time, end_time)
-    period_setting = get_period_setting(request.user)
 
     number_of_months = (end_time.year - start_time.year) * 12 + end_time.month - start_time.month
 
-    extra_select = {
-        'month': 'CONCAT(IF(extract(DAY from time) <= %s, extract(YEAR from time), extract(YEAR from (time + INTERVAL \'1 MONTH\'))), "-", IF(extract(DAY from time) <= %s, extract(MONTH from time), extract(MONTH from (time + INTERVAL \'1 MONTH\'))), "-", "1")' % (int(period_setting.value), int(period_setting.value)),
-    }
-    new_way = transactions.extra(select=extra_select).values('account_id', 'category_id', 'month').annotate(Sum('amount')).order_by()
+    new_way = transactions.values('account_id', 'category_id', 'month').annotate(Sum('amount')).order_by()
     account_by_pk = {x.pk: x for x in Account.objects.filter(user=user)}
     account_by_pk[None] = Account(name=' default', pk=0)
     category_by_pk = {x.pk: x for x in Category.objects.filter(user=user)}
@@ -325,7 +343,6 @@ def create_summary(request, start_time, end_time, user):
         r['account'] = account_by_pk[r['account_id']]
         r['category'] = category_by_pk[r['category_id']]
         r['sum'] = r['amount__sum']
-        r['month'] = datetime.strptime(r['month'], '%Y-%m-%d')
         del r['account_id']
         del r['category_id']
         del r['amount__sum']
@@ -339,7 +356,10 @@ def create_summary(request, start_time, end_time, user):
     max_value = None
     for account, categories in list(accounts.items()):
         s = max([abs(months['sum']) for _, months in list(categories.items())])
-        max_value = max(max_value, s)
+        if max_value is None:
+            max_value = s
+        else:
+            max_value = max(max_value, s)
 
     for account, categories in list(accounts.items()):
         for category, months in list(categories.items()):
@@ -365,8 +385,8 @@ def create_summary(request, start_time, end_time, user):
 
 def adjust_start_end_times(request, start_time, end_time):
     try:
-        first_time = transactions_for_user(request.user).exclude(virtual=True).order_by('time')[0].time
-        last_time = transactions_for_user(request.user).exclude(virtual=True).order_by('-time')[0].time
+        first_time = transactions_for_user(request.user).exclude(virtual=True).order_by('date')[0].date
+        last_time = transactions_for_user(request.user).exclude(virtual=True).order_by('-date')[0].date
 
         # Adjust so that start_time starts on a month we have complete data for
         if first_time > start_time:
@@ -814,14 +834,32 @@ def add_transactions(request):
             to_add = []
             for classification, row in table:
                 if fmt.compatible_with(classification):
-                    amount, date, description = fmt.parse_row(row)
-                    original_md5 = original_line_hash(amount, date, description, request.user)
-                    if Transaction.objects.filter(user=request.user, original_md5=original_md5).count():
+                    amount, date_, description = fmt.parse_row(row)
+                    original_md5 = original_line_hash(amount, date_, description, request.user)
+                    if Transaction.objects.filter(user=request.user, original_md5=original_md5).exists():
                         # duplicate line, ignore it
                         # print 'ignored duplicate line'
                         pass
                     else:
-                        to_add.append(Transaction(user=request.user, amount=str(amount), time=date, description=description, original_md5=original_md5))
+                        year = date_.year
+                        month = date_.month
+                        day = date_.day
+                        if day > 25:
+                            month += 1
+                            if month == 13:
+                                month = 1
+                                year += 1
+
+                        to_add.append(
+                            Transaction(
+                                user=request.user,
+                                amount=str(amount),
+                                date=date_,
+                                month=date(year, month, 1),
+                                description=description,
+                                original_md5=original_md5,
+                            )
+                        )
             Transaction.objects.bulk_create(to_add)
             update_matches_for_user(request.user)
             return HttpResponse('redirect_home')
@@ -913,8 +951,8 @@ def find_outliers(request):
 
     # 1. Grab the summary view of the entire period of the user
     transactions = transactions_for_user(request.user)
-    start_time = transactions.order_by('time')[0].time
-    end_time = transactions.order_by('-time')[0].time
+    start_time = transactions.order_by('date')[0].date
+    end_time = transactions.order_by('-date')[0].date
     if end_time > datetime.now():
         end_time = datetime.now()
     start_time, end_time = adjust_start_end_times(request, start_time, end_time)

@@ -111,7 +111,8 @@ class Transaction(models.Model):
     user = models.ForeignKey(User, verbose_name=_('User'), on_delete=models.CASCADE)
     account = models.ForeignKey(Account, null=True, blank=True, default=None, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=19, decimal_places=2)
-    time = models.DateTimeField()
+    date = models.DateTimeField()
+    month = models.DateField(null=True)
     description = models.TextField()
     category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.CASCADE)
     virtual = models.BooleanField(default=False)  # means that this isn't the original transaction, but a part of a split transaction
@@ -123,7 +124,7 @@ class Transaction(models.Model):
         return '%s %s %s %s' % (self.user, strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)
 
     class Meta:
-        ordering = ('time', 'description')
+        ordering = ('date', 'description')
 
     def get_absolute_url(self):
         return '/transactions/%s/' % self.pk

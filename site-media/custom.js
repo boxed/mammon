@@ -28,6 +28,9 @@ function delete_transaction(id, confirm) {
         $.ajax({
             url: '/transactions/'+id+'/delete/',
             type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
             success: function(t) {
                 transaction_marker_up();
                 $('[data_pk='+id+']').remove();
@@ -113,6 +116,9 @@ function unsplit_transaction(id) {
         $.ajax({
             url: '/transactions/'+id+'/unsplit/',
             type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
             success: function(t) {
                 window.location = window.location;
             }
