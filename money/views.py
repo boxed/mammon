@@ -26,6 +26,8 @@ from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
+from iommi.form import date_parse
+
 from mammon.authentication.models import MetaUser
 from mammon.money import *
 from mammon.money.models import *
@@ -82,6 +84,11 @@ class TransactionTable(Table):
             select__include=True,
             user__include=False,
             original_md5__include=False,
+            date__filter=dict(
+                parse=date_parse,
+                include=True,
+                field__include=False,
+            ),
             description=Column.inline_edit(
                 cell__attrs__class__description=True,
                 filter__freetext__include=True,
@@ -563,16 +570,16 @@ def view_history(request):
         group by account_id, bracket""" % (when_statements, request.user.id, end_period)
     cursor.execute(statement)
 
-    result = {}
+    result = defaultdict(list)
+    no_account = Account(name='', pk=0)
     for row in cursor.fetchall():
         try:
             account = Account.objects.get(pk=row[0])
         except Account.DoesNotExist:
-            account = None
-        if account and account.hide:
+            account = no_account
+        if account.hide:
             continue
-        if account not in result:
-            result[account] = []
+
         if row[1]:
             result[account].append(DataPoint(row[1], row[2]))
 
@@ -593,7 +600,7 @@ def view_history(request):
          'statement': statement,
          'months': months.value,
          'sums': sums,
-         'gini': gini([float(x.amount) for x in result[None]][:-1]) if result else 0,
+         'gini': gini([float(x.amount) for x in result[no_account]][:-1]) if result else 0,
          'total_sum': sum(sums.values())}
 
     return render(request, 'money/history.html', c)
