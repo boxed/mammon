@@ -11,7 +11,10 @@ from time import strftime
 
 from dateutil.relativedelta import relativedelta
 from django.utils.http import http_date
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import (
+    gettext,
+    ugettext_lazy,
+)
 from django.shortcuts import (
     get_object_or_404,
     render,
@@ -24,101 +27,106 @@ from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
 from mammon.authentication.models import MetaUser
-from tri_query import Variable
 from mammon.money import *
 from mammon.money.models import *
-from tri_declarative import setdefaults_path as setdefaults, evaluate
-from tri_table import render_table_to_response, Table
-from tri_table import Column as ColumnBase
+from tri_declarative import (
+    class_shortcut,
+    evaluate,
+)
+from iommi import (
+    Column as ColumnBase,
+    Table as TableBase,
+    Page,
+)
+
+
+def inline_edit_select_cell_format(table, column, row, value, **_):
+    options = '<option value=""></option>' + '\n'.join(['<option value="%s"%s>%s</option>' % (choice.pk, ' selected="selected"' if choice == value else '', choice) for choice in column.choices])
+
+    return mark_safe('<select class="inline_editable_select" edit_url="%sedit/%s/" id="%s">%s</select>' % (row.get_absolute_url(), column.iommi_name(), row.pk, options))
 
 
 class Column(ColumnBase):
-    @staticmethod
-    def inline_edit(base=ColumnBase, **kwargs):
-        setdefaults(kwargs, dict(
-            cell__format=lambda table, column, row, value: mark_safe('<span class="inline_editable" edit_url="%sedit/%s/" id="%s">%s</span>' % (row.get_absolute_url(), column.name, row.pk, value)),
-            query__show=True,
-        ))
-        return base(**kwargs)
 
-    @staticmethod
-    def inline_edit_select(**kwargs):
-        def inline_edit_select_cell_format(table, column, row, value):
-            options = '<option value=""></option>' + '\n'.join(['<option value="%s"%s>%s</option>' % (choice.pk, ' selected="selected"' if choice == value else '', choice) for choice in evaluate(kwargs['choices'], table=table, column=column, row=row, value=value)])
+    @classmethod
+    @class_shortcut(
+        call_target__attribute='text',
+        cell__format=lambda table, column, row, value, **_: mark_safe('<span class="inline_editable" edit_url="%sedit/%s/" id="%s">%s</span>' % (row.get_absolute_url(), column.iommi_name(), row.pk, value)),
+        cell__attrs__class__foo=True,
+    )
+    def inline_edit(cls, call_target=None, **kwargs):
+        return call_target(**kwargs)
 
-            return mark_safe('<select class="inline_editable_select" edit_url="%sedit/%s/" id="%s">%s</select>' % (row.get_absolute_url(), column.name, row.pk, options))
-        setdefaults(kwargs, dict(
-            cell__format=inline_edit_select_cell_format,
-            query__show=True,
-        ))
-        return ColumnBase.choice_queryset(**kwargs)
+    @classmethod
+    @class_shortcut(
+        call_target__attribute='choice_queryset',
+        cell__format=inline_edit_select_cell_format,
+        filter__include=True,
+    )
+    def inline_edit_select(cls, call_target=None, **kwargs):
+        return call_target(**kwargs)
+
+
+class Table(TableBase):
+    class Meta:
+        member_class = Column
 
 
 # TODO: i18n
 class TransactionTable(Table):
-    select = Column.select()
-    date = Column.date(
-        query__gui__show=True,
-        cell__value=lambda row, **_: row.date.date(),
-        cell__attrs={'class': 'time'},
-    )
-    month = Column.inline_edit(
-        base=ColumnBase.date,
-        query__gui__show=True,
-        cell__attrs={'class': 'time'},
-        cell__format=lambda value, **_: value.strftime('%Y-%m'),
-    )
-    description = Column.inline_edit(
-        query__freetext=True,
-        cell__attrs={'class': 'description'},
-    )
-    amount = Column.number(
-        query__class=Variable.float,
-        cell__attrs={'class': 'rj amount'},
-        query__gui__show=True,
-    )
-    category = Column.inline_edit_select(
-        model=Category,
-        choices=lambda table, **_: Category.objects.filter(user=table.request.user),
-        query__gui__show=True,
-        bulk__show=True,
-        cell__attrs={'class': 'category'},
-    )
-    account = Column.inline_edit_select(
-        model=Account,
-        choices=lambda table, **_: Account.objects.filter(user=table.request.user),
-        show=lambda table, **_: Account.objects.filter(user=table.request.user).exists(),
-        query__gui__show=True,
-        bulk__show=True,
-        cell__attrs={'class': 'account'},
-    )
-
-    split = Column.icon(
-        icon='share-alt',
-        cell__attrs={
-            'onclick': lambda row, **_: 'split_transaction(%s)' % row.pk,
-            'title': ugettext_lazy('Split'),
-        },
-    )
-    unsplit = Column.icon(
-        icon='share-alt',
-        cell__value=lambda row, **_: row.virtual,
-        cell__attrs={
-            'onclick': lambda row, **_: 'unsplit_transaction(%s)' % row.pk,
-            'class': 'unsplit',
-            'title': ugettext_lazy('From a split transaction. Click to unsplit.')
-        },
-    )
-    delete = Column.icon(
-        icon='trash',
-        cell__attrs={
-            'onclick': lambda row, **_: 'delete_transaction(%s)' % row.pk,
-            'title': ugettext_lazy('Delete'),
-        },
-    )
-
     class Meta:
+        auto__model = Transaction
+        rows = lambda request, **_: Transaction.objects.filter(user=request.user)
         attrs__id = 'transaction_list'
+        columns = dict(
+            select__include=True,
+            user__include=False,
+            original_md5__include=False,
+            description=Column.inline_edit(
+                cell__attrs__class__description=True,
+                filter__freetext__include=True,
+                filter__include=True,
+            ),
+            amount__cell__attrs__class={'text-right': True},
+            amount__header__attrs__class={'text-right': True},
+            category=Column.inline_edit_select(
+                model=Category,
+                choices=lambda request, **_: Category.objects.filter(user=request.user),
+                bulk__include=True,
+                cell__attrs__class__category=True,
+            ),
+            account=Column.inline_edit_select(
+                model=Account,
+                choices=lambda request, **_: Account.objects.filter(user=request.user),
+                include=lambda request, **_: Account.objects.filter(user=request.user).exists(),
+                bulk__include=True,
+                cell__attrs__class__account=True,
+            ),
+
+            split=Column.icon(
+                'share-alt',
+                cell__attrs={
+                    'onclick': lambda row, **_: 'split_transaction(%s)' % row.pk,
+                    'title': ugettext_lazy('Split'),
+                },
+            ),
+            unsplit=Column.icon(
+                'share-alt',
+                cell__value=lambda row, **_: row.virtual,
+                cell__attrs={
+                    'onclick': lambda row, **_: 'unsplit_transaction(%s)' % row.pk,
+                    'class': {'unsplit': True},
+                    'title': ugettext_lazy('From a split transaction. Click to unsplit.')
+                },
+            ),
+            delete=Column.icon(
+                'trash',
+                cell__attrs={
+                    'onclick': lambda row, **_: 'delete_transaction(%s)' % row.pk,
+                    'title': ugettext_lazy('Delete'),
+                },
+            ),
+        )
 
 
 def next_month(d):
@@ -159,28 +167,52 @@ class DataPoint:
 
 
 def transaction_filter(request):
-    table = TransactionTable(request=request, data=Transaction.objects.filter(user=request.user))
-    table.prepare()
-    return table.data.order_by('-date')
+    return Transaction.objects.filter(user=request.user).order_by('-date')
 
 
 @login_required
 def index(request):
+    if not Category.objects.filter(user=request.user).exists():
+        return Page(template='money/index_no_categories.html')
+
+    transactions = Transaction.objects.filter(user=request.user)
+
+    if not transactions.exists():
+        return Page(template='money/index_welcome.html')
+
+    unclassified = transactions.filter(category=None)
+
+    if not unclassified.exists():
+        return Page(parts__text=gettext('All transactions have been classified'))
+        # <p ></p>
+        #             <div style="font-size: 80%; padding-top: 20px">
+        #                 {% trans "Latest transaction" %}: {{ last_transaction.date|relative_date }}
+        #             </div>
+
     try:
         last_transaction = Transaction.objects.filter(user=request.user, virtual=False).order_by('-date')[0]
     except (Transaction.DoesNotExist, IndexError):
         last_transaction = None
-    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user).filter(category=None)), template='money/index.html', context={
-        'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
-        'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
-        'last_transaction': last_transaction,
-        'categories': Category.objects.filter(user=request.user),
-    })
+    return Page(
+        parts__table=TransactionTable(
+            rows=unclassified,
+        ),
+        context={
+            'matched_count': Transaction.objects.filter(user=request.user, category__isnull=False).count(),
+            'unmatched_count': Transaction.objects.filter(user=request.user, category__isnull=True).count(),
+            'last_transaction': last_transaction,
+            'categories': Category.objects.filter(user=request.user),
+        }
+    )
 
 
 @login_required
 def view_categories(request):
-    return render(request, 'money/view_categories.html', {'categories': Category.objects.filter(user=request.user)})
+    return Table(
+        auto__rows=Category.objects.filter(user=request.user),
+        columns__user__include=False,
+        columns__matching_rules__cell__attrs__class__pre=True,
+    )
 
 
 @login_required
@@ -239,7 +271,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
     if group.user != request.user:
         raise AccessDeniedException('cannot edit others categories')
 
-    transactions = transaction_filter(request).filter(**{group_name: group})
+    transactions = Transaction.objects.filter(user=request.user, **{group_name: group})
 
     if request.POST:
         post = copy(request.POST)
@@ -273,7 +305,7 @@ def view_grouping(request, group_class, group_id, form_class, group_name, url_ba
 @login_required
 def view_transactions(request):
     # TODO: bulk edit on description field should be append, not set
-    return render_table_to_response(request=request, table=TransactionTable(data=Transaction.objects.filter(user=request.user)), template='money/view_transaction_list.html')
+    return TransactionTable()
 
 
 @login_required
@@ -808,6 +840,11 @@ def add_transactions(request):
         return render(request, 'money/add.html', {})
     else:
         data = request.POST['data']
+
+        # TODO: don't do this in prod
+        if '\t' not in data:
+            data = data.replace(';', '\t')
+
         table_raw = [list(classify_row(x.split('\t'))) for x in data.split('\n')]
         table = [(classification, r) for classification, r in table_raw if has_requisite_data(classification)]
 

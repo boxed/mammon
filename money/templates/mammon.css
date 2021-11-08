@@ -19,6 +19,7 @@
     text-align: center;
     padding: 0;
     position: fixed;
+    top: 0;
     width: 100%;
     color: white;
     z-index: 100;
@@ -492,4 +493,50 @@ p {
 
 #tri_query_toggle_simple_mode {
     padding-right: 10px;
+}
+
+.pre {
+    white-space: pre-wrap;
+}
+
+
+/* jQuery UI */
+
+.ui-dialog {
+    background: white;
+    border-radius: 0.5rem;
+    border: 1px solid black;
+    box-shadow: 0 0 40px black;
+}
+
+
+.ui-dialog-content {
+    padding: 0.5rem 2rem
+}
+
+.ui-dialog-titlebar {
+    border-bottom: 1px solid black;
+    width: 100%;
+    padding: 0.5rem 2rem;
+}
+
+.ui-dialog-titlebar-close {
+    float: right;
+    border: 1px solid black;
+    height: 1rem;
+    width: 1rem;
+    padding: 0;
+}
+
+
+.ui-dialog-titlebar-close:before {
+    content: 'x';
+    position: relative;
+    top: -0.4rem;
+}
+
+
+/* iommi */
+.iommi-container {
+    margin-top: 5rem!important;
 }

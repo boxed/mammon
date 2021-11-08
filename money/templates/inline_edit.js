@@ -1,15 +1,15 @@
-$(window).load(init_inline_edit);
+$(document).ready(init_inline_edit);
 
-function init_inline_edit() { 
-    $('.inline_editable').each(function() { makeEditable(this); });
-    $('.inline_editable_select').each(function() { makeEditableSelect(this); });
+function init_inline_edit() {
+    makeEditable();
+    makeEditableSelect();
 }
 
 ///// inline editing for text fields
-function makeEditable(id) {
-    $(id).click(function() { edit($(id)); });
-    $(id).mouseover(function() { showAsEditable($(id))});
-    $(id).mouseout(function() { showAsEditable($(id), true)});
+function makeEditable() {
+    $(document).on('click', '.inline_editable', function(e) { edit($(e.currentTarget)); });
+    $(document).on('mouseover', '.inline_editable', function(e) { showAsEditable($(e.currentTarget)) });
+    $(document).on('mouseout', '.inline_editable', function(e) { showAsEditable($(e.currentTarget), true) });
 }
 
 function showAsEditable(obj, clear) {
@@ -22,17 +22,18 @@ function showAsEditable(obj, clear) {
 
 function edit(obj) {
     obj.hide();
-    var textbox ='<form class="form" id="' + obj.id + '_editor" onSubmit="return false;"><input style="width:100%" type="text" name="' + obj.id + '" id="' + obj.id + '_edit" value="'+obj.html()+'" />';
+    var id = obj[0].id;
+    var textbox ='<form class="form" id="' + id + '_editor" onSubmit="return false;"><input style="width:100%" type="text" name="' + id + '" id="' + id + '_edit" value="'+obj.html()+'" />';
     obj.after(textbox);
 
-    $('#'+obj.id+'_edit').blur( function() { cleanUp(obj) });
-    $('#'+obj.id+'_editor').submit( function(e) { saveChanges(obj, obj.attr('edit_url'));});
-    $('#'+obj.id+'_edit').focus();
+    $(`#${id}_edit`).blur( function() { cleanUp(obj) });
+    $(`#${id}_editor`).submit( function(e) { saveChanges(obj, obj.attr('edit_url'));});
+    $(`#${id}_edit`).focus();
 }
 
 function cleanUp(obj, keepEditable) {
     if ($(obj)) {
-        $('#'+obj.id+'_editor').remove();
+        $('#'+obj[0].id+'_editor').remove();
         $(obj).show();
         if (!keepEditable) {
             showAsEditable(obj, true);
@@ -41,7 +42,7 @@ function cleanUp(obj, keepEditable) {
 }
 
 function saveChanges(obj, url) {
-    var new_content = $('#'+obj.id+'_edit').val();
+    var new_content = $('#'+obj[0].id+'_edit').val();
 
     obj.html("Saving...");
     cleanUp(obj);
@@ -65,9 +66,9 @@ function saveChanges(obj, url) {
 }
 
 ///// inline editing for select boxes ///////////////////////
-function makeEditableSelect(obj) {
-    $(obj).change(function() { 
-        selectChange($(obj));
+function makeEditableSelect() {
+    $(document).on('change', '.inline_editable_select', function(e) {
+        selectChange($(e.currentTarget));
     });
 }
 

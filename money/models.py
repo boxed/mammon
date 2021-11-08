@@ -2,7 +2,10 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import (
+    gettext,
+    ugettext_lazy as _,
+)
 
 # a little hack to get curias change password page to redirect to the root
 from mammon.money import standardize_number, datetime_from_string
@@ -105,23 +108,24 @@ class Category(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = gettext('Categories')
 
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, verbose_name=_('User'), on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, null=True, blank=True, default=None, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=19, decimal_places=2)
     date = models.DateTimeField()
     month = models.DateField(null=True)
     description = models.TextField()
+    amount = models.DecimalField(max_digits=19, decimal_places=2)
     category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, null=True, blank=True, default=None, on_delete=models.CASCADE)
     virtual = models.BooleanField(default=False)  # means that this isn't the original transaction, but a part of a split transaction
     original_md5 = models.CharField(max_length=32, db_index=True)
 
     def __str__(self):
         from time import strftime
 
-        return '%s %s %s %s' % (self.user, strftime('%Y-%m-%d', self.time.timetuple()), self.description, self.amount)
+        return '%s %s %s %s' % (self.user, strftime('%Y-%m-%d', self.date.timetuple()), self.description, self.amount)
 
     class Meta:
         ordering = ('date', 'description')

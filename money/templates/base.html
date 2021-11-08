@@ -1,12 +1,13 @@
 {% load i18n %}{% load auth %}<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{ LANGUAGE_CODE }}" lang="{{ LANGUAGE_CODE }}">
+<html xmlns="http://www.w3.org/1999/xhtml"">
     <head>
         <title>Mammon{% if user.is_authenticated %} - {{ user.email }}{% endif %}</title>
 		<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css"> 
 {#        <script type="text/javascript" src="/jsi18n/"></script>#}
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js"></script>        <script type="text/javascript" src="/inline_edit.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="/inline_edit.js"></script>
         <script type="text/javascript" src="/input_overlay.js"></script>
         <script type="text/javascript" src="/site-media2/jquery.inlinecomplete.js"></script>
         <script type="text/javascript" src="/site-media2/jquery.intoViewport.min.js"></script>
@@ -49,7 +50,9 @@
                 </ul>
             </div>
             <div id="body">
-                {{ flatpage.content }}
+                {% if flatpage %}
+                    {{ flatpage.content }}
+                {% endif %}
 
                 {% if user.is_authenticated %}
                 {% else %}

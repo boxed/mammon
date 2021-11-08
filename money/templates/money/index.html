@@ -1,9 +1,5 @@
-{% extends 'base.html' %}
 {% load i18n %}{% load auth %}
 
-{% block body_id %}{% if table.data.exists %}id_classification_page{% endif %}{% endblock %}
-
-{% block content %}
     {% if not categories %}
 
         <p>
@@ -20,7 +16,7 @@
 
 
         {% trans "Uncategorized transactions" %}: <span id="id_unmatched_count">{{ unmatched_count }}</span><br />
-    
+
         {% include "tri_table/list.html" %}
 
         <div id="id_classification_bar_bottom_space"></div>
@@ -40,7 +36,7 @@
             <button id="id_delete" class="button" onclick="delete_transaction()">{% trans "Delete" %} <span class="hotkey">{{ ctrl_label }}D</span></button>
             <button id="id_split" class="button" onclick="split_transaction()">{% trans "Split" %} <span class="hotkey">{{ ctrl_label }}S</span></button>
         </div>
-        
+
     {% else %}
         {% if last_transaction %}
             {% trans "All transactions have been classified" %}
@@ -179,7 +175,7 @@
             $('.row_marker').intoViewport();
             update_row_markers();
             $('#id_row_marker_left').show();
-            
+
             $('button').click(function() {
                 $('#id_select_category').focus();
             });
@@ -235,4 +231,3 @@
         });
         {% endif %}
     </script>
-{% endblock %}

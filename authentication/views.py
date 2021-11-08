@@ -1,60 +1,10 @@
 from django.shortcuts import render
 
 from mammon.authentication.models import *
-from django.contrib.auth import authenticate
 from django.core.validators import EmailValidator
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext as _
 import django.forms
-
-
-class LoginForm(django.forms.Form):
-    username = django.forms.CharField(max_length=1024, label=_('Email'))
-    password = django.forms.CharField(max_length=1024, widget=django.forms.PasswordInput, label=_('Password'))
-
-
-def login(request, template='authentication/login.html'):
-    next_url = request.GET.get('next', request.POST.get('next', '/'))
-
-    if request.POST:
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            try:
-                username = User.objects.get(email=form.cleaned_data['username']).username
-                user = authenticate(username=username, password=form.cleaned_data['password'])
-            except User.DoesNotExist:
-                user = None
-
-            if user is None:
-                form.errors['username'] = [_('Username or password incorrect')]
-            else:
-                if user is not None and user.is_active:
-                    from django.contrib.auth import login
-                    login(request, user)
-
-                    try:
-                        if user.meta.language != '':
-                            request.session['django_language'] = user.meta.language
-                        else:
-                            from django.conf import settings
-                            request.session['django_language'] = settings.LANGUAGE_CODE
-                        meta = user.meta
-                        meta.last_notification_email_time = None
-                        meta.save()
-                    except MetaUser.DoesNotExist:
-                        pass
-
-                        return HttpResponseRedirect(next_url)
-    else:
-        form = LoginForm(initial={})
-
-    return render(request, template, {'login_form': form, 'next': next_url})
-
-
-def logout(request):
-    from django.contrib.auth import logout
-    logout(request)
-    return HttpResponseRedirect('http://%s/' % request.domain)
 
 
 def edit_user_settings(request, user_id):

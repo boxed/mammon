@@ -2,6 +2,12 @@
 # Django settings for mammon project.
 from pathlib import Path
 
+from iommi import (
+    Asset,
+    Style,
+)
+from iommi.style_bootstrap import bootstrap
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 BASE_DIR = str(Path(__file__).resolve().parent.parent)
@@ -152,13 +158,11 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     # 'django.contrib.admin',
     'django.contrib.flatpages',
+    'django_fastdev',
     'mammon.registration',
     'mammon.money',
     'mammon.authentication',
     'iommi',
-    'tri_table',
-    'tri_query',
-    'tri_form',
 )
 
 REGISTRATION_NEXT = '/settings/'
@@ -182,6 +186,37 @@ DATABASES = {
         **dokku_db_conf
     }
 }
+
+DATE_FORMAT = 'Y-m-d'
+DATETIME_FORMAT = 'Y-m-d'
+
+IOMMI_DEFAULT_STYLE = Style(
+    bootstrap,
+    base_template='iommi_base.html',
+    root__assets=dict(
+        jquery_ui=Asset.js(
+            attrs=dict(
+                src='https://code.jquery.com/ui/1.13.0/jquery-ui.min.js',
+                crossorigin='anonymous',
+                integrity='sha256-hlKLmzaRlE8SCJC1Kw8zoUbU8BxA+8kR3gseuKfMjxA',
+            ),
+            after=-1,
+        ),
+        i18n=Asset.js(attrs=dict(src="/jsi18n/", crossorigin='anonymous')),
+        lodash=Asset.js(attrs=dict(src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js", crossorigin='anonymous')),
+        inline_edit=Asset.js(attrs=dict(src="/inline_edit.js", crossorigin='anonymous')),
+        input_overlay=Asset.js(attrs=dict(src="/input_overlay.js", crossorigin='anonymous')),
+        # inlinecomplete=Asset.js(attrs=dict(src="/site-media2/jquery.inlinecomplete.js", crossorigin='anonymous')),
+        intoViewport=Asset.js(attrs=dict(src="/site-media2/jquery.intoViewport.min.js", crossorigin='anonymous')),
+        custom_mammon=Asset.js(attrs=dict(src="/site-media2/custom.js", crossorigin='anonymous')),
+    ),
+    Container=dict(
+        attrs__class={
+            'mt-5': False,
+            'iommi-container': True,
+        },
+    ),
+)
 
 try:
     from settings_local import *

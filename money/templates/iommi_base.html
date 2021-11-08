@@ -1,0 +1,48 @@
+{% extends "iommi/base.html" %}
+{% load i18n %}
+
+{% block iommi_head_contents %}
+    <link media="screen" href="/mammon.css" type="text/css" rel="stylesheet" />
+    <link media="screen" href="/input_overlay.css" type="text/css" rel="stylesheet" />
+    <link href='https://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
+
+{% endblock %}
+
+{% block iommi_top %}
+    <div id="header">
+                {% if user.is_staff %}
+                    <div id="header-util-links">
+                        <ul id="utils-menu" class="menu">
+                           <li><a href="/admin/">{% trans "Admin" %}</a></li>
+                           <li><a href="/update_matching/">{% trans "Update matching" %}</a></li>
+                        </ul>
+                    </div>
+                {% endif %}
+                <div id="header-right">
+                    {% if not user.is_anonymous %}
+                        <a href="/add/" class="add-button"><i class="fa fa-plus-circle"></i> {% trans "Add transactions" %}</a>
+                    {% endif %}
+                </div>
+                <h1 id="header-title" alt=""><a href="/">Mammon</a></h1>
+                <ul id="global-menu" class="menu">
+                    {% if user.is_authenticated %}
+                        <li><a href="/">{% trans "Home" %}</a></li>
+                        <li><a href="/summary/year/">{% trans "Year view" %}</a></li>
+                        <li><a href="/summary/month/">{% trans "Month view" %}</a></li>
+                        <li><a href="/history/">{% trans "Overview" %}</a></li>
+                        <li><a href="/transactions/">{% trans "Transactions" %}</a></li>
+                        <li><a href="/categories/">{% trans "Categories" %}</a></li>
+                        <li><a href="/accounts/">{% trans "Accounts" %}</a></li>
+                        <li><a href="/settings/">{% trans "Settings" %}</a></li>
+                        <li><a id="id_menu_logout" href="/logout/">{% trans "Log out" %}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+ <script>
+  $( function() {
+    $( "#dialog" ).dialog();
+  } );
+  </script>
+{% endblock %}
+
