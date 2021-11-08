@@ -539,9 +539,10 @@ def view_history(request):
 
     end_period = "'%(year)d-%(month)d-%(day)d'" % {'year': end_period.year if end_period.month != 1 else end_period.year - 1, 'month': end_period.month - 1, 'day': end_period.day}
 
+    # TODO: change this to use the month column instead of this complicated logic
     for i in range(int(months.value) + 1):
         period = get_start_of_period(datetime(year, month, 1), request.user)
-        when_statements += " when time > '%(year)d-%(month)d-%(day)d' then '%(year)d-%(month)d-%(day)d' \n" % {
+        when_statements += " when date > '%(year)d-%(month)d-%(day)d' then '%(year)d-%(month)d-%(day)d' \n" % {
             'year': period.year, 'month': period.month, 'day': period.day}
         month -= 1
         if not month:
@@ -558,7 +559,7 @@ def view_history(request):
         ) as bracket, sum(amount)
         from money_transaction
         where user_id = %s
-              and time < %s
+              and date < %s
         group by account_id, bracket""" % (when_statements, request.user.id, end_period)
     cursor.execute(statement)
 
