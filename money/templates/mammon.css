@@ -11,6 +11,12 @@
 }
 
 
+.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+
 /****** Header *****/
 
 #header {
@@ -187,6 +193,7 @@ th {
 .amount {
     text-align: right;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .unsplit {

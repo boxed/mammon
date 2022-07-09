@@ -10,6 +10,7 @@ from math import sqrt
 from time import strftime
 
 from dateutil.relativedelta import relativedelta
+from django.utils.html import format_html
 from django.utils.http import http_date
 from django.utils.translation import (
     gettext,
@@ -26,7 +27,10 @@ from django.core.paginator import Paginator
 from django.db.models.aggregates import Sum, Count
 from django.forms import ModelForm
 from django import forms
-from iommi.form import date_parse
+from iommi.form import (
+    date_parse,
+    Form,
+)
 
 from mammon.authentication.models import MetaUser
 from mammon.money import *
@@ -36,6 +40,7 @@ from tri_declarative import (
     evaluate,
 )
 from iommi import (
+    Action,
     Column as ColumnBase,
     Table as TableBase,
     Page,
@@ -89,13 +94,20 @@ class TransactionTable(Table):
                 include=True,
                 field__include=False,
             ),
+            month__cell=dict(
+                format=lambda value, row, **_: format_html('<div class="inline_editable" edit_url="{}edit/month/">{}</div>', row.get_absolute_url(), value),
+            ),
+            month__filter=dict(include=True, field__include=False),
             description=Column.inline_edit(
                 cell__attrs__class__description=True,
                 filter__freetext__include=True,
                 filter__include=True,
             ),
-            amount__cell__attrs__class={'text-right': True},
-            amount__header__attrs__class={'text-right': True},
+            amount=dict(
+                cell__attrs__class={'numeric': True},
+                header__attrs__class={'numeric': True},
+                filter=dict(include=True, field__include=False),
+            ),
             category=Column.inline_edit_select(
                 model=Category,
                 choices=lambda request, **_: Category.objects.filter(user=request.user),
@@ -217,8 +229,10 @@ def index(request):
 def view_categories(request):
     return Table(
         auto__rows=Category.objects.filter(user=request.user),
+        columns__name__cell__url=lambda row, **_: row.get_absolute_url(),
         columns__user__include=False,
         columns__matching_rules__cell__attrs__class__pre=True,
+        actions__new_category=Action(attrs__href='new/'),
     )
 
 
@@ -363,7 +377,7 @@ def transactions_for_user(user):
 
 
 def transactions_for_period(request, start_time, end_time):
-    return transaction_filter(request).filter(date__gte=start_time, date__lt=end_time).select_related('account', 'category')
+    return transaction_filter(request).filter(month__gte=start_time, month__lt=end_time).select_related('account', 'category')
 
 
 def create_summary(request, start_time, end_time, user):
@@ -418,6 +432,8 @@ def create_summary(request, start_time, end_time, user):
         else:
             account.lossgain = 'gain'
         accounts[account] = sorted(categories.items())
+
+    accounts = dict(sorted(accounts.items()))
 
     return accounts, transactions, total
 
@@ -627,6 +643,14 @@ def edit_transaction_description(request, transaction_id):
 
 
 @login_required
+def edit_transaction_month(request, transaction_id):
+    transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
+    transaction.month = request.POST['new_content']
+    transaction.save()
+    return HttpResponse(request.POST['new_content'])
+
+
+@login_required
 def edit_transaction_properties(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
     if 'category' in request.POST and request.POST['category']:
@@ -671,9 +695,9 @@ def edit_transaction_account(request, transaction_id):
 @login_required
 def edit_transaction_date(request, transaction_id):
     transaction = Transaction.objects.get(pk=transaction_id, user=request.user)
-    transaction.time = datetime_from_string(request.POST['new_content'])
+    transaction.date = datetime_from_string(request.POST['new_content'])
     transaction.save()
-    return HttpResponse(transaction.time.strftime('%Y-%m-%d'))
+    return HttpResponse(transaction.date.strftime('%Y-%m-%d'))
 
 
 @login_required
@@ -735,6 +759,18 @@ def add_category(request):
 
 
 @login_required
+def new_category(request):
+    def pre_save(instance, request, **_):
+        instance.user = request.user
+
+    return Form.create(
+        auto__model=Category,
+        auto__exclude=['user'],
+        extra__pre_save_all_but_related_fields=pre_save,
+    )
+
+
+@login_required
 def update_matching(request):
     reset = 'reset' in request.GET
     update_matches_for_user(request.user, reset)
@@ -756,13 +792,14 @@ def split_transaction(request, transaction_id):
 
         distribute = 'distribute' in request.POST
 
-        time = transaction.time
+        date = transaction.date
         for number, part in enumerate(parts):
             if distribute:
-                time += relativedelta(months=1)
+                date += relativedelta(months=1)
             Transaction.objects.create(user=request.user,
                                        description=transaction.description,
-                                       time=time,
+                                       date=date,
+                                       month=transaction.month,
                                        category=transaction.category,
                                        virtual=True,
                                        amount=part,

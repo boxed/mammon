@@ -22,13 +22,13 @@ from . import settings
 
 urlpatterns = [
     path('', include('money.urls')),
-    path('settings/password/$', edit_user_password),
+    path('settings/password/', edit_user_password),
 
-    path(r'registration/', include('mammon.registration.urls')),
-    path(r'echo_headers/', echo_headers),
-    path(r'bin2/gfskod', echo_headers),
+    path('registration/', include('mammon.registration.urls')),
+    path('echo_headers/', echo_headers),
+    path('bin2/gfskod', echo_headers),
 
-    path(r'system/error_test/$', error_test),
+    path('system/error_test/', error_test),
 
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('admin/', include(Admin().urls())),

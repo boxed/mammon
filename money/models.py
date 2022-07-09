@@ -106,6 +106,9 @@ class Category(models.Model):
         else:
             return '<no name>'
 
+    def get_absolute_url(self):
+        return f'/categories/{self.pk}/'
+
     class Meta:
         ordering = ('name',)
         verbose_name_plural = gettext('Categories')
@@ -117,8 +120,8 @@ class Transaction(models.Model):
     month = models.DateField(null=True)
     description = models.TextField()
     amount = models.DecimalField(max_digits=19, decimal_places=2)
-    category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, null=True, blank=True, default=None, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.SET_NULL)
+    account = models.ForeignKey(Account, null=True, blank=True, default=None, on_delete=models.SET_NULL)
     virtual = models.BooleanField(default=False)  # means that this isn't the original transaction, but a part of a split transaction
     original_md5 = models.CharField(max_length=32, db_index=True)
 

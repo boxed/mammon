@@ -19,6 +19,7 @@ urlpatterns = [
     path('transactions/<int:transaction_id>/edit/description/', views.edit_transaction_description),
     path('transactions/<int:transaction_id>/edit/category/', views.edit_transaction_category),
     path('transactions/<int:transaction_id>/edit/account/', views.edit_transaction_account),
+    path('transactions/<int:transaction_id>/edit/month/', views.edit_transaction_month),
     path('transactions/<int:transaction_id>/edit/properties/', views.edit_transaction_properties),
     path('transactions/<int:transaction_id>/delete/', views.delete_transaction),
     path('transactions/delete_zeroes/', views.delete_empty_transactions),
@@ -28,6 +29,7 @@ urlpatterns = [
     path('categories/<int:category_id>/page/<int:page>/', views.view_category),
     path('categories/<int:category_id>/delete/', views.delete_category),
     path('categories/add/', views.add_category),
+    path('categories/new/', views.new_category),
 
     path('accounts/', views.view_accounts),
     path('accounts/<int:account_id>/', views.view_account),
