@@ -141,7 +141,7 @@ class TransactionTable(Table):
             delete=Column.icon(
                 'trash',
                 cell__attrs={
-                    'onclick': lambda row, **_: 'delete_transaction(%s)' % row.pk,
+                    'onclick': lambda row, **_: 'delete_transaction(%s, true)' % row.pk,
                     'title': ugettext_lazy('Delete'),
                 },
             ),
